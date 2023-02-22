@@ -12,6 +12,24 @@ public abstract class ClientBase extends Entrypoint {
     }
 
     /**
+     * Starts this client program
+     */
+    public void start() {
+        getInstance().init();
+        getInstance().run();
+        getInstance().destroy();
+    }
+
+    /**
+     * initializes the game loop
+     */
+    private void run() {
+        //TODO update and tick loops
+        update();
+        tick();
+    }
+
+    /**
      * Gets the singleton instance of this client
      * @return this client instance
      */

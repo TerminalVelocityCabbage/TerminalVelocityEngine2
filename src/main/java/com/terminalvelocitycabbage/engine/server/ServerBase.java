@@ -12,6 +12,15 @@ public abstract class ServerBase extends Entrypoint {
     }
 
     /**
+     * Starts this server program
+     */
+    public void start() {
+        getInstance().init();
+        getInstance().tick(); //TODO in a while loop
+        getInstance().destroy();
+    }
+
+    /**
      * Gets the singleton instance of this server
      * @return This server instance
      */
