@@ -1,14 +1,19 @@
 package com.terminalvelocitycabbage.engine.server;
 
 import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.util.TickManager;
 
 public abstract class ServerBase extends Entrypoint {
 
     private static ServerBase instance; //A singleton to represent the server for this program
 
-    public ServerBase(String namespace) {
+    private boolean shouldStop;
+    private TickManager tickManager;
+
+    public ServerBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
+        tickManager = new TickManager(ticksPerSecond);
     }
 
     /**
@@ -16,8 +21,21 @@ public abstract class ServerBase extends Entrypoint {
      */
     public void start() {
         getInstance().init();
-        getInstance().tick(); //TODO in a while loop
+        getInstance().run();
         getInstance().destroy();
+    }
+
+    /**
+     * initializes the game loop
+     */
+    private void run() {
+
+        while (!shouldStop) {
+            tickManager.update();
+            while (tickManager.hasTick()) {
+                tick();
+            }
+        }
     }
 
     /**
