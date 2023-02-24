@@ -64,7 +64,7 @@ public class Window {
         //TODO differ this to input handler
         glfwSetKeyCallback(windowID, keyCallback = new GLFWKeyCallback() {
             public void invoke(long window, int key, int scancode, int action, int mods) {
-                if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) glfwSetWindowShouldClose(window, true);
+                ClientBase.getInstance().keyCallback(window, key, scancode, action, mods);
             }
         });
 

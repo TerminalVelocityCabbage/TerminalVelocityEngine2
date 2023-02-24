@@ -6,17 +6,15 @@ import java.util.*;
 
 public class Registry<T> {
 
-    private final Map<Identifier, T> registryContents; //The contents of this registry
-    private final List<String> priorities; //A list of namespaces which define the prioritized retrieval order of this registry
-    private final T defaultItem; //The default item if an attempted retrieval finds no results
+    protected final LinkedHashMap<Identifier, T> registryContents; //The contents of this registry
+    protected final T defaultItem; //The default item if an attempted retrieval finds no results
 
     /**
      * Creates a new registry with type T.
      * @param defaultItem The item to be returned by this registry if none other is found
      */
     public Registry(T defaultItem) {
-        this.registryContents = new HashMap<>();
-        this.priorities = new ArrayList<>();
+        this.registryContents = new LinkedHashMap<>();
         this.defaultItem = defaultItem;
     }
 
@@ -26,11 +24,11 @@ public class Registry<T> {
      * @param item The item to be registered
      */
     public void register(Identifier identifier, T item) {
-        registryContents.put(identifier, item);
-        var namespace = identifier.getNamespace();
-        if (!priorities.contains(namespace)) {
-            priorities.add(namespace);
+        if (registryContents.containsKey(identifier)) {
+            Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+            return;
         }
+        registryContents.put(identifier, item);
     }
 
     /**
@@ -45,37 +43,5 @@ public class Registry<T> {
 
         Log.warn("Tried to get item which is not registered on this registry: " + identifier.toString());
         return defaultItem;
-    }
-
-    /**
-     * Retrieves an item of the highest priority from this registry based on the name of the item
-     * @param itemName The name of the item you wish to retrieve
-     * @return The item requested or the default item if none found
-     */
-    public T retrievePriority(String itemName) {
-
-        Map<String, T> items = new HashMap();
-
-        registryContents.forEach((identifier, item) -> {
-            if (identifier.getResourceName().equals(itemName)) items.put(identifier.getNamespace(), item);
-        });
-
-        for (String namespace : priorities) {
-            if (items.containsKey(namespace)) {
-                return items.get(namespace);
-            }
-        }
-
-        Log.warn("Tried to get item which is not registered on this registry: " + itemName);
-        return defaultItem;
-    }
-
-    /**
-     * Overwrites the priority namespaces of this registry
-     * @param namespaces A collection of strings to define the namespaces in the order of first priority in item retrieval
-     */
-    public void setPriorities(String... namespaces) {
-        priorities.clear();
-        priorities.addAll(List.of(namespaces));
     }
 }
