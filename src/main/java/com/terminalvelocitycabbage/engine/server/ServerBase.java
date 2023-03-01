@@ -3,10 +3,12 @@ package com.terminalvelocitycabbage.engine.server;
 import com.github.simplenet.Server;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
 import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
 import com.terminalvelocitycabbage.engine.util.TickManager;
+import com.terminalvelocitycabbage.templates.events.ServerLifecycleEvent;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -27,27 +29,35 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     private Server server;
     private String address;
     private int port;
-    private static PacketRegistry packetRegistry;
+
+    private PacketRegistry packetRegistry;
+    private EventDispatcher eventDispatcher;
 
     public ServerBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
-        server = new Server();
+        eventDispatcher = new EventDispatcher();
+        eventDispatcher.addPublisher(getNamespace(), this);
     }
 
     /**
      * Starts this server program
      */
     public void start() {
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.PRE_INIT), server));
         getInstance().init();
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.INIT), server));
         getInstance().run();
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STOPPING), server));
         getInstance().destroy();
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STOPPED), server));
     }
 
     @Override
     public void init() {
 
+        server = new Server();
         packetRegistry = new PacketRegistry();
 
         server.onConnect(client -> {
@@ -72,11 +82,15 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
      */
     private void run() {
 
-        //Establish connection
-        bind();
-
         //There should be no more packets registered to this packet registry after the game has been initialized
         packetRegistry.lock();
+
+        //Establish connection
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.PRE_BIND), server));
+        bind();
+
+        //Dispatch started event
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STARTED), server));
 
         //As long as the server should run we run it
         while (!shouldStop) {

@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.client;
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
+import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
 import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
@@ -26,12 +27,14 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     //Networking stuff
     private Client client;
     private PacketRegistry packetRegistry;
+    private EventDispatcher eventDispatcher;
 
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
-        packetRegistry = new PacketRegistry();
+        eventDispatcher = new EventDispatcher();
+        eventDispatcher.addPublisher(getNamespace(), this);
     }
 
     /**
@@ -53,6 +56,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     @Override
     public void init() {
+        packetRegistry = new PacketRegistry();
         window = new Window();
         client = new Client();
         client.onConnect(this::onConnect);

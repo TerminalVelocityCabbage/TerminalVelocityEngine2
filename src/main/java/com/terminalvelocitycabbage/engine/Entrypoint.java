@@ -2,8 +2,10 @@ package com.terminalvelocitycabbage.engine;
 
 import com.terminalvelocitycabbage.engine.debug.Logger;
 import com.terminalvelocitycabbage.engine.debug.LoggerSource;
+import com.terminalvelocitycabbage.engine.event.EventPublisher;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 
-public abstract class Entrypoint implements LoggerSource {
+public abstract class Entrypoint extends EventPublisher implements LoggerSource {
 
     String namespace; //The namespace of this artifact
     Logger logger; //The logger for this artifact
@@ -31,4 +33,15 @@ public abstract class Entrypoint implements LoggerSource {
      * A place to clean up things initialized by your entrypoint
      */
     public abstract void destroy();
+
+    /**
+     * @return the namespace of this entrypoint
+     */
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public Identifier identifierOf(String name) {
+        return new Identifier(getNamespace(), name);
+    }
 }
