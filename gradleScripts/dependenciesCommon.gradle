@@ -1,0 +1,12 @@
+ext {
+    lwjglVersion = "3.3.2-SNAPSHOT"
+    jomlVersion = "1.10.5"
+    simpleNetVersion = "1.6.6"
+    jansiVersion = "2.1.0"
+}
+
+dependencies {
+    implementation "com.github.jhg023:SimpleNet:${simpleNetVersion}"
+    implementation "org.fusesource.jansi:jansi:${jansiVersion}"
+    implementation "org.joml:joml:${jomlVersion}"
+}

@@ -1,2 +1,5 @@
 rootProject.name = 'TerminalVelocityEngine2'
 
+rootProject.group 'com.terminalvelocitycabbage.game'
+rootProject.version '1.0-SNAPSHOT'
+
