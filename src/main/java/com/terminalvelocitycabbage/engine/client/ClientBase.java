@@ -4,10 +4,9 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
-import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
-import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
-import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
-import com.terminalvelocitycabbage.engine.networking.SyncPacketRegistryPacket;
+import com.terminalvelocitycabbage.engine.mod.ModLoader;
+import com.terminalvelocitycabbage.engine.networking.*;
+import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 
 import java.io.ByteArrayInputStream;
@@ -28,6 +27,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private Client client;
     private PacketRegistry packetRegistry;
     private EventDispatcher eventDispatcher;
+    private Registry<Entrypoint> modRegistry;
 
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
@@ -35,6 +35,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         tickManager = new TickManager(ticksPerSecond);
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
+        modRegistry = new Registry<>(null);
     }
 
     /**
@@ -49,6 +50,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * Starts this client program
      */
     public void start() {
+        ModLoader.loadAndRegisterMods(Side.CLIENT);
         getInstance().init();
         getInstance().run();
         getInstance().destroy();
@@ -62,6 +64,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
+        getModRegistry().getRegistryContents().values().forEach(Entrypoint::init);
     }
 
     public void connect(String address, int port) {
@@ -127,6 +130,11 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      */
     public abstract void tick();
 
+    @Override
+    public void destroy() {
+        getModRegistry().getRegistryContents().values().forEach(Entrypoint::destroy);
+    }
+
     public Window getWindow() {
         return window;
     }
@@ -140,4 +148,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     }
 
     public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
+
+    public Registry<Entrypoint> getModRegistry() {
+        return modRegistry;
+    }
 }

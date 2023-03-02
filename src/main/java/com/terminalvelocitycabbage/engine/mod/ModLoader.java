@@ -1,8 +1,8 @@
 package com.terminalvelocitycabbage.engine.mod;
 
-import com.github.simplenet.Server;
 import com.terminalvelocitycabbage.engine.Entrypoint;
-import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.networking.Side;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.server.ServerBase;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
@@ -15,7 +15,8 @@ import java.nio.file.Paths;
 
 public class ModLoader {
 
-    public static void getModEntrypoints() {
+    //TODO use a metadata file to get this information from instead of using an annotation
+    public static void loadAndRegisterMods(Side side) {
 
         Path modsDir = Paths.get("mods");
         File modsRoot = new File(modsDir.toUri());
@@ -35,10 +36,20 @@ public class ModLoader {
                     for (Class<?> clazz : classes) {
 
                         //Found mod entrypoint
-                        if (clazz.isAnnotationPresent(Mod.class)) {
-                            Log.info(clazz.getName());
-                            var mod = (Entrypoint) ClassUtils.createInstance(clazz);
-                            ServerBase.getInstance().getModRegistry().register(new Identifier(mod.getNamespace(), mod.getNamespace()), mod);
+                        boolean client = clazz.isAnnotationPresent(ModClientEntrypoint.class);
+                        boolean server = clazz.isAnnotationPresent(ModServerEntrypoint.class);
+
+                        if (client || server) {
+                            Entrypoint mod;
+
+                            if (client && side == Side.CLIENT) {
+                                mod = (Entrypoint) ClassUtils.createInstance(clazz);
+                                ClientBase.getInstance().getModRegistry().register(new Identifier(mod.getNamespace(), mod.getNamespace()), mod);
+                            }
+                            if (server && side == Side.SERVER) {
+                                mod = (Entrypoint) ClassUtils.createInstance(clazz);
+                                ServerBase.getInstance().getModRegistry().register(new Identifier(mod.getNamespace(), mod.getNamespace()), mod);
+                            }
                         }
                     }
                 }
