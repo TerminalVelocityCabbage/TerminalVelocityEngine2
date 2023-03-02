@@ -44,4 +44,8 @@ public class Registry<T> {
         Log.warn("Tried to get item which is not registered on this registry: " + identifier.toString());
         return defaultItem;
     }
+
+    public LinkedHashMap<Identifier, T> getRegistryContents() {
+        return registryContents;
+    }
 }

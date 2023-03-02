@@ -4,9 +4,11 @@ import com.github.simplenet.Server;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
 import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
+import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.templates.events.ServerLifecycleEvent;
 
@@ -32,6 +34,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     private PacketRegistry packetRegistry;
     private EventDispatcher eventDispatcher;
+    private Registry<Entrypoint> modRegistry;
 
     public ServerBase(String namespace, int ticksPerSecond) {
         super(namespace);
@@ -75,6 +78,8 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
                 });
             });
         });
+
+        getModRegistry().getRegistryContents().values().forEach(Entrypoint::init);
     }
 
     /**
@@ -112,6 +117,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     @Override
     public void destroy() {
         server.close();
+        getModRegistry().getRegistryContents().values().forEach(Entrypoint::destroy);
     }
 
     /**
@@ -148,5 +154,9 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     public int getPort() {
         return port;
+    }
+
+    public Registry<Entrypoint> getModRegistry() {
+        return modRegistry;
     }
 }

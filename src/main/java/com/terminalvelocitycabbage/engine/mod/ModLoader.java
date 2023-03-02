@@ -1,8 +1,13 @@
 package com.terminalvelocitycabbage.engine.mod;
 
+import com.github.simplenet.Server;
+import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.server.ServerBase;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 
+import javax.management.ReflectionException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,11 +37,13 @@ public class ModLoader {
                         //Found mod entrypoint
                         if (clazz.isAnnotationPresent(Mod.class)) {
                             Log.info(clazz.getName());
+                            var mod = (Entrypoint) ClassUtils.createInstance(clazz);
+                            ServerBase.getInstance().getModRegistry().register(new Identifier(mod.getNamespace(), mod.getNamespace()), mod);
                         }
                     }
                 }
             }
-        } catch (IOException | ClassNotFoundException | NullPointerException e) {
+        } catch (IOException | ClassNotFoundException | NullPointerException | ReflectionException e) {
             throw new RuntimeException(e);
         }
     }
