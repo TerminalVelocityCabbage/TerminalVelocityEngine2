@@ -4,6 +4,7 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.engine.filesystem.FileSystem;
 import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
@@ -26,8 +27,13 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     //Networking stuff
     private Client client;
     private PacketRegistry packetRegistry;
+
+    //Scope Stuff
     private EventDispatcher eventDispatcher;
     private Registry<Entrypoint> modRegistry;
+
+    //Resources Stuff
+    private FileSystem fileSystem;
 
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
@@ -36,6 +42,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
         modRegistry = new Registry<>(null);
+        fileSystem = new FileSystem();
     }
 
     /**
@@ -56,8 +63,13 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         getInstance().destroy();
     }
 
+    public void preInit() {
+
+    }
+
     @Override
     public void init() {
+        preInit();
         packetRegistry = new PacketRegistry();
         window = new Window();
         client = new Client();
@@ -151,5 +163,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public Registry<Entrypoint> getModRegistry() {
         return modRegistry;
+    }
+
+    public FileSystem getFileSystem() {
+        return fileSystem;
     }
 }

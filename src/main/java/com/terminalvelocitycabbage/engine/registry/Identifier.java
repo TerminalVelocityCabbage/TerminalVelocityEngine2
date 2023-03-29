@@ -6,11 +6,11 @@ package com.terminalvelocitycabbage.engine.registry;
 public class Identifier {
 
 	private final String namespace; //The source of this resource
-	private final String name; //The resource itself
+	private final String name; //The item itself
 
 	/**
 	 * @param namespace The source of this resource
-	 * @param name The name of the resource we are identifying
+	 * @param name The name of the item we are identifying
 	 */
 	public Identifier(String namespace, String name) {
 		this.namespace = namespace;
@@ -25,9 +25,9 @@ public class Identifier {
 	}
 
 	/**
-	 * @return this identified resource's name
+	 * @return this identified item's name
 	 */
-	public String getResourceName() {
+	public String getName() {
 		return name;
 	}
 
