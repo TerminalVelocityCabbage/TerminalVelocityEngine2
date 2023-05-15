@@ -19,6 +19,14 @@ public class Registry<T> {
     }
 
     /**
+     * Creates a new registry with type T.
+     * The default item of this constructor is null
+     */
+    public Registry() {
+        this(null);
+    }
+
+    /**
      * Registers an item to this registry for retrieval later by its identifier or name
      * @param identifier The identifier of this registered item
      * @param item The item to be registered
@@ -36,7 +44,7 @@ public class Registry<T> {
      * @param identifier The identifier of the specific resource you wish to retrieve
      * @return The requested item or the default item if not found
      */
-    public T retrieveSpecific(Identifier identifier) {
+    public T get(Identifier identifier) {
         if (registryContents.containsKey(identifier)) {
             return registryContents.get(identifier);
         }

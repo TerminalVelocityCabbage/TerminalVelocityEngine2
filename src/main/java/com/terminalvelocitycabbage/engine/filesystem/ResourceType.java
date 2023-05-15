@@ -2,17 +2,22 @@ package com.terminalvelocitycabbage.engine.filesystem;
 
 public enum ResourceType {
 
-    MODEL,
-    TEXTURE,
-    ANIMATION,
-    SHADER,
-    DEFAULT_CONFIG,
-    SOUND,
-    FONT,
-    GENERIC_FILE;
+    MODEL("model"),
+    TEXTURE("texture"),
+    ANIMATION("animation"),
+    SHADER("shader"),
+    DEFAULT_CONFIG("default_config"),
+    SOUND("sound"),
+    FONT("font"),
+    GENERIC_FILE("file");
 
-    ResourceType() {
+    String name;
 
+    ResourceType(String name) {
+        this.name = name;
     }
 
+    public String getName() {
+        return name;
+    }
 }

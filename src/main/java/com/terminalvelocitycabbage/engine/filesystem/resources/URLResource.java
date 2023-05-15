@@ -34,12 +34,7 @@ public class URLResource implements Resource {
 
     @Override
     public DataInputStream asDataStream() {
-        try {
-            return new DataInputStream(url.openStream());
-        } catch (IOException e) {
-            Log.crash("Resource Loading Error, could not get DataStream", new RuntimeException(e));
-        }
-        return null;
+        return new DataInputStream(openStream());
     }
 
     @Override

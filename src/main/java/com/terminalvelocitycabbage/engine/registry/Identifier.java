@@ -18,6 +18,19 @@ public class Identifier {
 	}
 
 	/**
+	 * @param identifierString The string in format namespace:path to convert to an Identifier
+	 * @return an identifier with the same format
+	 */
+	public static Identifier of(String identifierString) {
+		var parts = identifierString.split(":");
+		if (parts.length == 2) {
+			return new Identifier(parts[0], parts[1]);
+		} else {
+			throw new RuntimeException("Invalid identifier name " + identifierString + " it must be in format namespace:path");
+		}
+	}
+
+	/**
 	 * @return the namespace of this identifier
 	 */
 	public String getNamespace() {

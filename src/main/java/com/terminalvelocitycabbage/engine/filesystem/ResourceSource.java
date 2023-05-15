@@ -1,18 +1,20 @@
 package com.terminalvelocitycabbage.engine.filesystem;
 
-import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Registry;
+
+import java.util.Collection;
 
 /**
  * Defines a resource root for an entrypoint or asset pack
  */
-public class ResourceSource {
+public abstract class ResourceSource {
 
-    int priority;
+    protected String namespace;
     Registry<ResourceRoot> resourceRootRegistry;
 
-    public ResourceSource(int priority) {
-        this.priority = priority;
+    public ResourceSource(String namespace) {
+        this.namespace = namespace;
         this.resourceRootRegistry = new Registry<>(null);
     }
 
@@ -20,25 +22,11 @@ public class ResourceSource {
         return resourceRootRegistry;
     }
 
-    /**
-     * Registers a resource root at location "assets/namespace/root_name/" where namespace belongs to the identifier and
-     * root_name is the name of the identifier.
-     *
-     * Example: registerDefaultSourceRoot(ResourceType.MODEL, (identifier) game:models) will result in a path at
-     * assets/game/models
-     *
-     * @param type the type of resource held in this root
-     * @param identifier the namespace:name of this resource root
-     */
-    public void registerDefaultSourceRoot(ResourceType type, Identifier identifier) {
-        getResourceRootRegistry().register(identifier, new ResourceRoot(type, "assets/" + identifier.getNamespace() + "/" + identifier.getName()));
+    public abstract void registerDefaultSourceRoot(ResourceType type);
+
+    public Collection<ResourceRoot> getRoots() {
+        return resourceRootRegistry.getRegistryContents().values();
     }
 
-    public int getPriority() {
-        return priority;
-    }
-
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
+    public abstract Resource getResource(String path, ResourceType resourceType);
 }

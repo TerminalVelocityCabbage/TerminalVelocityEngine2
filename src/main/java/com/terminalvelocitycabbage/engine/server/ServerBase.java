@@ -4,7 +4,7 @@ import com.github.simplenet.Server;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
-import com.terminalvelocitycabbage.engine.filesystem.FileSystem;
+import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
 import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
@@ -40,7 +40,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     private Registry<Entrypoint> modRegistry;
 
     //Resources Stuff
-    private FileSystem fileSystem;
+    private GameFileSystem fileSystem;
 
     public ServerBase(String namespace, int ticksPerSecond) {
         super(namespace);
@@ -49,7 +49,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
         modRegistry = new Registry<>(null);
-        fileSystem = new FileSystem();
+        fileSystem = new GameFileSystem();
     }
 
     /**
@@ -174,7 +174,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         return modRegistry;
     }
 
-    public FileSystem getFileSystem() {
+    public GameFileSystem getFileSystem() {
         return fileSystem;
     }
 }
