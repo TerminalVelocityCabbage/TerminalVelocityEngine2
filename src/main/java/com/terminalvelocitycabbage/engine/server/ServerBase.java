@@ -69,10 +69,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STOPPED), server));
     }
 
-    public void preInit() {
-
-    }
-
     @Override
     public void init() {
         preInit();
@@ -96,6 +92,10 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
             });
         });
 
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().preInit());
+    }
+
+    public void modInit() {
         getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().init());
     }
 

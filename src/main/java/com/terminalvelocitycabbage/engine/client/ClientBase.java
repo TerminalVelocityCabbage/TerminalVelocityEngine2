@@ -66,10 +66,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         getInstance().destroy();
     }
 
-    public void preInit() {
-
-    }
-
     @Override
     public void init() {
         preInit();
@@ -79,6 +75,10 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().preInit());
+    }
+
+    public void modInit() {
         getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().init());
     }
 

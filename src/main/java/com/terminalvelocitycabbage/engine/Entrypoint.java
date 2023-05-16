@@ -44,4 +44,8 @@ public abstract class Entrypoint extends EventPublisher implements LoggerSource 
     public Identifier identifierOf(String name) {
         return new Identifier(getNamespace(), name);
     }
+
+    public void preInit() {
+
+    }
 }
