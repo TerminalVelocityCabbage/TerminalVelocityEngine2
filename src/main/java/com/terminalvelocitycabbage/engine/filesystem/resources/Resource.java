@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+/**
+ * A definition for the ways a resource needs to be parseable
+ */
 public interface Resource {
 
     InputStream openStream() throws IOException;

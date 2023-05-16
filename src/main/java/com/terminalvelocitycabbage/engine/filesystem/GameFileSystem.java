@@ -57,47 +57,38 @@ public class GameFileSystem {
         resourceLocationRegistry.register(sourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, new Identifier(sourceIdentifier.getNamespace(), fileName)));
     }
 
+    /**
+     * @return the location to register resource sources
+     */
     public Registry<ResourceSource> getSourceRegistry() {
         return sourceRegistry;
     }
 
+    /**
+     * Initializes this file system with locations for the registered resources
+     */
     public void init() {
 
-        //List Sources
-        Log.info("Initializing filesystem with " + getSourceRegistry().getRegistryContents().size() + " sources:");
-        getSourceRegistry().getRegistryContents().forEach((identifier, source) -> Log.info("  - " + identifier));
-
         //Init filesystem types
-        Log.info("Initializing filesystem root types:");
         for (ResourceType type: ResourceType.values()) {
-            Log.info("  - Initializing VFS root for type: " + type.getName());
             fileSystemContents.put(type.getName(), new HashMap<>());
         }
 
-        //List sources' type roots
-        for (Map.Entry<Identifier, ResourceSource> entry : getSourceRegistry().getRegistryContents().entrySet()) {
-            Identifier identifier = entry.getKey();
-            ResourceSource source = entry.getValue();
-            Log.info("Registering source roots for identifier: " + identifier);
-            for (String root : source.getRoots()) {
-                //TODO init roots?
-                Log.info("  - " + root);
-            }
-        }
-
         //Compile filesystem
-        Log.info("Compiling " + resourceLocationRegistry.getRegistryContents().size() + " registered resources into the VFS:");
         for (Map.Entry<Identifier, ResourceLocation> entry : resourceLocationRegistry.getRegistryContents().entrySet()) {
-
+            //Where the resource exists
             ResourceLocation resourceLocation = entry.getValue();
             //Get the resource from its resource location and make it available on this file system
-            Log.info("  - Searching for " + resourceLocation.type().getName() + " resource: " + resourceLocation.resourceIdentifier());
             Resource resource = sourceRegistry.get(resourceLocation.resourceSourceIdentifier())
                     .getResource(resourceLocation.resourceIdentifier().getName(), resourceLocation.type());
+            //Get the resource type and put this resource into it to be used later
             fileSystemContents.get(resourceLocation.type().getName()).put(resourceLocation.resourceIdentifier().toString(), resource);
         }
     }
 
+    /**
+     * Lists the resources loaded to this filesystem
+     */
     public void listResources() {
         Log.info("Listing virtual filesystem resource identifiers:");
         fileSystemContents.forEach((resourceType, identifierResourceMap) -> {
@@ -108,13 +99,13 @@ public class GameFileSystem {
         });
     }
 
+    /**
+     * @param resourceType The type of resource you are retrieving see: {@link ResourceType}
+     * @param identifier An identifier which identifies the resource you are trying to retrieve
+     *                   Ex. testmod:trex
+     * @return A Resource from this file system which matches the request
+     */
     public Resource getResource(ResourceType resourceType, Identifier identifier) {
-
-        String resourceName = resourceType.getName();
-        Resource resource = fileSystemContents.get(resourceName).get(identifier.toString());
-
-        Log.info("trying to get resource for: " + resourceName + " with " + identifier + " which is " + resource);
-
-        return resource;
+        return fileSystemContents.get(resourceType.getName()).get(identifier.toString());
     }
 }

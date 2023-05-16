@@ -8,9 +8,14 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
+/**
+ * A Resource housed in a jar file (usually a mod)
+ */
 public class JarResource implements Resource {
 
+    //The file that this resource exists within
     private final JarFile jarFile;
+    //The entry within the JarFile that this resource is concerned with
     private final JarEntry jarEntry;
 
     public JarResource(JarFile jarFile, JarEntry jarEntry) {

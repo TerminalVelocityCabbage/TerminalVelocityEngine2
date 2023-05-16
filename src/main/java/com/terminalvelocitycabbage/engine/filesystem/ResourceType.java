@@ -1,5 +1,9 @@
 package com.terminalvelocitycabbage.engine.filesystem;
 
+//TODO replace with resource type registry in case a mod has a unique resource type not listed here
+/**
+ * Defines a type of resource. For now
+ */
 public enum ResourceType {
 
     MODEL("model"),
