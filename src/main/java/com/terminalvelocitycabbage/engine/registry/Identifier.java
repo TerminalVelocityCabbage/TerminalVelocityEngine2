@@ -48,4 +48,8 @@ public class Identifier {
 	public String toString() {
 		return namespace + ':' + name;
 	}
+
+	public boolean equalsString(String identifier) {
+		return this.toString().equals(identifier);
+	}
 }

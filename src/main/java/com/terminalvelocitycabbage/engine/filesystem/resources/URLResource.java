@@ -44,6 +44,7 @@ public class URLResource implements Resource {
         return br.lines().collect(Collectors.joining("\n"));
     }
 
+    //TODO once tested jar resource for inputstream stuff see if this works for that too because it's simpler
     @Override
     public ByteBuffer asByteBuffer(boolean keepAlive) {
 

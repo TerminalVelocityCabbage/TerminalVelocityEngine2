@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine.util;
 
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.server.ServerBase;
 
@@ -24,7 +25,7 @@ public class EntrypointUtils {
         return null;
     }
 
-    public static Registry<Entrypoint> getModRegistry() {
+    public static Registry<Mod> getModRegistry() {
         if (isCurrentEntrypointClient()) return ClientBase.getInstance().getModRegistry();
         if (isCurrentEntrypointServer()) return ServerBase.getInstance().getModRegistry();
         return null;

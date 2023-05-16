@@ -11,20 +11,21 @@ import java.util.Collection;
 public abstract class ResourceSource {
 
     protected String namespace;
-    Registry<ResourceRoot> resourceRootRegistry;
+    //Paths for the roots are strings
+    Registry<String> resourceRootRegistry;
 
     public ResourceSource(String namespace) {
         this.namespace = namespace;
         this.resourceRootRegistry = new Registry<>(null);
     }
 
-    public Registry<ResourceRoot> getResourceRootRegistry() {
+    public Registry<String> getResourceRootRegistry() {
         return resourceRootRegistry;
     }
 
     public abstract void registerDefaultSourceRoot(ResourceType type);
 
-    public Collection<ResourceRoot> getRoots() {
+    public Collection<String> getRoots() {
         return resourceRootRegistry.getRegistryContents().values();
     }
 

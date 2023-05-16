@@ -30,7 +30,7 @@ public class GameFileSystem {
     final Registry<ResourceSource> sourceRegistry;
     //TODO replace the map with a resource type registry so we can remove ResourceType to allow mods to create more etc.
     final Registry<ResourceLocation> resourceLocationRegistry;
-    final Map<ResourceType, Map<Identifier, Resource>> fileSystemContents;
+    final Map<String, Map<String, Resource>> fileSystemContents;
 
     public GameFileSystem() {
         this.sourceRegistry = new Registry<>();
@@ -71,7 +71,7 @@ public class GameFileSystem {
         Log.info("Initializing filesystem root types:");
         for (ResourceType type: ResourceType.values()) {
             Log.info("  - Initializing VFS root for type: " + type.getName());
-            fileSystemContents.put(type, new HashMap<>());
+            fileSystemContents.put(type.getName(), new HashMap<>());
         }
 
         //List sources' type roots
@@ -79,8 +79,9 @@ public class GameFileSystem {
             Identifier identifier = entry.getKey();
             ResourceSource source = entry.getValue();
             Log.info("Registering source roots for identifier: " + identifier);
-            for (ResourceRoot root : source.getRoots()) {
-                Log.info("  - Type: " + root.type().getName() + " at: " + root.path());
+            for (String root : source.getRoots()) {
+                //TODO init roots?
+                Log.info("  - " + root);
             }
         }
 
@@ -93,14 +94,14 @@ public class GameFileSystem {
             Log.info("  - Searching for " + resourceLocation.type().getName() + " resource: " + resourceLocation.resourceIdentifier());
             Resource resource = sourceRegistry.get(resourceLocation.resourceSourceIdentifier())
                     .getResource(resourceLocation.resourceIdentifier().getName(), resourceLocation.type());
-            fileSystemContents.get(resourceLocation.type()).put(resourceLocation.resourceIdentifier(), resource);
+            fileSystemContents.get(resourceLocation.type().getName()).put(resourceLocation.resourceIdentifier().toString(), resource);
         }
     }
 
     public void listResources() {
         Log.info("Listing virtual filesystem resource identifiers:");
         fileSystemContents.forEach((resourceType, identifierResourceMap) -> {
-            Log.info("  " + resourceType.getName() + "s: (" + identifierResourceMap.size() + "):");
+            Log.info("  " + resourceType + "s: (" + identifierResourceMap.size() + "):");
             identifierResourceMap.forEach((identifier, resource) -> {
                 Log.info("    - " + identifier);
             });
@@ -108,6 +109,12 @@ public class GameFileSystem {
     }
 
     public Resource getResource(ResourceType resourceType, Identifier identifier) {
-        return fileSystemContents.get(resourceType).get(identifier);
+
+        String resourceName = resourceType.getName();
+        Resource resource = fileSystemContents.get(resourceName).get(identifier.toString());
+
+        Log.info("trying to get resource for: " + resourceName + " with " + identifier + " which is " + resource);
+
+        return resource;
     }
 }

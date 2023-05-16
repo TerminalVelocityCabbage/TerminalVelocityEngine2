@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.engine.filesystem.sources;
 
-import com.terminalvelocitycabbage.engine.filesystem.ResourceRoot;
 import com.terminalvelocitycabbage.engine.filesystem.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.ResourceType;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
@@ -17,7 +16,7 @@ public class SystemSource extends ResourceSource {
 
     @Override
     public void registerDefaultSourceRoot(ResourceType type) {
-        getResourceRootRegistry().register(new Identifier(namespace, type.getName()), new ResourceRoot(type, "assets/" + namespace + "/" + type.getName()));
+        getResourceRootRegistry().register(new Identifier(namespace, type.getName()), "assets/" + namespace + "/" + type.getName() + "s");
     }
 
     @Override
