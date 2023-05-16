@@ -8,6 +8,7 @@ public class Registry<T> {
 
     protected final LinkedHashMap<Identifier, T> registryContents; //The contents of this registry
     protected final T defaultItem; //The default item if an attempted retrieval finds no results
+    public static final String PATTERN = "[A-Za-z0-9_]+:[A-Za-z0-9_]+";
 
     /**
      * Creates a new registry with type T.
@@ -16,6 +17,14 @@ public class Registry<T> {
     public Registry(T defaultItem) {
         this.registryContents = new LinkedHashMap<>();
         this.defaultItem = defaultItem;
+    }
+
+    /**
+     * Creates a new registry with type T.
+     * The default item of this constructor is null
+     */
+    public Registry() {
+        this(null);
     }
 
     /**
@@ -36,12 +45,24 @@ public class Registry<T> {
      * @param identifier The identifier of the specific resource you wish to retrieve
      * @return The requested item or the default item if not found
      */
-    public T retrieveSpecific(Identifier identifier) {
-        if (registryContents.containsKey(identifier)) {
-            return registryContents.get(identifier);
+    public T get(Identifier identifier) {
+        return get(identifier.toString());
+    }
+
+    /**
+     * Retrieves a specific resource by its identifier in string format
+     * @param identifier The identifier of the specific resource you wish to retrieve
+     * @return The requested item or the default item if not found
+     */
+    public T get(String identifier) {
+
+        if (!identifier.matches(PATTERN)) Log.crash("Could not find registry item with identifier " + identifier, new RuntimeException("identifier does not match pattern " + PATTERN));
+
+        for (Map.Entry<Identifier, T> identifierTEntry : registryContents.entrySet()) {
+            if (identifierTEntry.getKey().equalsString(identifier)) return identifierTEntry.getValue();
         }
 
-        Log.warn("Tried to get item which is not registered on this registry: " + identifier.toString());
+        Log.warn("Tried to get item which is not registered on this registry: " + identifier);
         return defaultItem;
     }
 

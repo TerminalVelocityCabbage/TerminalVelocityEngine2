@@ -71,7 +71,7 @@ public class EventDispatcher {
 	protected Collection<Method> findListenerMethodsInObject(Object subscriber, Identifier eventName) {
 		return ClassUtils.getAllMethodsInHierarchy(subscriber.getClass()).stream().filter(method -> {
 			if (method.isAnnotationPresent(HandleEvent.class)) {
-				return method.getAnnotation(HandleEvent.class).eventName().equals(eventName.getResourceName());
+				return method.getAnnotation(HandleEvent.class).eventName().equals(eventName.getName());
 			}
 			return false;
 		}).toList();

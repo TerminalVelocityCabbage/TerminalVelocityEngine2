@@ -4,7 +4,9 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
-import com.terminalvelocitycabbage.engine.mod.ModLoader;
+import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
+import com.terminalvelocitycabbage.engine.mod.Mod;
+import com.terminalvelocitycabbage.engine.mod.ModManager;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
@@ -26,8 +28,14 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     //Networking stuff
     private Client client;
     private PacketRegistry packetRegistry;
+
+    //Scope Stuff
     private EventDispatcher eventDispatcher;
-    private Registry<Entrypoint> modRegistry;
+    private ModManager modManager;
+    private Registry<Mod> modRegistry;
+
+    //Resources Stuff
+    private GameFileSystem fileSystem;
 
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
@@ -35,7 +43,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         tickManager = new TickManager(ticksPerSecond);
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
+        modManager = new ModManager();
         modRegistry = new Registry<>(null);
+        fileSystem = new GameFileSystem();
     }
 
     /**
@@ -50,21 +60,26 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * Starts this client program
      */
     public void start() {
-        ModLoader.loadAndRegisterMods(Side.CLIENT);
+        modManager.loadAndRegisterMods(Side.CLIENT);
         getInstance().init();
         getInstance().run();
         getInstance().destroy();
     }
 
+    public void preInit() {
+
+    }
+
     @Override
     public void init() {
+        preInit();
         packetRegistry = new PacketRegistry();
         window = new Window();
         client = new Client();
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
-        getModRegistry().getRegistryContents().values().forEach(Entrypoint::init);
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().init());
     }
 
     public void connect(String address, int port) {
@@ -132,7 +147,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     @Override
     public void destroy() {
-        getModRegistry().getRegistryContents().values().forEach(Entrypoint::destroy);
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().destroy());
     }
 
     public Window getWindow() {
@@ -149,7 +164,15 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
 
-    public Registry<Entrypoint> getModRegistry() {
+    public Registry<Mod> getModRegistry() {
         return modRegistry;
+    }
+
+    public ModManager getModManager() {
+        return modManager;
+    }
+
+    public GameFileSystem getFileSystem() {
+        return fileSystem;
     }
 }

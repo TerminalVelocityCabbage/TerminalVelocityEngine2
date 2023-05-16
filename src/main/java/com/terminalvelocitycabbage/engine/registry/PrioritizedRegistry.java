@@ -52,7 +52,7 @@ public class PrioritizedRegistry<T> extends Registry<T> {
         Map<String, T> items = new HashMap();
 
         registryContents.forEach((identifier, item) -> {
-            if (identifier.getResourceName().equals(itemName)) items.put(identifier.getNamespace(), item);
+            if (identifier.getName().equals(itemName)) items.put(identifier.getNamespace(), item);
         });
 
         for (String namespace : priorities) {
