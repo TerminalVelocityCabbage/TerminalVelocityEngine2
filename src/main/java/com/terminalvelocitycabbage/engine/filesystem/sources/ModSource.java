@@ -1,8 +1,8 @@
 package com.terminalvelocitycabbage.engine.filesystem.sources;
 
-import com.terminalvelocitycabbage.engine.filesystem.ResourceSource;
-import com.terminalvelocitycabbage.engine.filesystem.ResourceType;
-import com.terminalvelocitycabbage.engine.filesystem.resources.JarResource;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.types.JarResource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.registry.Identifier;

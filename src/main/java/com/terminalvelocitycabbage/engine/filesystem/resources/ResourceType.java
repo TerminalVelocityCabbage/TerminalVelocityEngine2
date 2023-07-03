@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.engine.filesystem;
+package com.terminalvelocitycabbage.engine.filesystem.resources;
 
 //TODO replace with resource type registry in case a mod has a unique resource type not listed here
 /**

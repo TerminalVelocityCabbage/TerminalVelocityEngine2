@@ -3,6 +3,8 @@ package com.terminalvelocitycabbage.engine.filesystem;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceLocation;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
@@ -31,6 +33,9 @@ public class GameFileSystem {
     //TODO replace the map with a resource type registry so we can remove ResourceType to allow mods to create more etc.
     final Registry<ResourceLocation> resourceLocationRegistry;
     final Map<String, Map<String, Resource>> fileSystemContents;
+
+    //Default Locations for things
+    public String configDir = "configs";
 
     public GameFileSystem() {
         this.sourceRegistry = new Registry<>();
@@ -107,5 +112,9 @@ public class GameFileSystem {
      */
     public Resource getResource(ResourceType resourceType, Identifier identifier) {
         return fileSystemContents.get(resourceType.getName()).get(identifier.toString());
+    }
+
+    public String getConfigsDirectory() {
+        return configDir;
     }
 }

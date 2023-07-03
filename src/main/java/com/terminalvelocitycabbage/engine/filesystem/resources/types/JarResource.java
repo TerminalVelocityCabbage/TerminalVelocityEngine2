@@ -1,4 +1,6 @@
-package com.terminalvelocitycabbage.engine.filesystem.resources;
+package com.terminalvelocitycabbage.engine.filesystem.resources.types;
+
+import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 
 import java.io.*;
 import java.nio.ByteBuffer;
