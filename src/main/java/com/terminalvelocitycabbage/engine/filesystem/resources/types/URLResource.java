@@ -1,6 +1,7 @@
-package com.terminalvelocitycabbage.engine.filesystem.resources;
+package com.terminalvelocitycabbage.engine.filesystem.resources.types;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
 

@@ -1,6 +1,6 @@
-package com.terminalvelocitycabbage.engine.filesystem;
+package com.terminalvelocitycabbage.engine.filesystem.resources;
 
-import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
+import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
 /**

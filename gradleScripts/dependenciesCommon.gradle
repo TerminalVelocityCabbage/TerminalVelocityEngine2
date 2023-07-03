@@ -2,10 +2,12 @@ ext {
     jomlVersion = "1.10.5"
     simpleNetVersion = "1.6.6"
     jansiVersion = "2.1.0"
+    nightConfigVersion = "3.6.6"
 }
 
 dependencies {
     api "com.github.jhg023:SimpleNet:${simpleNetVersion}"
     api "org.fusesource.jansi:jansi:${jansiVersion}"
     api "org.joml:joml:${jomlVersion}"
+    api "com.electronwill.night-config:toml:${nightConfigVersion}"
 }
