@@ -1,5 +1,6 @@
 ext {
-    lwjglVersion = "3.3.2-SNAPSHOT"
+    lwjglVersion = "3.3.3-SNAPSHOT"
+    lwjglNatives = "to be determined later by gradle script"
 }
 
 apply from: file('../TerminalVelocityEngine2/gradleScripts/nativesClient.gradle')
