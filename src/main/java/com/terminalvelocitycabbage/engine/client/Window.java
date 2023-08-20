@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -30,6 +31,8 @@ public class Window {
     int height = 400;
     final Object lock = new Object();
     boolean destroyed;
+
+    Identifier activeRenderer;
 
     public void run() {
         try {
@@ -156,5 +159,13 @@ public class Window {
 
     public int getHeight() {
         return height;
+    }
+
+    public Identifier getActiveRenderer() {
+        return activeRenderer;
+    }
+
+    public void setActiveRenderer(Identifier activeRenderer) {
+        this.activeRenderer = activeRenderer;
     }
 }
