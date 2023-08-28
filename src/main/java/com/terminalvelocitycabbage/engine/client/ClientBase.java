@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.client;
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
+import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
@@ -12,6 +13,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 
+import javax.swing.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -24,7 +26,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private static ClientBase instance;
 
     //Game loop stuff
-    private Registry<Window> windowRegistry;
+    private WindowManager windowManager;
     private Registry<RendererBase> rendererRegistry;
     private TickManager tickManager;
 
@@ -52,7 +54,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         modManager = new ModManager();
         modRegistry = new Registry<>(null);
         fileSystem = new GameFileSystem();
-        windowRegistry = new Registry<>();
+        windowManager = new WindowManager();
         rendererRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
         activeWindows = new HashSet<>();
@@ -84,6 +86,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
         getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().preInit());
+        windowManager.init();
     }
 
     public void modInit() {
@@ -134,7 +137,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * initializes the game loop
      */
     private void run() {
-        activeWindows.forEach(identifier -> windowRegistry.get(identifier).run());
+        windowManager.loop();
     }
 
     /**
@@ -145,11 +148,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         while (tickManager.hasTick()) {
             tick();
         }
-        //Update renderers for each active window
-        activeWindows.forEach(identifier -> {
-            Window window = windowRegistry.get(identifier);
-            rendererRegistry.get(window.getActiveRenderer()).update(window);
-        });
     }
 
     /**
@@ -160,11 +158,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     @Override
     public void destroy() {
+        windowManager.destroy();
         getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().destroy());
-    }
-
-    public Window getWindow(Identifier identifier) {
-        return windowRegistry.get(identifier);
     }
 
     public List<RendererBase> getActiveWindowRenderers() {
@@ -176,14 +171,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public void activateWindow(Identifier window) {
         activeWindows.add(window);
-    }
-
-    protected void setRenderer(Identifier window, Identifier renderer) {
-        windowRegistry.get(window).setActiveRenderer(renderer);
-    }
-
-    public RendererBase getRenderer(Identifier window) {
-        return rendererRegistry.get(windowRegistry.get(window).getActiveRenderer());
     }
 
     public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
@@ -200,10 +187,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         return fileSystem;
     }
 
-    public Registry<Window> getWindowRegistry() {
-        return windowRegistry;
-    }
-
     public Registry<RendererBase> getRendererRegistry() {
         return rendererRegistry;
     }
@@ -211,5 +194,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     @Override
     public PacketRegistry getPacketRegistry() {
         return packetRegistry;
+    }
+
+    public WindowManager getWindowManager() {
+        return windowManager;
     }
 }
