@@ -33,12 +33,13 @@ public class PrioritizedRegistry<T> extends Registry<T> {
      * @param item The item to be registered
      */
     @Override
-    public void register(Identifier identifier, T item) {
+    public T register(Identifier identifier, T item) {
         super.register(identifier, item);
         var namespace = identifier.getNamespace();
         if (!priorities.contains(namespace)) {
             priorities.add(namespace);
         }
+        return item;
     }
 
 

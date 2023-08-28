@@ -32,12 +32,13 @@ public class Registry<T> {
      * @param identifier The identifier of this registered item
      * @param item The item to be registered
      */
-    public void register(Identifier identifier, T item) {
+    public T register(Identifier identifier, T item) {
         if (registryContents.containsKey(identifier)) {
             Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
-            return;
+            return null;
         }
         registryContents.put(identifier, item);
+        return item;
     }
 
     /**

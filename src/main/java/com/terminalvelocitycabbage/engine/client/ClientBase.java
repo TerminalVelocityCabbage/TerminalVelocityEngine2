@@ -3,17 +3,22 @@ package com.terminalvelocitycabbage.engine.client;
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
+import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.mod.ModManager;
 import com.terminalvelocitycabbage.engine.networking.*;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 
+import javax.swing.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
@@ -21,8 +26,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private static ClientBase instance;
 
     //Game loop stuff
-    private Window window;
-    private RendererBase renderer;
+    private WindowManager windowManager;
+    private Registry<RendererBase> rendererRegistry;
     private TickManager tickManager;
 
     //Networking stuff
@@ -46,6 +51,10 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         modManager = new ModManager();
         modRegistry = new Registry<>(null);
         fileSystem = new GameFileSystem();
+        windowManager = new WindowManager();
+        rendererRegistry = new Registry<>();
+        packetRegistry = new PacketRegistry();
+        client = new Client();
     }
 
     /**
@@ -69,13 +78,11 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     @Override
     public void init() {
         preInit();
-        packetRegistry = new PacketRegistry();
-        window = new Window();
-        client = new Client();
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
         getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().preInit());
+        windowManager.init();
     }
 
     public void modInit() {
@@ -126,7 +133,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * initializes the game loop
      */
     private void run() {
-        window.run();
+        windowManager.loop();
     }
 
     /**
@@ -147,19 +154,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     @Override
     public void destroy() {
+        windowManager.destroy();
         getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().destroy());
-    }
-
-    public Window getWindow() {
-        return window;
-    }
-
-    protected void setRenderer(RendererBase renderer) {
-        this.renderer = renderer;
-    }
-
-    public RendererBase getRenderer() {
-        return renderer;
     }
 
     public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
@@ -174,5 +170,18 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public GameFileSystem getFileSystem() {
         return fileSystem;
+    }
+
+    public Registry<RendererBase> getRendererRegistry() {
+        return rendererRegistry;
+    }
+
+    @Override
+    public PacketRegistry getPacketRegistry() {
+        return packetRegistry;
+    }
+
+    public WindowManager getWindowManager() {
+        return windowManager;
     }
 }
