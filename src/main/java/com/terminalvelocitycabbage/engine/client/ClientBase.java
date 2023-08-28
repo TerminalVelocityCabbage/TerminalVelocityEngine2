@@ -30,9 +30,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private Registry<RendererBase> rendererRegistry;
     private TickManager tickManager;
 
-    //Current State
-    private Set<Identifier> activeWindows;
-
     //Networking stuff
     private Client client;
     private PacketRegistry packetRegistry;
@@ -57,7 +54,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         windowManager = new WindowManager();
         rendererRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
-        activeWindows = new HashSet<>();
         client = new Client();
     }
 
@@ -160,17 +156,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     public void destroy() {
         windowManager.destroy();
         getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().destroy());
-    }
-
-    public List<RendererBase> getActiveWindowRenderers() {
-        return activeWindows.stream()
-                .map(rendererRegistry::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
-    public void activateWindow(Identifier window) {
-        activeWindows.add(window);
     }
 
     public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
