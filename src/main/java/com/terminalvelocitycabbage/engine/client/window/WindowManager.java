@@ -31,7 +31,6 @@ public class WindowManager {
     Callback debugProc;
     GLFWVidMode videoMode;
 
-
     //Stores a list of window handles that need to be destroyed on the main thread
     private List<Long> windowsToDestroy = Collections.synchronizedList(new ArrayList<>());
     //Some monitor info (this should be expanded in the future)

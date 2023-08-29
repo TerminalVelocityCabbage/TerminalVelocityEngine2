@@ -1,7 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -40,7 +39,7 @@ public class WindowThread extends Thread {
 
         //swap the image in this window with the new one
         while (!quit) {
-            ClientBase.getInstance().getRendererRegistry().get(getProperties().getRenderer()).update(getProperties());
+            getProperties().getRenderer().update(getProperties());
             glfwSwapBuffers(windowHandle);
         }
 
