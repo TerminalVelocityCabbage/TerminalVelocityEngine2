@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
-import com.terminalvelocitycabbage.engine.client.ClientBase;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.*;
