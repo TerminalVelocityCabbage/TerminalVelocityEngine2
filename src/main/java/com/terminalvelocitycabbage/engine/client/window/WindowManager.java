@@ -1,9 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -32,7 +30,7 @@ public class WindowManager {
     GLFWVidMode videoMode;
 
     //Stores a list of window handles that need to be destroyed on the main thread
-    private List<Long> windowsToDestroy = Collections.synchronizedList(new ArrayList<>());
+    private List<WindowThread> windowsToDestroy = Collections.synchronizedList(new ArrayList<>());
     //Some monitor info (this should be expanded in the future)
     private int scaleX;
     //The (usually) active windows of this manager
@@ -84,7 +82,7 @@ public class WindowManager {
 
             //Check for window close requests
             threads.forEach((window, glfwThread) -> {
-                if (glfwWindowShouldClose(window)) glfwThread.quit = true;
+                if (glfwWindowShouldClose(window)) glfwThread.destroyThread();
             });
         }
     }
@@ -167,12 +165,11 @@ public class WindowManager {
 
     //Destroys the specified window
     //This MUST always be called from the main thread
-    private void destroyWindow(long window) {
-        glfwFreeCallbacks(window);
-        glfwDestroyWindow(window);
+    private void destroyWindow(WindowThread thread) {
+        thread.destroyWindow();
         //Prevent an IllegalStateException on last destroyed window
         if (threads.size() > 1) {
-            threads.remove(window);
+            threads.remove(thread);
         }
     }
 
@@ -184,8 +181,8 @@ public class WindowManager {
         return false;
     }
 
-    public void queueDestroyWindow(long windowHandle) {
-        windowsToDestroy.add(windowHandle);
+    public void queueDestroyWindow(WindowThread thread) {
+        windowsToDestroy.add(thread);
     }
 
     public WindowProperties getPropertiesFromWindow(long windowHandle) {

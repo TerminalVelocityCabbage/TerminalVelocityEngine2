@@ -1,8 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
-import com.terminalvelocitycabbage.engine.client.ClientBase;
 import org.lwjgl.opengl.GL;
 
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class WindowThread extends Thread {
@@ -44,10 +44,23 @@ public class WindowThread extends Thread {
         }
 
         //queue this window for destruction
-        windowManager.queueDestroyWindow(windowHandle);
+        windowManager.queueDestroyWindow(this);
 
         //Clear the gl capabilities from this window
         GL.setCapabilities(null);
+    }
+
+    public void destroyRenderer() {
+        getProperties().renderer.destroy();
+    }
+
+    public void destroyWindow() {
+        glfwFreeCallbacks(windowHandle);
+        glfwDestroyWindow(windowHandle);
+    }
+
+    public void destroyThread() {
+        quit = true;
     }
 
     public WindowProperties getProperties() {
