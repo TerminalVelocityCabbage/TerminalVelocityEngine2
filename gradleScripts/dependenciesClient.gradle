@@ -1,6 +1,8 @@
 ext {
     lwjglVersion = "3.3.2"
     lwjglNatives = "to be determined later by gradle script"
+    ultralightVersion = "0.0.2-SNAPSHOT"
+    ultralightNatives = "to be determined later by gradle script"
 }
 
 apply from: file('../TerminalVelocityEngine2/gradleScripts/nativesClient.gradle')
@@ -15,10 +17,16 @@ dependencies {
     implementation "org.lwjgl:lwjgl-openal"
     implementation "org.lwjgl:lwjgl-opengl"
     implementation "org.lwjgl:lwjgl-stb"
+
     runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-nanovg::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+
+    implementation "net.janrupf.ultralight:ultralight-java-reborn-core:$ultralightVersion"
+    implementation "net.janrupf.ultralight:ultralight-java-reborn-platform-jni:$ultralightVersion"
+
+    runtimeOnly "net.janrupf.ultralight:ultralight-java-reborn-platform-jni:$ultralightVersion:$ultralightNatives"
 }

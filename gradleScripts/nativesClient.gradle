@@ -2,19 +2,40 @@ import org.gradle.internal.os.OperatingSystem
 
 def osArch = System.getProperty("os.arch")
 switch (OperatingSystem.current()) {
-    case OperatingSystem.LINUX: project.ext.lwjglNatives = getLinuxNatives(osArch); break;
-    case OperatingSystem.MAC_OS: project.ext.lwjglNatives = getMacNatives(osArch); break;
-    case OperatingSystem.WINDOWS: project.ext.lwjglNatives = getWindowsNatives(osArch); break;
+    case OperatingSystem.LINUX:
+        project.ext.lwjglNatives = getLinuxLWJGLNatives(osArch);
+        project.ext.ultralightNatives = getLinuxUltralightNatives(osArch);
+        break;
+    case OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = getMacLWJGLNatives(osArch);
+        project.ext.ultralightNatives = getMacUltralightNatives(osArch);
+        break;
+    case OperatingSystem.WINDOWS:
+        project.ext.lwjglNatives = getWindowsLWJGLNatives(osArch);
+        project.ext.ultralightNatives = getWindowsUltralightNatives(osArch);
+        break;
 }
 
-static def getLinuxNatives(String osArch) {
+static def getLinuxLWJGLNatives(String osArch) {
     return osArch.startsWith("arm") || osArch.startsWith("aarch64") ? "natives-linux-${osArch.contains("64") || osArch.startsWith("armv8") ? "arm64" : "arm32"}" : "natives-linux"
 }
 
-static def getMacNatives(String osArch) {
+static def getMacLWJGLNatives(String osArch) {
     return osArch.startsWith("aarch64") ? "natives-macos-arm64" : "natives-macos"
 }
 
-static def getWindowsNatives(String osArch) {
+static def getWindowsLWJGLNatives(String osArch) {
     return osArch.contains("64") ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}" : "natives-windows-x86"
+}
+
+static def getLinuxUltralightNatives(String osArch) {
+    return "linux-x64"
+}
+
+static def getMacUltralightNatives(String osArch) {
+    return "mac-x64"
+}
+
+static def getWindowsUltralightNatives(String osArch) {
+    return "win-x64"
 }

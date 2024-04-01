@@ -1,6 +1,1 @@
-plugins {
-    id 'java-library'
-}
-
 rootProject.name = 'TerminalVelocityEngine2'
-
