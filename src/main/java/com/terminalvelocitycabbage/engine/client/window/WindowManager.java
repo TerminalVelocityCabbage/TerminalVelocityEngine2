@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
@@ -35,6 +36,9 @@ public class WindowManager {
     private int scaleX;
     //The (usually) active windows of this manager
     private Map<Long, WindowThread> threads = new HashMap<>();
+
+    //Increments every time a renderer is assigned, this number will be used as the BGFX identifier
+    private int renderers = 0;
 
     //Initialize this window manager (glfw)
     public void init() {
@@ -155,6 +159,11 @@ public class WindowManager {
             properties.setWidth(framebufferSize.get(0));
             properties.setHeight(framebufferSize.get(1));
         }
+
+        //Set the renderer id
+        properties.setRendererID(renderers++);
+        //TODO remove this
+        glfwSetWindowTitle(window, properties.getTitle() + renderers);
 
         //Show the window
         glfwShowWindow(window);

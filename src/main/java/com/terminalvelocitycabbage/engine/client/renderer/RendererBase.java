@@ -4,8 +4,17 @@ import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 
 public abstract class RendererBase {
 
-    public abstract void init();
+    private int rendererId;
+
+    public abstract void init(WindowProperties properties, long windowHandle);
     public abstract void update(WindowProperties properties);
     public abstract void destroy();
 
+    public int getRendererId() {
+        return rendererId;
+    }
+
+    public void setRendererId(int rendererId) {
+        this.rendererId = rendererId;
+    }
 }

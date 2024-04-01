@@ -27,7 +27,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     //Game loop stuff
     private WindowManager windowManager;
-    private Registry<RendererBase> rendererRegistry;
+    private Registry<Class<? extends RendererBase>> rendererRegistry;
     private TickManager tickManager;
 
     //Networking stuff
@@ -172,7 +172,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         return fileSystem;
     }
 
-    public Registry<RendererBase> getRendererRegistry() {
+    public Registry<Class<? extends RendererBase>> getRendererRegistry() {
         return rendererRegistry;
     }
 

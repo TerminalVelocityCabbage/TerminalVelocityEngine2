@@ -1,6 +1,11 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
+import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import org.lwjgl.opengl.GL;
+
+import javax.management.ReflectionException;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -15,6 +20,8 @@ public class WindowThread extends Thread {
     final WindowManager windowManager;
     //Properties of this window
     WindowProperties properties;
+    //Renderer
+    RendererBase rendererBase;
 
     /**
      * @param windowHandle the window pointer that points to the window managed by this thread
@@ -34,12 +41,20 @@ public class WindowThread extends Thread {
         GL.createCapabilities();
 
         //Turn on vsync
-        //TODO swap this out for a window config apply()
+        //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
         glfwSwapInterval(1);
+
+        //Create an instance of this renderer and init it
+        try {
+            rendererBase = ClassUtils.createInstance(ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer()));
+            rendererBase.setRendererId(properties.getRendererId());
+        } catch (ReflectionException e) {
+            throw new RuntimeException(e);
+        }
 
         //swap the image in this window with the new one
         while (!quit) {
-            getProperties().getRenderer().update(getProperties());
+            rendererBase.update(getProperties());
             glfwSwapBuffers(windowHandle);
         }
 
@@ -51,7 +66,7 @@ public class WindowThread extends Thread {
     }
 
     public void destroyRenderer() {
-        getProperties().renderer.destroy();
+        rendererBase.destroy();
     }
 
     public void destroyWindow() {

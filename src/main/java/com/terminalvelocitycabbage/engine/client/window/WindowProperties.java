@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class WindowProperties {
 
@@ -8,7 +9,8 @@ public class WindowProperties {
     private int height;
     private String title;
 
-    RendererBase renderer;
+    Identifier renderer;
+    int rendererId;
 
     public WindowProperties(WindowProperties properties) {
         this.width = properties.getWidth();
@@ -17,7 +19,7 @@ public class WindowProperties {
         this.renderer = properties.getRenderer();
     }
 
-    public WindowProperties(int width, int height, String title, RendererBase renderer) {
+    public WindowProperties(int width, int height, String title, Identifier renderer) {
         this.width = width;
         this.height = height;
         this.title = title;
@@ -51,11 +53,19 @@ public class WindowProperties {
         return this;
     }
 
-    public RendererBase getRenderer() {
+    public Identifier getRenderer() {
         return renderer;
     }
 
-    public void setRenderer(RendererBase renderer) {
+    public void setRenderer(Identifier renderer) {
         this.renderer = renderer;
+    }
+
+    public void setRendererID(int id) {
+        rendererId = id;
+    }
+
+    public int getRendererId() {
+        return rendererId;
     }
 }
