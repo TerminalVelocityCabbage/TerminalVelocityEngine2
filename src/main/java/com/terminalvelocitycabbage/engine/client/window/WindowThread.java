@@ -36,13 +36,11 @@ public class WindowThread extends Thread {
 
 
     @Override
-    public synchronized void start() {
-        super.start();
+    public void run() {
         try {
             renderer = ClassUtils.createInstance(ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer()));
             renderer.setRendererId(properties.getRendererId());
             renderer.init(properties, windowHandle);
-
 
             //make this thread use this context for this new window
             glfwMakeContextCurrent(windowHandle);

@@ -11,8 +11,6 @@ public class WindowProperties {
     Identifier renderer;
     int rendererId;
 
-    long encoder; //BGFX encoder
-
     public WindowProperties(WindowProperties properties) {
         this.width = properties.getWidth();
         this.height = properties.getHeight();
@@ -68,13 +66,5 @@ public class WindowProperties {
 
     public int getRendererId() {
         return rendererId;
-    }
-
-    public long getEncoder() {
-        return encoder;
-    }
-
-    public void setEncoder(long encoder) {
-        this.encoder = encoder;
     }
 }
