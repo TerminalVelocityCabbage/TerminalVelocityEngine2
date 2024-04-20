@@ -21,7 +21,7 @@ public class WindowThread extends Thread {
     //Properties of this window
     WindowProperties properties;
     //Renderer
-    RendererBase rendererBase;
+    RendererBase renderer;
 
     /**
      * @param windowHandle the window pointer that points to the window managed by this thread
@@ -34,39 +34,43 @@ public class WindowThread extends Thread {
         this.properties = properties;
     }
 
+
     @Override
-    public void run() {
-        //make this thread use this context for this new window
-        glfwMakeContextCurrent(windowHandle);
-        GL.createCapabilities();
-
-        //Turn on vsync
-        //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
-        glfwSwapInterval(1);
-
-        //Create an instance of this renderer and init it
+    public synchronized void start() {
+        super.start();
         try {
-            rendererBase = ClassUtils.createInstance(ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer()));
-            rendererBase.setRendererId(properties.getRendererId());
+            renderer = ClassUtils.createInstance(ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer()));
+            renderer.setRendererId(properties.getRendererId());
+            renderer.init(properties, windowHandle);
+
+
+            //make this thread use this context for this new window
+            glfwMakeContextCurrent(windowHandle);
+            GL.createCapabilities();
+
+            //Turn on vsync
+            //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
+            glfwSwapInterval(1);
+
+            //swap the image in this window with the new one
+            while (!quit) {
+                glfwMakeContextCurrent(windowHandle);
+                renderer.update(getProperties());
+                glfwSwapBuffers(windowHandle);
+            }
+
+            //queue this window for destruction
+            windowManager.queueDestroyWindow(this);
+
+            //Clear the gl capabilities from this window
+            GL.setCapabilities(null);
         } catch (ReflectionException e) {
             throw new RuntimeException(e);
         }
-
-        //swap the image in this window with the new one
-        while (!quit) {
-            rendererBase.update(getProperties());
-            glfwSwapBuffers(windowHandle);
-        }
-
-        //queue this window for destruction
-        windowManager.queueDestroyWindow(this);
-
-        //Clear the gl capabilities from this window
-        GL.setCapabilities(null);
     }
 
     public void destroyRenderer() {
-        rendererBase.destroy();
+        renderer.destroy();
     }
 
     public void destroyWindow() {

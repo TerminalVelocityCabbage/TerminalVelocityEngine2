@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
-import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class WindowProperties {
@@ -11,6 +10,8 @@ public class WindowProperties {
 
     Identifier renderer;
     int rendererId;
+
+    long encoder; //BGFX encoder
 
     public WindowProperties(WindowProperties properties) {
         this.width = properties.getWidth();
@@ -67,5 +68,13 @@ public class WindowProperties {
 
     public int getRendererId() {
         return rendererId;
+    }
+
+    public long getEncoder() {
+        return encoder;
+    }
+
+    public void setEncoder(long encoder) {
+        this.encoder = encoder;
     }
 }
