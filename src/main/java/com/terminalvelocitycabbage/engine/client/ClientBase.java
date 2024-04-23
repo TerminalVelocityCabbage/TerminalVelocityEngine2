@@ -9,16 +9,12 @@ import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.mod.ModManager;
 import com.terminalvelocitycabbage.engine.networking.*;
-import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 
-import javax.swing.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
