@@ -36,9 +36,9 @@ public class Scheduler {
         //Those tasks marked for removal with subsequent tasks need those to be scheduled for this run
         taskList.forEach(task -> {
             long l = task.getLock().readLock();
-            if (task.remove()) {
+            if (task.isSlatedToBeRemoved()) {
                 if (task.hasSubsequentTasks()) {
-                    task.subsequentTasks().forEach((task1) -> scheduleTask(task1, task.context().value()));
+                    task.subsequentTasks().forEach((task1) -> scheduleTask(task1, task.context().returnValue()));
                 }
                 toRemove.add(task);
             }
@@ -53,21 +53,21 @@ public class Scheduler {
         taskList.forEach(task -> {
             //Some tasks like async tasks might get called more than once if we don't track their status
             long l = task.getLock().readLock();
-            if (task.running() || task.remove()) {
+            if (task.isRunning() || task.isSlatedToBeRemoved()) {
                 task.getLock().unlockRead(l);
                 return;
             }
 
             task.getLock().unlockRead(l);
             //Check that the tasks here are initialized and error if not
-            if (!task.initialized()) Log.crash("Task not initialized error", new IllegalStateException("Schedulers can only execute initialized tasks"));
+            if (!task.isInitialized()) Log.crash("Task not initialized error", new IllegalStateException("Schedulers can only execute initialized tasks"));
             //Skip this task if it's delayed and not time to execute yet
-            if (task.delay() && task.executeTime() > System.currentTimeMillis()) return;
+            if (task.isDelayed() && task.executeTime() > System.currentTimeMillis()) return;
             //Run the consumer
-            if (task.repeat()) {
+            if (task.repeats()) {
                 if (System.currentTimeMillis() - task.lastExecuteTimeMillis() >= task.repeatInterval()) task.execute();
             } else {
-                if (task.async()) {
+                if (task.isAsynchronous()) {
                     CompletableFuture.supplyAsync(task::context)
                             .thenAcceptAsync(task.getAndMarkConsumerRunning())
                             .thenRunAsync(task::markRemove);
@@ -76,10 +76,8 @@ public class Scheduler {
                 }
             }
             //If this is not a task marked at an interval we need to not run it next time, so mark for removal
-            if (!task.repeat() && !task.running()) task.markRemove();
+            if (!task.repeats() && !task.isRunning()) task.markRemove();
         });
-
-        taskQueue.forEach(task -> Log.info(task.identifier().toString()));
     }
 
     /**

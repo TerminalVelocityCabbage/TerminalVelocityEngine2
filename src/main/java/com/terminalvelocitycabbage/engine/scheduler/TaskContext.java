@@ -49,4 +49,11 @@ public class TaskContext {
     public boolean hasPrevious() {
         return previousReturnValue != null;
     }
+
+    /**
+     * @return the value of this contexts return
+     */
+    public Object returnValue() {
+        return returnValue;
+    }
 }
