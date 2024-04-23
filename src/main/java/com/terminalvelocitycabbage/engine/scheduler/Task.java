@@ -12,7 +12,6 @@ public final class Task {
     private boolean initialized;
     private final Identifier identifier;
     private final Consumer<TaskContext> consumer;
-    private volatile boolean complete;
     private volatile boolean remove;
     private final boolean repeat;
     private final long repeatInterval; //In millis
@@ -39,13 +38,18 @@ public final class Task {
         this.subsequentTasks = subsequentTasks;
     }
 
-    //Used to set times for execute and resets this task to default status in case of re-use (not advised, but allowed)
+    /**
+     * Initializes this task by setting (if applicable to this task) it's future execute time based on the delay value
+     * the future execute time if this task is intended to be a repeating task & finally in case this task is being
+     * re-used from a previous run (can be allowed if the task is not currently queued) we reset the status of the
+     * task (completeness, removal status, and running status) to default..
+     * @return this task
+     */
     public Task init() {
         if (delay) executeTime = System.currentTimeMillis() + delayTime;
         if (repeat) lastExecuteTimeMillis = System.currentTimeMillis() - repeatInterval;
 
         long l = lock.writeLock();
-        complete = false;
         remove = false;
         running = false;
         lock.unlockWrite(l);
@@ -68,26 +72,36 @@ public final class Task {
         return consumer;
     }
 
+    /**
+     * Marks this task as running and returns the consumer
+     * @return This task's consumer
+     */
     public Consumer<TaskContext> getAndMarkConsumerRunning() {
         long l = lock.writeLock();
         markRunning();
         lock.unlockWrite(l);
-        return consumer;
+        return consumer();
     }
 
     public long lastExecuteTimeMillis() {
         return lastExecuteTimeMillis;
     }
 
+    /**
+     * Executes this task's consumer
+     */
     public void execute() {
         consumer().accept(this.context());
         lastExecuteTimeMillis = System.currentTimeMillis();
     }
 
-    public boolean remove() {
+    public boolean isSlatedToBeRemoved() {
         return remove;
     }
 
+    /**
+     * Marks this task as "to-be-removed"
+     */
     public void markRemove() {
         long l = lock.writeLock();
         remove = true;
@@ -95,7 +109,7 @@ public final class Task {
         lock.unlockWrite(l);
     }
 
-    public boolean repeat() {
+    public boolean repeats() {
         return repeat;
     }
 
@@ -103,7 +117,7 @@ public final class Task {
         return repeatInterval;
     }
 
-    public boolean delay() {
+    public boolean isDelayed() {
         return delay;
     }
 
@@ -111,28 +125,27 @@ public final class Task {
         return executeTime;
     }
 
-    public boolean initialized() {
+    public boolean isInitialized() {
         return initialized;
     }
 
-    public boolean async() {
+    public boolean isAsynchronous() {
         return async;
     }
 
+    /**
+     * Marks this task as running
+     */
     public void markRunning() {
         this.running = true;
     }
 
-    public boolean running() {
+    public boolean isRunning() {
         return running;
     }
 
     public TaskContext context() {
         return this.context;
-    }
-
-    public boolean complete() {
-        return complete;
     }
 
     public boolean hasSubsequentTasks() {
@@ -145,11 +158,5 @@ public final class Task {
 
     public StampedLock getLock() {
         return lock;
-    }
-
-    public void markComplete() {
-        long l = lock.writeLock();
-        complete = true;
-        lock.unlockWrite(l);
     }
 }

@@ -103,6 +103,7 @@ public class Scheduler {
      * @param task the task to be added to the scheduler
      * @param previousReturn the return value of the previous run task
      */
+    //TODO Replace adding a reference of the task object with scheduling a class that extends task to disallow adding the same task twice (it will error if this happens, but re-using a task should be allowed)
     private void scheduleTask(Task task, Object previousReturn) {
         if (getTask(task.identifier()).isPresent()) {
             Log.error("Tried to schedule task of same identifier: " + task.identifier().toString());
