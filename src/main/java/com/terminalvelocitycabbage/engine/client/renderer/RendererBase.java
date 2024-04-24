@@ -7,7 +7,7 @@ public abstract class RendererBase {
     private int rendererId;
 
     public abstract void init(WindowProperties properties, long windowHandle);
-    public abstract void update(WindowProperties properties);
+    public abstract void update(WindowProperties properties, long deltaTime);
     public abstract void destroy();
 
     public int getRendererId() {

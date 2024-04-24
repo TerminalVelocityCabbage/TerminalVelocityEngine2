@@ -34,9 +34,6 @@ public class WindowManager {
     //The (usually) active windows of this manager
     private Map<Long, WindowThread> threads = new HashMap<>();
 
-    //Increments every time a renderer is assigned, this number will be used as the BGFX identifier
-    private int renderers = 0;
-
     //Initialize this window manager (glfw)
     public void init() {
 
@@ -113,7 +110,6 @@ public class WindowManager {
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
-
     //Create a new window in this manager
     public void createNewWindow(WindowProperties properties) {
 
@@ -157,10 +153,8 @@ public class WindowManager {
             properties.setHeight(framebufferSize.get(1));
         }
 
-        //Set the renderer id
-        properties.setRendererID(renderers++);
-        //TODO remove this
-        glfwSetWindowTitle(window, properties.getTitle() + renderers);
+        //Set the window title
+        glfwSetWindowTitle(window, properties.getTitle());
 
         //Show the window
         glfwShowWindow(window);

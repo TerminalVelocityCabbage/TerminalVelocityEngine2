@@ -201,6 +201,7 @@ public class Manager {
      * @param id the UUID of this entity (you can use UUID.fromString() to get this if you only have a string)
      * @return the entity requested or null
      */
+    //TODO add cache for entities often retrieved by UUID, I expect that some entities like windows may be gotten this way often and not via a filter
     public Entity getEntityWithID(UUID id) {
         for (Entity entity : activeEntities) {
             if (entity.getID().equals(id)) return entity;

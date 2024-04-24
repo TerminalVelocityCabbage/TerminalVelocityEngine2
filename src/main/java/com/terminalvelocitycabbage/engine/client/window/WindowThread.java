@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.client.window;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
+import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import org.lwjgl.opengl.GL;
 
 import javax.management.ReflectionException;
@@ -22,6 +23,7 @@ public class WindowThread extends Thread {
     WindowProperties properties;
     //Renderer
     RendererBase rendererBase;
+    final MutableInstant rendererClock;
 
     /**
      * @param windowHandle the window pointer that points to the window managed by this thread
@@ -32,6 +34,7 @@ public class WindowThread extends Thread {
         this.quit = false;
         this.windowManager = windowManager;
         this.properties = properties;
+        this.rendererClock = MutableInstant.ofNow();
     }
 
     @Override
@@ -54,7 +57,9 @@ public class WindowThread extends Thread {
 
         //swap the image in this window with the new one
         while (!quit) {
-            rendererBase.update(getProperties());
+            long deltaTime = rendererClock.getDeltaTime();
+            rendererClock.now();
+            rendererBase.update(getProperties(), deltaTime);
             glfwSwapBuffers(windowHandle);
         }
 
