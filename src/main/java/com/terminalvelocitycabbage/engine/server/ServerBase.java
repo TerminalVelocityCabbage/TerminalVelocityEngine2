@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.server;
 import com.github.simplenet.Server;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
@@ -40,6 +41,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     private EventDispatcher eventDispatcher;
     private ModManager modManager;
     private Registry<Mod> modRegistry;
+    private Manager manager;
 
     //Resources Stuff
     private GameFileSystem fileSystem;
@@ -52,6 +54,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         eventDispatcher.addPublisher(getNamespace(), this);
         modManager = new ModManager();
         modRegistry = new Registry<>(null);
+        manager = new Manager();
         fileSystem = new GameFileSystem();
     }
 
@@ -175,6 +178,10 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     public ModManager getModManager() {
         return modManager;
+    }
+
+    public Manager getManager() {
+        return manager;
     }
 
     public Registry<Mod> getModRegistry() {

@@ -4,6 +4,7 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
+import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
@@ -25,6 +26,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private WindowManager windowManager;
     private Registry<Class<? extends RendererBase>> rendererRegistry;
     private TickManager tickManager;
+    private Manager manager;
 
     //Networking stuff
     private Client client;
@@ -42,6 +44,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         super(namespace);
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
+        manager = new Manager();
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
         modManager = new ModManager();
@@ -166,6 +169,10 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public GameFileSystem getFileSystem() {
         return fileSystem;
+    }
+
+    public Manager getManager() {
+        return manager;
     }
 
     public Registry<Class<? extends RendererBase>> getRendererRegistry() {
