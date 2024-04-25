@@ -10,7 +10,13 @@ public class WindowProperties {
     private String title;
 
     Identifier renderer;
-    int rendererId;
+
+    public WindowProperties() {
+        this.width = 600;
+        this.height = 400;
+        this.title = "Default Title";
+        this.renderer = null;
+    }
 
     public WindowProperties(WindowProperties properties) {
         this.width = properties.getWidth();
@@ -59,13 +65,5 @@ public class WindowProperties {
 
     public void setRenderer(Identifier renderer) {
         this.renderer = renderer;
-    }
-
-    public void setRendererID(int id) {
-        rendererId = id;
-    }
-
-    public int getRendererId() {
-        return rendererId;
     }
 }
