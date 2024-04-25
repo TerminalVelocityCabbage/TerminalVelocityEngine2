@@ -55,6 +55,9 @@ public class WindowThread extends Thread {
             throw new RuntimeException(e);
         }
 
+        //Initialize this renderer
+        renderer.init(getProperties(), windowHandle);
+
         //swap the image in this window with the new one
         long deltaTime;
         while (!quit) {
