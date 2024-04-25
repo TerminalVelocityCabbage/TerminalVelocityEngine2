@@ -33,6 +33,14 @@ public class ClassUtils {
 		}
 	}
 
+	public static <T> T createInstance(Class<T> clazz, Object param) throws ReflectionException {
+		try {
+			return clazz.getDeclaredConstructor(param.getClass()).newInstance(param);
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw new ReflectionException(e, "Could not instantiate instance of class: " + clazz.getName());
+		}
+	}
+
 	public static Constructor getConstructor(Class clazz) throws ReflectionException {
 		try {
 			return clazz.getConstructor();
