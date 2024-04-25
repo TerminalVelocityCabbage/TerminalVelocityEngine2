@@ -1,6 +1,9 @@
-package com.terminalvelocitycabbage.engine.ecs;
+package com.terminalvelocitycabbage.engine.client.renderer.graph;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.ecs.ComponentFilter;
+import com.terminalvelocitycabbage.engine.ecs.Manager;
+import com.terminalvelocitycabbage.engine.ecs.System;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.Toggle;
@@ -9,7 +12,7 @@ import com.terminalvelocitycabbage.engine.util.touples.Quartet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Routine {
+public non-sealed class Routine implements GraphNode {
 
     //This Map stores data about this managed system including:
     // - If it's enabled

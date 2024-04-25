@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.client;
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
+import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
@@ -12,6 +13,7 @@ import com.terminalvelocitycabbage.engine.mod.ModManager;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
+import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,7 +26,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     //Game loop stuff
     private WindowManager windowManager;
-    private Registry<Class<? extends RendererBase>> rendererRegistry;
+    private Registry<Pair<Class<? extends RendererBase>, RenderGraph>> rendererRegistry;
     private TickManager tickManager;
     private Manager manager;
 
@@ -175,7 +177,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         return manager;
     }
 
-    public Registry<Class<? extends RendererBase>> getRendererRegistry() {
+    public Registry<Pair<Class<? extends RendererBase>, RenderGraph>> getRendererRegistry() {
         return rendererRegistry;
     }
 

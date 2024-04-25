@@ -142,6 +142,7 @@ public class WindowManager {
         });
 
         //Center the window on the primary monitor
+        //TODO allow the createWindow method to configure this somehow
         videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         glfwSetWindowPos(window, (videoMode.width() - properties.getWidth()) / 2, (videoMode.height() - properties.getHeight()) / 2);
 

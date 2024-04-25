@@ -2,9 +2,10 @@ package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
-import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
+import com.terminalvelocitycabbage.engine.util.touples.Pair;
 import org.lwjgl.opengl.GL;
 
 import javax.management.ReflectionException;
@@ -50,7 +51,8 @@ public class WindowThread extends Thread {
         //Create an instance of this renderer and init it
         RendererBase renderer;
         try {
-            renderer = ClassUtils.createInstance(ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer()));
+            Pair<Class<? extends RendererBase>, RenderGraph> registryPair = ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer());
+            renderer = ClassUtils.createInstance(registryPair.getValue0(), registryPair.getValue1());
         } catch (ReflectionException e) {
             throw new RuntimeException(e);
         }
@@ -63,7 +65,7 @@ public class WindowThread extends Thread {
         while (!quit) {
             deltaTime = rendererClock.getDeltaTime();
             rendererClock.now();
-            renderer.update(getProperties(), deltaTime);
+            renderer.render(getProperties(), deltaTime);
             glfwSwapBuffers(windowHandle);
         }
 
