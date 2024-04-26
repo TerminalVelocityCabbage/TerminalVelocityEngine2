@@ -2,7 +2,10 @@ package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
+import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
+import com.terminalvelocitycabbage.engine.util.MutableInstant;
+import com.terminalvelocitycabbage.engine.util.touples.Pair;
 import org.lwjgl.opengl.GL;
 
 import javax.management.ReflectionException;
@@ -20,8 +23,8 @@ public class WindowThread extends Thread {
     final WindowManager windowManager;
     //Properties of this window
     WindowProperties properties;
-    //Renderer
-    RendererBase rendererBase;
+    //A clock to manage deltaTime for this window's renderer
+    final MutableInstant rendererClock;
 
     /**
      * @param windowHandle the window pointer that points to the window managed by this thread
@@ -32,6 +35,7 @@ public class WindowThread extends Thread {
         this.quit = false;
         this.windowManager = windowManager;
         this.properties = properties;
+        this.rendererClock = MutableInstant.ofNow();
     }
 
     @Override
@@ -45,28 +49,34 @@ public class WindowThread extends Thread {
         glfwSwapInterval(1);
 
         //Create an instance of this renderer and init it
+        RendererBase renderer;
         try {
-            rendererBase = ClassUtils.createInstance(ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer()));
-            rendererBase.setRendererId(properties.getRendererId());
+            Pair<Class<? extends RendererBase>, RenderGraph> registryPair = ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer());
+            renderer = ClassUtils.createInstance(registryPair.getValue0(), registryPair.getValue1());
         } catch (ReflectionException e) {
             throw new RuntimeException(e);
         }
 
+        //Initialize this renderer
+        renderer.init(getProperties(), windowHandle);
+
         //swap the image in this window with the new one
+        long deltaTime;
         while (!quit) {
-            rendererBase.update(getProperties());
+            deltaTime = rendererClock.getDeltaTime();
+            rendererClock.now();
+            renderer.render(getProperties(), deltaTime);
             glfwSwapBuffers(windowHandle);
         }
+
+        //Destroy the renderer
+        renderer.destroy();
 
         //queue this window for destruction
         windowManager.queueDestroyWindow(this);
 
         //Clear the gl capabilities from this window
         GL.setCapabilities(null);
-    }
-
-    public void destroyRenderer() {
-        rendererBase.destroy();
     }
 
     public void destroyWindow() {

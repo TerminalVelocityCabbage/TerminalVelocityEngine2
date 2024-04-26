@@ -8,7 +8,6 @@ import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import javax.management.ReflectionException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The Manager is what any implementation should interact with to "manage" their entities components and systems.
@@ -172,7 +171,9 @@ public class Manager {
      * @param filter the filter for which you want to get matching entities
      * @return a List of entities that match the filter provided
      */
+    //TODO implement some sort of cache for common returned lists of entities by component filter and update those lists with the master list for future use
     public List<Entity> getMatchingEntities(ComponentFilter filter) {
+        if (filter == null) return Collections.emptyList();
         return filter.filter(activeEntities);
     }
 
@@ -200,6 +201,7 @@ public class Manager {
      * @param id the UUID of this entity (you can use UUID.fromString() to get this if you only have a string)
      * @return the entity requested or null
      */
+    //TODO add cache for entities often retrieved by UUID, I expect that some entities like windows may be gotten this way often and not via a filter
     public Entity getEntityWithID(UUID id) {
         for (Entity entity : activeEntities) {
             if (entity.getID().equals(id)) return entity;
@@ -212,22 +214,12 @@ public class Manager {
      *
      * @param systemClass The class for the type of system you wish to create
      * @param <T> The class for the type of system you want to create
-     * @param priority The priority that this system takes (the order it executes in). Lower numbers execute first.
      * @return The system you just created
      */
-    public <T extends System> T createSystem(Class<T> systemClass, int priority) {
+    public <T extends System> T createSystem(Class<T> systemClass) {
         try {
             T system = ClassUtils.createInstance(systemClass);
             systems.put(systemClass, system);
-            system.setManager(this);
-            system.setPriority(priority);
-            systems = systems.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue())
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (oldValue, newValue) -> oldValue, LinkedHashMap::new
-                    ));
             return system;
         } catch (ReflectionException e) {
             throw new RuntimeException(e);
@@ -235,29 +227,10 @@ public class Manager {
     }
 
     /**
-     * Creates and registers a system of class type specified
-     *
-     * @param systemClass The class for the type of system you wish to create
-     * @param <T> The class for the type of system you want to create
-     * @return The system you just created
+     * @param systemClass The class which represents which system we want to retrieve
+     * @return the instance in this manager of the requested system
      */
-    public <T extends System> T createSystem(Class<T> systemClass) {
-        return createSystem(systemClass, 1);
-    }
-
-    /**
-     * updates all {@link System}s in this manager in order of their priority
-     * @param deltaTime the amount of time in milliseconds that has passed since the last update
-     * @param systems the list of systems you wish to update with this call. Some systems need to update every frame
-     *               others only every tick, so this allows you to only update the systems when they need to be updated,
-     *               no need to update all systems at once.
-     */
-    @SafeVarargs
-    public final void update(float deltaTime, Class<? extends System>... systems) {
-        if (systems.length < 1) Log.warn("Tried to update 0 systems with update call, specify systems you want to update");
-        this.systems.values().stream()
-                .filter(system1 -> Arrays.stream(systems).toList().contains(system1.getClass()))
-                //.sorted(System::compareTo)
-                .forEach(system2 -> system2.update(deltaTime));
+    public System getSystem(Class<? extends System> systemClass) {
+        return systems.get(systemClass);
     }
 }

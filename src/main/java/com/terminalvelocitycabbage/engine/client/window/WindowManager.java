@@ -34,9 +34,6 @@ public class WindowManager {
     //The (usually) active windows of this manager
     private Map<Long, WindowThread> threads = new HashMap<>();
 
-    //Increments every time a renderer is assigned, this number will be used as the BGFX identifier
-    private int renderers = 0;
-
     //Initialize this window manager (glfw)
     public void init() {
 
@@ -62,30 +59,32 @@ public class WindowManager {
         }
     }
 
+    /**
+     * @return Whether this game context should stop
+     */
     //The actual window update loop
-    public void loop() {
-        while (true) {
+    public boolean loop() {
+        //Destroy all destroyable windows before polling for events
+        windowsToDestroy.forEach(window -> {
+            System.out.println("Made it to the end of life of a window");
+            destroyWindow(window);
+            System.out.println("destroyed window " + window);
+        });
+        //Reset for the next loop
+        windowsToDestroy.clear();
 
-            //Destroy all destroyable windows before polling for events
-            windowsToDestroy.forEach(window -> {
-                System.out.println("Made it to the end of life of a window");
-                destroyWindow(window);
-                System.out.println("destroyed window " + window);
-            });
-            //Reset for the next loop
-            windowsToDestroy.clear();
+        //Poll for window events (like input or closing etc.)
+        glfwWaitEvents();
 
-            //Poll for window events (like input or closing etc.)
-            glfwWaitEvents();
+        //Don't update the threads if there is nothing to update
+        if (!hasAliveWindow()) return true;
 
-            //Don't update the threads if there is nothing to update
-            if (!hasAliveWindow()) break;
+        //Check for window close requests
+        threads.forEach((window, glfwThread) -> {
+            if (glfwWindowShouldClose(window)) glfwThread.destroyThread();
+        });
 
-            //Check for window close requests
-            threads.forEach((window, glfwThread) -> {
-                if (glfwWindowShouldClose(window)) glfwThread.destroyThread();
-            });
-        }
+        return false;
     }
 
     //Destroys this window manager and glfw context
@@ -112,7 +111,6 @@ public class WindowManager {
         //Free the error callback
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
-
 
     //Create a new window in this manager
     public void createNewWindow(WindowProperties properties) {
@@ -146,6 +144,7 @@ public class WindowManager {
         });
 
         //Center the window on the primary monitor
+        //TODO allow the createWindow method to configure this somehow
         videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         glfwSetWindowPos(window, (videoMode.width() - properties.getWidth()) / 2, (videoMode.height() - properties.getHeight()) / 2);
 
@@ -157,10 +156,8 @@ public class WindowManager {
             properties.setHeight(framebufferSize.get(1));
         }
 
-        //Set the renderer id
-        properties.setRendererID(renderers++);
-        //TODO remove this
-        glfwSetWindowTitle(window, properties.getTitle() + renderers);
+        //Set the window title
+        glfwSetWindowTitle(window, properties.getTitle());
 
         //Show the window
         glfwShowWindow(window);
