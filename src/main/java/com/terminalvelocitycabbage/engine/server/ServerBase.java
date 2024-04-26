@@ -13,6 +13,7 @@ import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
 import com.terminalvelocitycabbage.engine.networking.Side;
 import com.terminalvelocitycabbage.engine.registry.Registry;
+import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.templates.events.ServerLifecycleEvent;
 
@@ -42,6 +43,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     private ModManager modManager;
     private Registry<Mod> modRegistry;
     private Manager manager;
+    private Scheduler scheduler;
 
     //Resources Stuff
     private GameFileSystem fileSystem;
@@ -151,7 +153,9 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     /**
      * The logic to be executed when this Server updates
      */
-    public abstract void tick();
+    public void tick() {
+        getScheduler().tick();
+    }
 
     /**
      * Marks this server as ready to stop
@@ -182,6 +186,10 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     public Manager getManager() {
         return manager;
+    }
+
+    public Scheduler getScheduler() {
+        return scheduler;
     }
 
     public Registry<Mod> getModRegistry() {

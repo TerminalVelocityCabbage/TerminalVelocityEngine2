@@ -12,6 +12,7 @@ import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.mod.ModManager;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
+import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
@@ -29,6 +30,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private Registry<Pair<Class<? extends RendererBase>, RenderGraph>> rendererRegistry;
     private TickManager tickManager;
     private Manager manager;
+    private Scheduler scheduler;
 
     //Networking stuff
     private Client client;
@@ -47,6 +49,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
         manager = new Manager();
+        scheduler = new Scheduler();
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
         modManager = new ModManager();
@@ -134,7 +137,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * initializes the game loop
      */
     private void run() {
-        windowManager.loop();
+        while (!windowManager.loop()) {
+            update();
+        }
     }
 
     /**
@@ -151,7 +156,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * The code to be executed every tick
      * This is mainly used for networking tasks, most things for clients should happen every frame
      */
-    public abstract void tick();
+    public void tick() {
+        getScheduler().tick();
+    }
 
     @Override
     public void destroy() {
@@ -175,6 +182,10 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public Manager getManager() {
         return manager;
+    }
+
+    public Scheduler getScheduler() {
+        return scheduler;
     }
 
     public Registry<Pair<Class<? extends RendererBase>, RenderGraph>> getRendererRegistry() {

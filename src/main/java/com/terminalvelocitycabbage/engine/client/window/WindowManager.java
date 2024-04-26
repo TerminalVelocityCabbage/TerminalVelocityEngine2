@@ -59,30 +59,32 @@ public class WindowManager {
         }
     }
 
+    /**
+     * @return Whether this game context should stop
+     */
     //The actual window update loop
-    public void loop() {
-        while (true) {
+    public boolean loop() {
+        //Destroy all destroyable windows before polling for events
+        windowsToDestroy.forEach(window -> {
+            System.out.println("Made it to the end of life of a window");
+            destroyWindow(window);
+            System.out.println("destroyed window " + window);
+        });
+        //Reset for the next loop
+        windowsToDestroy.clear();
 
-            //Destroy all destroyable windows before polling for events
-            windowsToDestroy.forEach(window -> {
-                System.out.println("Made it to the end of life of a window");
-                destroyWindow(window);
-                System.out.println("destroyed window " + window);
-            });
-            //Reset for the next loop
-            windowsToDestroy.clear();
+        //Poll for window events (like input or closing etc.)
+        glfwWaitEvents();
 
-            //Poll for window events (like input or closing etc.)
-            glfwWaitEvents();
+        //Don't update the threads if there is nothing to update
+        if (!hasAliveWindow()) return true;
 
-            //Don't update the threads if there is nothing to update
-            if (!hasAliveWindow()) break;
+        //Check for window close requests
+        threads.forEach((window, glfwThread) -> {
+            if (glfwWindowShouldClose(window)) glfwThread.destroyThread();
+        });
 
-            //Check for window close requests
-            threads.forEach((window, glfwThread) -> {
-                if (glfwWindowShouldClose(window)) glfwThread.destroyThread();
-            });
-        }
+        return false;
     }
 
     //Destroys this window manager and glfw context
