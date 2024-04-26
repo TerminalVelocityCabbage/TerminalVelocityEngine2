@@ -20,18 +20,33 @@ public class RenderGraph {
         this.graphNodes = graphNodes;
     }
 
+    /**
+     * @return a new instance of {@link RenderGraph.Builder} for use in configuring a new Render Graph.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Pauses the specified node of this renderer, when paused a node will be skipped in this graph's render pass
+     * @param nodeIdentifier the {@link Identifier} for the node that you want to resume
+     */
     public void pauseNode(Identifier nodeIdentifier) {
         graphNodes.get(nodeIdentifier).getValue0().disable();
     }
 
+    /**
+     * Resumes or "un-pauses" the specified node of this renderer
+     * @param nodeIdentifier the {@link Identifier} for the node that you want to resume
+     */
     public void resumeNode(Identifier nodeIdentifier) {
         graphNodes.get(nodeIdentifier).getValue0().enable();
     }
 
+    /**
+     * @param windowProperties The current snapshot of the calling window's properties
+     * @param deltaTime The time passed since the last frame was started
+     */
     public void render(WindowProperties windowProperties, long deltaTime) {
         graphNodes.forEach((identifier, graphNode) -> {
             if (!graphNode.getValue0().getStatus()) return;
@@ -50,10 +65,24 @@ public class RenderGraph {
             graphNodes = new HashMap<>();
         }
 
+        /**
+         * Adds a node to this render graph and automatically enables it
+         * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
+         * @param graphNode the node to be added to this graph
+         * @return this Builder (for easy changing of methods)
+         */
         public Builder addNode(Identifier identifier, Class<? extends GraphNode> graphNode) {
             return addNode(identifier, graphNode, true);
         }
 
+        /**
+         * Adds a node to this render graph and allows you to specify whether to enable it by default or not
+         * useful for nodes that don't always get used or on nodes that don't need to run on the first iteration.
+         * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
+         * @param graphNode the node to be added to this graph
+         * @param automaticallyEnable a boolean to represent if this node should be enabled or paused on initialization
+         * @return this Builder (for easy changing of methods)
+         */
         public Builder addNode(Identifier identifier, Class<? extends GraphNode> graphNode, boolean automaticallyEnable) {
             try {
                 graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), ClassUtils.createInstance(graphNode)));
@@ -63,6 +92,9 @@ public class RenderGraph {
             return this;
         }
 
+        /**
+         * @return A new {@link RenderGraph} instance generated from this builder.
+         */
         public RenderGraph build() {
             return new RenderGraph(graphNodes);
         }
