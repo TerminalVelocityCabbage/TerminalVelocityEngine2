@@ -12,4 +12,12 @@ public class Pair<A, B> extends Unit<A> {
     public B getValue1() {
         return value1;
     }
+
+    @Override
+    public String toString() {
+        return "Pair{" +
+                "value0=" + getValue0() +
+                "value1=" + getValue1() +
+                '}';
+    }
 }

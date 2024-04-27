@@ -12,4 +12,11 @@ public class Unit<A> {
         return value0;
     }
 
+    @Override
+    public String toString() {
+        return "Unit{" +
+                "value0=" + getValue0() +
+                '}';
+    }
+
 }

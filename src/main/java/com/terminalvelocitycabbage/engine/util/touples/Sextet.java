@@ -12,4 +12,16 @@ public class Sextet<A, B, C, D, E, F> extends Quintet<A, B, C, D, E> {
     public F getValue5() {
         return value5;
     }
+
+    @Override
+    public String toString() {
+        return "Sextet{" +
+                "value0=" + getValue0() +
+                "value1=" + getValue1() +
+                "value2=" + getValue2() +
+                "value3=" + getValue3() +
+                "value4=" + getValue4() +
+                "value5=" + getValue5() +
+                '}';
+    }
 }

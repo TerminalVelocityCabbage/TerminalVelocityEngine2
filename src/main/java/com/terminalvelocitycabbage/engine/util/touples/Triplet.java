@@ -12,4 +12,13 @@ public class Triplet<A, B, C> extends Pair<A, B> {
     public C getValue2() {
         return value2;
     }
+
+    @Override
+    public String toString() {
+        return "Triplet{" +
+                "value0=" + getValue0() +
+                "value1=" + getValue1() +
+                "value2=" + getValue2() +
+                '}';
+    }
 }

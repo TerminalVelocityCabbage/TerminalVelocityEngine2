@@ -12,4 +12,14 @@ public class Quartet<A, B, C, D> extends Triplet<A, B, C> {
     public D getValue3() {
         return value3;
     }
+
+    @Override
+    public String toString() {
+        return "Quartet{" +
+                "value0=" + getValue0() +
+                "value1=" + getValue1() +
+                "value2=" + getValue2() +
+                "value3=" + getValue3() +
+                '}';
+    }
 }

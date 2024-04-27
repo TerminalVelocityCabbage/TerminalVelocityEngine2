@@ -12,4 +12,18 @@ public class Octet<A, B, C, D, E, F, G, H> extends Septet<A, B, C, D, E, F, G> {
     public H getValue7() {
         return value7;
     }
+
+    @Override
+    public String toString() {
+        return "Octet{" +
+                "value0=" + getValue0() +
+                "value1=" + getValue1() +
+                "value2=" + getValue2() +
+                "value3=" + getValue3() +
+                "value4=" + getValue4() +
+                "value5=" + getValue5() +
+                "value6=" + getValue6() +
+                "value7=" + getValue7() +
+                '}';
+    }
 }

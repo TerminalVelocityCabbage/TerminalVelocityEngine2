@@ -12,4 +12,20 @@ public class Decade<A, B, C, D, E, F, G, H, I, J> extends Ennead<A, B, C, D, E, 
     public J getValue9() {
         return value9;
     }
+
+    @Override
+    public String toString() {
+        return "Decade{" +
+                "value0=" + getValue0() +
+                "value1=" + getValue1() +
+                "value2=" + getValue2() +
+                "value3=" + getValue3() +
+                "value4=" + getValue4() +
+                "value5=" + getValue5() +
+                "value6=" + getValue6() +
+                "value7=" + getValue7() +
+                "value8=" + getValue8() +
+                "value9=" + getValue9() +
+                '}';
+    }
 }
