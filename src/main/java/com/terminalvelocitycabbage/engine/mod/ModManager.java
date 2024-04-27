@@ -1,10 +1,7 @@
 package com.terminalvelocitycabbage.engine.mod;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
-import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
@@ -20,24 +17,20 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class ModManager {
 
-    private Map<Class<? extends Entrypoint>, Mod> entrypointModMap;
+    private Map<String, Mod> modMap;
     private List<Mod> orderedModList;
 
     public ModManager() {
-        entrypointModMap = new HashMap<>();
+        modMap = new HashMap<>();
         orderedModList = new ArrayList<>();
     }
 
-    //TODO use a metadata file to get this information from instead of using an annotation
     public void loadAndRegisterMods(Side side) {
 
         Path modsDir = Paths.get("mods");
@@ -70,16 +63,11 @@ public class ModManager {
                     Entrypoint entrypoint = (Entrypoint) ClassUtils.createInstance(clazz);;
                     JarFile jarFile = new JarFile(file);
 
-                    //Create an instance of this mod from it's entrypoint and Jar file
-                    Mod mod = new Mod(entrypoint, jarFile, null);
-                    JarEntry jarEntry = new JarEntry("assets/testmod/mod-info.toml");
-                    JarResource resource = new JarResource(jarFile, jarEntry);
-                    ConfigFormat<CommentedConfig> tomlFormat = TomlFormat.instance();
-                    ConfigParser<CommentedConfig> jsonParser = tomlFormat.createParser();
-                    Config config = jsonParser.parse(resource.asString());
-                    ObjectConverter converter = new ObjectConverter();
-                    ModInfo modInfo = converter.toObject(config, ModInfo::new);
-                    Log.info(modInfo.toString());
+                    //Get the information needed about this mod from it's mod-info.toml file
+                    Config config = TomlFormat.instance().createParser().parse(getModInfoToml(jarFile));
+                    ModInfo modInfo = new ObjectConverter().toObject(config, ModInfo::new);
+                    //Create a new Mod instance from this information
+                    Mod mod = new Mod(entrypoint, jarFile, modInfo);
 
                     if (client && side == Side.CLIENT) {
                         ClientBase.getInstance().getModRegistry().register(new Identifier(entrypoint.getNamespace(), entrypoint.getNamespace()), mod);
@@ -87,7 +75,7 @@ public class ModManager {
                     if (server && side == Side.SERVER) {
                         ServerBase.getInstance().getModRegistry().register(new Identifier(entrypoint.getNamespace(), entrypoint.getNamespace()), mod);
                     }
-                    entrypointModMap.put(entrypoint.getClass(), mod);
+                    modMap.put(modInfo.getNamespace(), mod);
                 }
             }
         } catch (IOException | ClassNotFoundException | NullPointerException | ReflectionException e) {
@@ -103,11 +91,26 @@ public class ModManager {
         }
     }
 
-    public ModInfo getModInfo(Class<? extends Entrypoint> clazz) {
-        return entrypointModMap.get(clazz).info();
+    private String getModInfoToml(JarFile jarFile) {
+
+        Iterator<JarEntry> iterator = jarFile.entries().asIterator();
+
+        while (iterator.hasNext()) {
+            JarEntry entry = iterator.next();
+            if (entry.getName().endsWith("mod-info.toml")) return new JarResource(jarFile, entry).asString();
+        }
+
+        Log.crash("Could not find mod-info.toml for mod in mods directory",
+                new RuntimeException("An invalid mod was included in this mods directory."));
+
+        return null;
     }
 
-    public Mod getMod(Entrypoint entrypoint) {
-        return entrypointModMap.get(entrypoint.getClass());
+    public ModInfo getModInfo(String namespace) {
+        return modMap.get(namespace).info();
+    }
+
+    public Mod getMod(String namespace) {
+        return modMap.get(namespace);
     }
 }
