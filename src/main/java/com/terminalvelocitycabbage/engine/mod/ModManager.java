@@ -102,17 +102,34 @@ public class ModManager {
         });
     }
 
+    /**
+     * This is a recursive function that checks all dependencies of this mod and it's dependencies
+     * @param mod The mod whose dependencies we are checking
+     * @param foundMods The list of mods that this ModManager found in the mods folder
+     * @param allDependenciesFound A toggle (true/false) that we disable if a missing or mismatch dep is found, so we can
+     *                             crash after we have looked up all missing dependencies, that way the user doesn't have
+     *                             to download a dep, reload the game, just to find another dep is missing. This way
+     *                             they get a list of all known missing deps before a crash. Obviously if a missing dep
+     *                             has a dep that is not installed we can't know about that to crash, but this is close.
+     */
     private void checkModForDependencies(Mod mod, Map<String, Mod> foundMods, Toggle allDependenciesFound) {
+        //Find all <namespace:version> pars for requested dependencies from this mods dependency block
         mod.getModInfo().getRequiredDependencies().forEach(dep -> {
+            //Check that the requested dependency's namespace exists on the found mods list
             if (foundMods.containsKey(dep.getValue0())) {
+                //If the requested dep is found let's get the instance of that mod, so we can check the version matches too
                 Mod foundDep = foundMods.get(dep.getValue0());
+                //Check that the version provided is at least the version required
                 if (!foundDep.getModInfo().getVersion().isHigherThanOrEquivalentTo(dep.getValue1())) {
+                    //Let the user know that they have an outdated dependency
                     allDependenciesFound.disable();
-                    Log.error(mod.getModInfo().getNamespace() + ":" + mod.getModInfo().getVersion() + " requires dependency: " + dep.getValue0() + ":" + dep.getValue1() + " version provided: " + foundDep.getModInfo().getVersion());
+                    Log.error(mod.getModInfo().getNamespace() + ":" + mod.getModInfo().getVersion() + " requires dependency: " + dep.getValue0() + ":" + dep.getValue1() + " outdated version provided: " + foundDep.getModInfo().getVersion());
                 } else {
+                    //If the requested dependency is found and is up-to-date check its dependencies too.
                     checkModForDependencies(foundDep, foundMods, allDependenciesFound);
                 }
             } else {
+                //Let the user know that the dependency was not found at all in this mods folder
                 allDependenciesFound.disable();
                 Log.error(mod.getModInfo().getNamespace() + ":" + mod.getModInfo().getVersion() + " requires dependency: " + dep.getValue0() + ":" + dep.getValue1() + " not found");
             }
