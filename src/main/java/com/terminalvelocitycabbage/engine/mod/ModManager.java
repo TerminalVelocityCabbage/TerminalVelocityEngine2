@@ -83,7 +83,7 @@ public class ModManager {
         // Loop through all optional dependencies and add them to the list with priority 1 also
         // Recursively loop through the list of above dependencies incrementing dependencies of dependencies until the root is found.
 
-        //Search for missing dependencies
+        //Search for missing dependencies and crash if any are missing or outdated
         Toggle allDependenciesFound = new Toggle(true);
         unsortedMods.values().forEach(mod -> {
             checkModForDependencies(mod, unsortedMods, allDependenciesFound);
@@ -125,7 +125,16 @@ public class ModManager {
                     allDependenciesFound.disable();
                     Log.error(mod.getModInfo().getNamespace() + ":" + mod.getModInfo().getVersion() + " requires dependency: " + dep.getValue0() + ":" + dep.getValue1() + " outdated version provided: " + foundDep.getModInfo().getVersion());
                 } else {
-                    //If the requested dependency is found and is up-to-date check its dependencies too.
+                    //Make sure that this dependency is not circular
+                    foundDep.getModInfo().getRequiredDependencies().forEach(stringVersionPair -> {
+                        if (stringVersionPair.getValue0().equals(mod.getModInfo().getNamespace())) {
+                            //TODO determine if this should remain a hard crash or just be a warning to the users
+                            allDependenciesFound.disable();
+                            Log.error("Circular Dependency found: " + foundDep.getModInfo().getNamespace() + " and " + mod.getModInfo().getNamespace() + " depend on one another.",
+                                    "This is not allowed for the sake of maintaining defined behavior. Dependencies are always registered first so that their code is executed first in the dependency tree.");
+                        }
+                    });
+                    //If the requested dependency is found and is up-to-date and has no circular deps check its dependencies too.
                     checkModForDependencies(foundDep, foundMods, allDependenciesFound);
                 }
             } else {
