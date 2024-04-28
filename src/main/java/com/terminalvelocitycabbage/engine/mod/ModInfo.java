@@ -8,9 +8,9 @@ import java.util.List;
 
 public class ModInfo {
 
-    ModIdentity identity;
-    ModAuthors authors;
-    ModDependencies dependencies;
+    private ModIdentity identity;
+    private ModAuthors authors;
+    private ModDependencies dependencies;
 
     public String getNamespace() {
         return identity.namespace;

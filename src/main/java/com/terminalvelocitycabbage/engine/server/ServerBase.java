@@ -97,11 +97,11 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
             });
         });
 
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().preInit());
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
     }
 
     public void modInit() {
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().init());
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
     }
 
     /**
@@ -139,7 +139,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     @Override
     public void destroy() {
         server.close();
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().destroy());
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
     }
 
     /**

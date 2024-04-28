@@ -85,12 +85,12 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().preInit());
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
         windowManager.init();
     }
 
     public void modInit() {
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().init());
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
     }
 
     public void connect(String address, int port) {
@@ -163,7 +163,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     @Override
     public void destroy() {
         windowManager.destroy();
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().destroy());
+        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
     }
 
     public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
