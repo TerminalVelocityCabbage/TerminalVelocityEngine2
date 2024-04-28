@@ -26,6 +26,10 @@ import java.util.jar.JarFile;
 
 public class ModLoader {
 
+    //Arbitrary number, not sure how many mods players will have in practice, but since the sorting algorithm used
+    //for mod priority is pretty much linear this technically caps the mod count to this number in a way.
+    public static final int MAX_SORT_ITERATIONS = 10000;
+
     public static void loadAndRegisterMods(Side side) {
 
         Path modsDir = Paths.get("mods");
@@ -107,9 +111,19 @@ public class ModLoader {
     private static List<Mod> sortModsByDependency(Map<String, Mod> unsortedMods) {
 
         LinkedList<Mod> sortedMods = new LinkedList<>(unsortedMods.values());
-
         List<Mod> modsToMoveToFrontOfList = new ArrayList<>();
+
+        int numSortingIterations = 0;
+        
         while (true) {
+            if (numSortingIterations >= MAX_SORT_ITERATIONS) {
+                Log.crash("Crash whilst sorting mods by dependencies",
+                        new RuntimeException("Could not complete sorting mods by dependencies. This usually happens when " +
+                                "there is an undetected circular dependency in your mods. For example if: " +
+                                "Mod A depends on Mod B depends on Mod C depends on Mod A again. TVE does its best to " +
+                                "detect circular dependencies but can only detect direct circ deps like A depends on " +
+                                "B depends on A."));
+            }
             modsToMoveToFrontOfList.clear();
             for (int i = 0; i < unsortedMods.size(); i++) {
                 for (Pair<String, Version> stringVersionPair : sortedMods.get(i).getModInfo().getRequiredDependencies()) {
@@ -122,6 +136,7 @@ public class ModLoader {
             if (modsToMoveToFrontOfList.isEmpty()) return sortedMods;
             sortedMods.removeAll(modsToMoveToFrontOfList);
             modsToMoveToFrontOfList.forEach(sortedMods::addFirst);
+            numSortingIterations++;
         }
     }
 
