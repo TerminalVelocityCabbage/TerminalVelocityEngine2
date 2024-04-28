@@ -28,6 +28,7 @@ public class ModLoader {
 
     //Arbitrary number, not sure how many mods players will have in practice, but since the sorting algorithm used
     //for mod priority is pretty much linear this technically caps the mod count to this number in a way.
+    //TODO replace this with a more clever way to detect circular dependencies larger than direct circ deps.
     public static final int MAX_SORT_ITERATIONS = 10000;
 
     public static void loadAndRegisterMods(Side side) {
@@ -104,7 +105,9 @@ public class ModLoader {
     }
 
     /**
-     * Sort mods until they are in dependency order
+     * Sort mods until they are in dependency order. This sort works by iterating through a copy of the unsorted list
+     * and moving dependency mods to the front until all mods that other mods depend on are located before the mods
+     * that depend on them.
      * @param unsortedMods The list of mods to sort through
      * @return A linked list of
      */
@@ -114,7 +117,7 @@ public class ModLoader {
         List<Mod> modsToMoveToFrontOfList = new ArrayList<>();
 
         int numSortingIterations = 0;
-        
+
         while (true) {
             if (numSortingIterations >= MAX_SORT_ITERATIONS) {
                 Log.crash("Crash whilst sorting mods by dependencies",
@@ -126,16 +129,26 @@ public class ModLoader {
             }
             modsToMoveToFrontOfList.clear();
             for (int i = 0; i < unsortedMods.size(); i++) {
-                for (Pair<String, Version> stringVersionPair : sortedMods.get(i).getModInfo().getRequiredDependencies()) {
-                    Mod dependency = unsortedMods.get(stringVersionPair.getValue0());
-                    if (sortedMods.indexOf(dependency) > i) {
-                        modsToMoveToFrontOfList.add(dependency);
+                //Det all of the dependencies of this mod
+                for (Pair<String, Version> stringVersionPair : sortedMods.get(i).getModInfo().getAllDependencies()) {
+                    //Since some dependencies are optional we can skip it if it does not exist on the registry since
+                    //Required dependencies have been validated by now
+                    if (unsortedMods.containsKey(stringVersionPair.getValue0())) {
+                        Mod dependency = unsortedMods.get(stringVersionPair.getValue0());
+                        //If the index of the dependency is greater than the index of this mod in the sorted list
+                        //That means that it would be registered too late, move it to the front of the list.
+                        if (sortedMods.indexOf(dependency) > i) {
+                            modsToMoveToFrontOfList.add(dependency);
+                        }
                     }
                 }
             }
+            //If the list of mods to be moved is empty that means that we did not find any mods that are out of order
             if (modsToMoveToFrontOfList.isEmpty()) return sortedMods;
+            //If we did find some mods that are too late in the list, move them to the front
             sortedMods.removeAll(modsToMoveToFrontOfList);
             modsToMoveToFrontOfList.forEach(sortedMods::addFirst);
+            //Increment the number of sorting iterations in case we get to a larger than detectable circular dependency
             numSortingIterations++;
         }
     }
@@ -164,7 +177,7 @@ public class ModLoader {
                     Log.error(mod.getModInfo().getNamespace() + ":" + mod.getModInfo().getVersion() + " requires dependency: " + dep.getValue0() + ":" + dep.getValue1() + " outdated version provided: " + foundDep.getModInfo().getVersion());
                 } else {
                     //Make sure that this dependency is not circular
-                    foundDep.getModInfo().getRequiredDependencies().forEach(stringVersionPair -> {
+                    foundDep.getModInfo().getAllDependencies().forEach(stringVersionPair -> {
                         if (stringVersionPair.getValue0().equals(mod.getModInfo().getNamespace())) {
                             //TODO determine if this should remain a hard crash or just be a warning to the users
                             allDependenciesFound.disable();

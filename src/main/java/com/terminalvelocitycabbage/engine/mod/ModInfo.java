@@ -37,6 +37,14 @@ public class ModInfo {
         return authors.contributors;
     }
 
+    public List<Pair<String, Version>> getAllDependencies() {
+        //TODO replace with call directly to parsed fields when issue is resolved
+        List<Pair<String, Version>> deps = new ArrayList<>();
+        deps.addAll(getRequiredDependencies());
+        deps.addAll(getOptionalDependencies());
+        return deps;
+    }
+
     public List<Pair<String, Version>> getRequiredDependencies() {
         //TODO replace with call directly to parsed fields when issue is resolved
         List<Pair<String, Version>> requiredDeps = new ArrayList<>();
