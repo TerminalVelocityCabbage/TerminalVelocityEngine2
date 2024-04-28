@@ -7,7 +7,7 @@ import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
-import com.terminalvelocitycabbage.engine.mod.ModManager;
+import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
 import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
@@ -40,7 +40,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     //Scope Stuff
     private EventDispatcher eventDispatcher;
-    private ModManager modManager;
     private Registry<Mod> modRegistry;
     private Manager manager;
     private Scheduler scheduler;
@@ -54,7 +53,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         tickManager = new TickManager(ticksPerSecond);
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
-        modManager = new ModManager();
         modRegistry = new Registry<>(null);
         manager = new Manager();
         fileSystem = new GameFileSystem();
@@ -64,7 +62,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
      * Starts this server program
      */
     public void start() {
-        modManager.loadAndRegisterMods(Side.SERVER);
+        ModLoader.loadAndRegisterMods(Side.SERVER);
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.PRE_INIT), server));
         getInstance().init();
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.INIT), server));
@@ -178,10 +176,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     public int getPort() {
         return port;
-    }
-
-    public ModManager getModManager() {
-        return modManager;
     }
 
     public Manager getManager() {

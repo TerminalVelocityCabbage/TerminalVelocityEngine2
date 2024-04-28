@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.mod;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.toml.TomlFormat;
+import com.github.zafarkhaja.semver.Version;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
@@ -12,6 +13,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.server.ServerBase;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.Toggle;
+import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
 import javax.management.ReflectionException;
 import java.io.File;
@@ -22,17 +24,9 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class ModManager {
+public class ModLoader {
 
-    private Map<String, Mod> modMap;
-    private List<Mod> orderedModList;
-
-    public ModManager() {
-        modMap = new HashMap<>();
-        orderedModList = new ArrayList<>();
-    }
-
-    public void loadAndRegisterMods(Side side) {
+    public static void loadAndRegisterMods(Side side) {
 
         Path modsDir = Paths.get("mods");
         File modsRoot = new File(modsDir.toUri());
@@ -88,18 +82,47 @@ public class ModManager {
         unsortedMods.values().forEach(mod -> {
             checkModForDependencies(mod, unsortedMods, allDependenciesFound);
         });
-        if (!allDependenciesFound.getStatus()) Log.crash("Mismatch or Missing Dependencies error",
-                new RuntimeException("Could not initialize all mods due to mod dependency errors. See above list of dependency errors."));
+        if (!allDependenciesFound.getStatus()) {
+            Log.crash("Mismatch or Missing Dependencies error",
+                    new RuntimeException("Could not initialize all mods due to mod dependency errors. See above list of dependency errors."));
+        }
+
+        //Sort mods
+        List<Mod> sortedMods = sortModsByDependency(unsortedMods);
 
         //Register the mods to the mod registry
-        unsortedMods.forEach((s, mod) -> {
+        sortedMods.forEach(mod -> {
             switch (side) {
                 case CLIENT -> ClientBase.getInstance().getModRegistry().register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod);
                 case SERVER -> ServerBase.getInstance().getModRegistry().register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod);
             }
-
-            modMap.put(mod.getModInfo().getNamespace(), mod);
         });
+    }
+
+    /**
+     * Sort mods until they are in dependency order
+     * @param unsortedMods The list of mods to sort through
+     * @return A linked list of
+     */
+    private static List<Mod> sortModsByDependency(Map<String, Mod> unsortedMods) {
+
+        LinkedList<Mod> sortedMods = new LinkedList<>(unsortedMods.values());
+
+        List<Mod> modsToMoveToFrontOfList = new ArrayList<>();
+        while (true) {
+            modsToMoveToFrontOfList.clear();
+            for (int i = 0; i < unsortedMods.size(); i++) {
+                for (Pair<String, Version> stringVersionPair : sortedMods.get(i).getModInfo().getRequiredDependencies()) {
+                    Mod dependency = unsortedMods.get(stringVersionPair.getValue0());
+                    if (sortedMods.indexOf(dependency) > i) {
+                        modsToMoveToFrontOfList.add(dependency);
+                    }
+                }
+            }
+            if (modsToMoveToFrontOfList.isEmpty()) return sortedMods;
+            sortedMods.removeAll(modsToMoveToFrontOfList);
+            modsToMoveToFrontOfList.forEach(sortedMods::addFirst);
+        }
     }
 
     /**
@@ -112,7 +135,7 @@ public class ModManager {
      *                             they get a list of all known missing deps before a crash. Obviously if a missing dep
      *                             has a dep that is not installed we can't know about that to crash, but this is close.
      */
-    private void checkModForDependencies(Mod mod, Map<String, Mod> foundMods, Toggle allDependenciesFound) {
+    private static void checkModForDependencies(Mod mod, Map<String, Mod> foundMods, Toggle allDependenciesFound) {
         //Find all <namespace:version> pars for requested dependencies from this mods dependency block
         mod.getModInfo().getRequiredDependencies().forEach(dep -> {
             //Check that the requested dependency's namespace exists on the found mods list
@@ -145,7 +168,7 @@ public class ModManager {
         });
     }
 
-    private String getModInfoToml(JarFile jarFile) {
+    private static String getModInfoToml(JarFile jarFile) {
 
         Iterator<JarEntry> iterator = jarFile.entries().asIterator();
 
@@ -160,7 +183,7 @@ public class ModManager {
         return null;
     }
 
-    private Entrypoint getEntrypointFromFile(File file, Side side) {
+    private static Entrypoint getEntrypointFromFile(File file, Side side) {
         try {
             //Get classes from this mod
             var classes = ClassUtils.getClassesFromJarFile(file);
@@ -183,13 +206,5 @@ public class ModManager {
         }
 
         return null;
-    }
-
-    public ModInfo getModInfo(String namespace) {
-        return modMap.get(namespace).getModInfo();
-    }
-
-    public Mod getMod(String namespace) {
-        return modMap.get(namespace);
     }
 }

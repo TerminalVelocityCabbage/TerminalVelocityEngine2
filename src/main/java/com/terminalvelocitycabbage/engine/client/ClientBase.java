@@ -9,7 +9,7 @@ import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
-import com.terminalvelocitycabbage.engine.mod.ModManager;
+import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
@@ -38,7 +38,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     //Scope Stuff
     private EventDispatcher eventDispatcher;
-    private ModManager modManager;
     private Registry<Mod> modRegistry;
 
     //Resources Stuff
@@ -52,7 +51,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         scheduler = new Scheduler();
         eventDispatcher = new EventDispatcher();
         eventDispatcher.addPublisher(getNamespace(), this);
-        modManager = new ModManager();
         modRegistry = new Registry<>(null);
         fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
@@ -73,7 +71,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * Starts this client program
      */
     public void start() {
-        modManager.loadAndRegisterMods(Side.CLIENT);
+        ModLoader.loadAndRegisterMods(Side.CLIENT);
         getInstance().init();
         getInstance().run();
         getInstance().destroy();
@@ -170,10 +168,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public Registry<Mod> getModRegistry() {
         return modRegistry;
-    }
-
-    public ModManager getModManager() {
-        return modManager;
     }
 
     public GameFileSystem getFileSystem() {
