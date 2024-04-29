@@ -11,8 +11,10 @@ public class EventDispatcher {
 	private static final Map<Identifier, Consumer<Event>> eventListeners = new HashMap<>();
 
 	public void dispatchEvent(Event event) {
-		for (Consumer<Event> payload : eventListeners.values()) {
-			payload.accept(event);
+		for (Map.Entry<Identifier, Consumer<Event>> entry : eventListeners.entrySet()) {
+			if (entry.getKey().equals(event.getId())) {
+				entry.getValue().accept(event);
+			}
 		}
 	}
 
