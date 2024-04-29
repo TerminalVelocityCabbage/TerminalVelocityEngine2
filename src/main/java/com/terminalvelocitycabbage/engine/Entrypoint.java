@@ -2,10 +2,9 @@ package com.terminalvelocitycabbage.engine;
 
 import com.terminalvelocitycabbage.engine.debug.Logger;
 import com.terminalvelocitycabbage.engine.debug.LoggerSource;
-import com.terminalvelocitycabbage.engine.event.EventPublisher;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
-public abstract class Entrypoint extends EventPublisher implements LoggerSource {
+public abstract class Entrypoint implements LoggerSource {
 
     String namespace; //The namespace of this artifact
     Logger logger; //The logger for this artifact

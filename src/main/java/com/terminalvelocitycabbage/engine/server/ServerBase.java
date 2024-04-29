@@ -52,9 +52,9 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
         eventDispatcher = new EventDispatcher();
-        eventDispatcher.addPublisher(getNamespace(), this);
         modRegistry = new Registry<>(null);
         manager = new Manager();
+        scheduler = new Scheduler();
         fileSystem = new GameFileSystem();
     }
 
@@ -63,13 +63,13 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
      */
     public void start() {
         ModLoader.loadAndRegisterMods(Side.SERVER);
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.PRE_INIT), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));
         getInstance().init();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.INIT), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server));
         getInstance().run();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STOPPING), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPING, server));
         getInstance().destroy();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STOPPED), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPED, server));
     }
 
     @Override
@@ -111,11 +111,11 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         packetRegistry.lock();
 
         //Establish connection
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.PRE_BIND), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_BIND, server));
         bind();
 
         //Dispatch started event
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STARTED), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STARTED, server));
 
         //As long as the server should run we run it
         while (!shouldStop) {
@@ -192,5 +192,9 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     public GameFileSystem getFileSystem() {
         return fileSystem;
+    }
+
+    public EventDispatcher getEventDispatcher() {
+        return eventDispatcher;
     }
 }

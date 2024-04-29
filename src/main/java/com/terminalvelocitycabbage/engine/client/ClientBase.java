@@ -50,7 +50,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         manager = new Manager();
         scheduler = new Scheduler();
         eventDispatcher = new EventDispatcher();
-        eventDispatcher.addPublisher(getNamespace(), this);
         modRegistry = new Registry<>(null);
         fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
@@ -65,6 +64,10 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      */
     public static ClientBase getInstance() {
         return instance;
+    }
+
+    public EventDispatcher getEventDispatcher() {
+        return eventDispatcher;
     }
 
     /**

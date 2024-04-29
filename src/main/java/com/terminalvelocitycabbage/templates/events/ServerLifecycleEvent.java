@@ -1,17 +1,18 @@
 package com.terminalvelocitycabbage.templates.events;
 
 import com.github.simplenet.Server;
+import com.terminalvelocitycabbage.engine.TerminalVelocityEngine;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class ServerLifecycleEvent extends Event {
 
-	public static final String PRE_INIT = "serverLifecycleEventPreInit";
-	public static final String INIT = "serverLifecycleEventInit";
-	public static final String PRE_BIND = "serverLifecycleEventPreBind";
-	public static final String STARTED = "serverLifecycleEventStart";
-	public static final String STOPPING = "serverLifecycleEventStopping";
-	public static final String STOPPED = "serverLifecycleEventStopped";
+	public static final Identifier PRE_INIT = TerminalVelocityEngine.identifierOf("serverLifecycleEventPreInit");
+	public static final Identifier INIT = TerminalVelocityEngine.identifierOf("serverLifecycleEventInit");
+	public static final Identifier PRE_BIND = TerminalVelocityEngine.identifierOf("serverLifecycleEventPreBind");
+	public static final Identifier STARTED = TerminalVelocityEngine.identifierOf("serverLifecycleEventStart");
+	public static final Identifier STOPPING = TerminalVelocityEngine.identifierOf("serverLifecycleEventStopping");
+	public static final Identifier STOPPED = TerminalVelocityEngine.identifierOf("serverLifecycleEventStopped");
 
 	Server server;
 
