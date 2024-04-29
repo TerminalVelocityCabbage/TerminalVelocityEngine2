@@ -7,6 +7,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.Toggle;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
+import com.terminalvelocitycabbage.templates.events.RenderGraphStageExecutionEvent;
 
 import javax.management.ReflectionException;
 import java.util.HashMap;
@@ -49,11 +50,18 @@ public class RenderGraph {
      */
     public void render(WindowProperties windowProperties, long deltaTime) {
         graphNodes.forEach((identifier, graphNode) -> {
-            if (!graphNode.getValue0().getStatus()) return;
-            switch (graphNode.getValue1()) {
-                case Routine routine -> routine.update(ClientBase.getInstance().getManager()); //We assume that the server is not rendering anything
-                case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties, deltaTime);
+            var enabled = graphNode.getValue0().getStatus();
+            //Publish an event before this GraphNode so mods can inject their own logic into these renderers
+            ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.pre(identifier), windowProperties, deltaTime, enabled));
+            //Execute this graph node (whether it's a routine or a render node) if it's not paused
+            if (enabled) {
+                switch (graphNode.getValue1()) {
+                    case Routine routine -> routine.update(ClientBase.getInstance().getManager()); //We assume that the server is not rendering anything
+                    case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties, deltaTime);
+                }
             }
+            //Publish an event before this GraphNode so mods can inject their own logic into these renderers
+            ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.post(identifier), windowProperties, deltaTime, enabled));
         });
     }
 
