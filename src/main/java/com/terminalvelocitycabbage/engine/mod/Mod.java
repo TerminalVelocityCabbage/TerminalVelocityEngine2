@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.engine.mod;
 
-import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
 
 import java.util.Objects;
@@ -8,7 +7,7 @@ import java.util.jar.JarFile;
 
 public class Mod {
 
-    Entrypoint entrypoint;
+    ModEntrypoint entrypoint;
     JarFile jarFile;
     ModInfo modInfo;
 
@@ -18,7 +17,7 @@ public class Mod {
      * @param jarFile The jar file that this mod's sources and resources belong to
      * @param info The mod-info.toml file that defines the metadata and dependencies for this mod.
      */
-    public Mod(Entrypoint entrypoint, JarFile jarFile, ModInfo info) {
+    public Mod(ModEntrypoint entrypoint, JarFile jarFile, ModInfo info) {
         if (!Objects.equals(entrypoint.getNamespace(), info.getNamespace())) {
             Log.crash("Mod Constructor namespace (" + entrypoint.getNamespace() + ") does not match mod-info.toml (" + info.getNamespace() + ")",
                     new RuntimeException("Could not instantiate mod"));
@@ -28,7 +27,7 @@ public class Mod {
         this.modInfo = info;
     }
 
-    public Entrypoint getEntrypoint() {
+    public ModEntrypoint getEntrypoint() {
         return entrypoint;
     }
 

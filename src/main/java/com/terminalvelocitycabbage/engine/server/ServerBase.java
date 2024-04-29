@@ -62,7 +62,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
      * Starts this server program
      */
     public void start() {
-        ModLoader.loadAndRegisterMods(Side.SERVER);
+        ModLoader.loadAndRegisterMods(Side.SERVER, modRegistry);
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));
         getInstance().init();
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server));
@@ -95,11 +95,11 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
             });
         });
 
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
+        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
     }
 
     public void modInit() {
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
+        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
     }
 
     /**
@@ -137,7 +137,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     @Override
     public void destroy() {
         server.close();
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
+        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
     }
 
     /**
@@ -184,10 +184,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     public Scheduler getScheduler() {
         return scheduler;
-    }
-
-    public Registry<Mod> getModRegistry() {
-        return modRegistry;
     }
 
     public GameFileSystem getFileSystem() {

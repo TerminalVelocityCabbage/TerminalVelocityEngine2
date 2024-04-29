@@ -1,14 +1,11 @@
 package com.terminalvelocitycabbage.engine.filesystem.sources;
 
-import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.filesystem.resources.types.JarResource;
 import com.terminalvelocitycabbage.engine.mod.Mod;
-import com.terminalvelocitycabbage.engine.networking.Side;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.server.ServerBase;
 
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -21,12 +18,9 @@ public class ModSource extends ResourceSource {
     //The mod which hosts this source
     Mod mod;
 
-    public ModSource(String namespace, Side side) {
+    public ModSource(String namespace, Mod mod) {
         super(namespace);
-        this.mod = switch (side) {
-            case CLIENT -> ClientBase.getInstance().getModRegistry().get(new Identifier(namespace, namespace));
-            case SERVER -> ServerBase.getInstance().getModRegistry().get(new Identifier(namespace, namespace));
-        };
+        this.mod = mod;
     }
 
     /**

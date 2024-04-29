@@ -4,13 +4,11 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.github.zafarkhaja.semver.Version;
-import com.terminalvelocitycabbage.engine.Entrypoint;
-import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.types.JarResource;
 import com.terminalvelocitycabbage.engine.networking.Side;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.server.ServerBase;
+import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.Toggle;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
@@ -18,6 +16,7 @@ import com.terminalvelocitycabbage.engine.util.touples.Pair;
 import javax.management.ReflectionException;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -31,7 +30,7 @@ public class ModLoader {
     //TODO replace this with a more clever way to detect circular dependencies larger than direct circ deps.
     public static final int MAX_SORT_ITERATIONS = 10000;
 
-    public static void loadAndRegisterMods(Side side) {
+    public static void loadAndRegisterMods(Side side, Registry<Mod> modRegistry) {
 
         Path modsDir = Paths.get("mods");
         File modsRoot = new File(modsDir.toUri());
@@ -61,7 +60,7 @@ public class ModLoader {
             ModInfo modInfo = new ObjectConverter().toObject(config, ModInfo::new);
 
             //The entrypoints for this mod
-            Entrypoint entrypoint = getEntrypointFromFile(file, side);
+            ModEntrypoint entrypoint = getEntrypointFromFile(file, side);
 
             if (entrypoint == null) {
                 Log.error("Could not find any annotated entrypoint class for " + file.getName());
@@ -71,6 +70,9 @@ public class ModLoader {
 
             //Create a new Mod instance from this information
             Mod mod = new Mod(entrypoint, jarFile, modInfo);
+
+            //Set the private fields of this mod's entrypoint to this mod with reflection
+            setModEntrypointMod(mod.getEntrypoint(), mod);
 
             unsortedMods.put(mod.getModInfo().getNamespace(), mod);
         }
@@ -97,11 +99,37 @@ public class ModLoader {
 
         //Register the mods to the mod registry
         sortedMods.forEach(mod -> {
-            switch (side) {
-                case CLIENT -> ClientBase.getInstance().getModRegistry().register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod);
-                case SERVER -> ServerBase.getInstance().getModRegistry().register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod);
-            }
+            modRegistry.register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod);
         });
+
+        //Set all mods dependencies field with reflection
+        sortedMods.forEach(mod -> {
+            setModDependencies(modRegistry, mod, mod.getEntrypoint(), unsortedMods);
+        });
+    }
+
+    private static void setModDependencies(Registry<Mod> modRegistry, Mod mod, ModEntrypoint entrypoint, Map<String, Mod> mods) {
+        Map<String, Mod> dependencies = new HashMap<>();
+        modRegistry.get(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace())).getModInfo().getAllDependencies().forEach(modDependency -> {
+            if (mods.containsKey(modDependency.getValue0())) dependencies.put(modDependency.getValue0(), mods.get(modDependency.getValue0()));
+        });
+        try {
+            Field modField = entrypoint.getClass().getSuperclass().getDeclaredField("dependencies");
+            modField.setAccessible(true);
+            modField.set(entrypoint, dependencies);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void setModEntrypointMod(ModEntrypoint entrypoint, Mod mod) {
+        try {
+            Field modField = entrypoint.getClass().getSuperclass().getDeclaredField("mod");
+            modField.setAccessible(true);
+            modField.set(entrypoint, mod);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -211,7 +239,7 @@ public class ModLoader {
         return null;
     }
 
-    private static Entrypoint getEntrypointFromFile(File file, Side side) {
+    private static ModEntrypoint getEntrypointFromFile(File file, Side side) {
         try {
             //Get classes from this mod
             var classes = ClassUtils.getClassesFromJarFile(file);
@@ -227,7 +255,7 @@ public class ModLoader {
                 if (!client && side == Side.CLIENT || !server && side == Side.SERVER) continue;
 
                 //If they do match, this is the current entrypoint
-                return (Entrypoint) ClassUtils.createInstance(clazz);
+                return (ModEntrypoint) ClassUtils.createInstance(clazz);
             }
         } catch (ReflectionException | IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
