@@ -52,4 +52,12 @@ public class Identifier {
 	public boolean equalsString(String identifier) {
 		return this.toString().equals(identifier);
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Identifier that = (Identifier) o;
+		return namespace.equals(that.namespace) && name.equals(that.name);
+	}
 }

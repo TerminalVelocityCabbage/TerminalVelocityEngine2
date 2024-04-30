@@ -3,6 +3,7 @@ ext {
     simpleNetVersion = "1.6.6"
     jansiVersion = "2.1.0"
     nightConfigVersion = "3.6.6"
+    jsemverVersion = "0.10.2"
 }
 
 dependencies {
@@ -10,4 +11,5 @@ dependencies {
     api "org.fusesource.jansi:jansi:${jansiVersion}"
     api "org.joml:joml:${jomlVersion}"
     api "com.electronwill.night-config:toml:${nightConfigVersion}"
+    api "com.github.zafarkhaja:java-semver:${jsemverVersion}"
 }

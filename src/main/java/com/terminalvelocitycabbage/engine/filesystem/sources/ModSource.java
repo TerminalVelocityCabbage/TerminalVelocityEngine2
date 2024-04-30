@@ -1,9 +1,9 @@
 package com.terminalvelocitycabbage.engine.filesystem.sources;
 
+import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.filesystem.resources.types.JarResource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -43,7 +43,7 @@ public class ModSource extends ResourceSource {
         var root = namespace + ":" + resourceType.getName();
         String path = getResourceRootRegistry().get(root);
         String compiledPath = path + "/" + name;
-        JarFile jarFile = mod.jarFile();
+        JarFile jarFile = mod.getJarFile();
         JarEntry entry = jarFile.getJarEntry(compiledPath);
 
         return new JarResource(jarFile, entry);

@@ -7,7 +7,7 @@ import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
-import com.terminalvelocitycabbage.engine.mod.ModManager;
+import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
 import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
@@ -40,7 +40,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     //Scope Stuff
     private EventDispatcher eventDispatcher;
-    private ModManager modManager;
     private Registry<Mod> modRegistry;
     private Manager manager;
     private Scheduler scheduler;
@@ -53,10 +52,9 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
         eventDispatcher = new EventDispatcher();
-        eventDispatcher.addPublisher(getNamespace(), this);
-        modManager = new ModManager();
         modRegistry = new Registry<>(null);
         manager = new Manager();
+        scheduler = new Scheduler();
         fileSystem = new GameFileSystem();
     }
 
@@ -64,14 +62,14 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
      * Starts this server program
      */
     public void start() {
-        modManager.loadAndRegisterMods(Side.SERVER);
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.PRE_INIT), server));
+        ModLoader.loadAndRegisterMods(Side.SERVER, modRegistry);
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));
         getInstance().init();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.INIT), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server));
         getInstance().run();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STOPPING), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPING, server));
         getInstance().destroy();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STOPPED), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPED, server));
     }
 
     @Override
@@ -97,11 +95,11 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
             });
         });
 
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().preInit());
+        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
     }
 
     public void modInit() {
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().init());
+        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
     }
 
     /**
@@ -113,11 +111,11 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         packetRegistry.lock();
 
         //Establish connection
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.PRE_BIND), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_BIND, server));
         bind();
 
         //Dispatch started event
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(identifierOf(ServerLifecycleEvent.STARTED), server));
+        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STARTED, server));
 
         //As long as the server should run we run it
         while (!shouldStop) {
@@ -139,7 +137,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     @Override
     public void destroy() {
         server.close();
-        getModRegistry().getRegistryContents().values().forEach(mod -> mod.entrypoint().destroy());
+        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
     }
 
     /**
@@ -180,10 +178,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         return port;
     }
 
-    public ModManager getModManager() {
-        return modManager;
-    }
-
     public Manager getManager() {
         return manager;
     }
@@ -192,11 +186,11 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         return scheduler;
     }
 
-    public Registry<Mod> getModRegistry() {
-        return modRegistry;
-    }
-
     public GameFileSystem getFileSystem() {
         return fileSystem;
+    }
+
+    public EventDispatcher getEventDispatcher() {
+        return eventDispatcher;
     }
 }
