@@ -108,11 +108,20 @@ public class ModLoader {
         });
     }
 
+    /**
+     * This method gets a mod entrypoint and sets their dependencies list with reflection
+     * @param modRegistry The mod registry that contains this mod
+     * @param mod The mod whose dependencies we are looking for
+     * @param entrypoint The entrypoint that will store this resulting list of dependencies
+     * @param mods The list of mods to pull the list of dependencies from
+     */
     private static void setModDependencies(Registry<Mod> modRegistry, Mod mod, ModEntrypoint entrypoint, Map<String, Mod> mods) {
         Map<String, Mod> dependencies = new HashMap<>();
+        //Get and store all mod instances from registered mods that this mod depends on
         modRegistry.get(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace())).getModInfo().getAllDependencies().forEach(modDependency -> {
             if (mods.containsKey(modDependency.getValue0())) dependencies.put(modDependency.getValue0(), mods.get(modDependency.getValue0()));
         });
+        //Store that list of mods in the dependencies field on this entrypoint
         try {
             Field modField = entrypoint.getClass().getSuperclass().getDeclaredField("dependencies");
             modField.setAccessible(true);
@@ -122,6 +131,11 @@ public class ModLoader {
         }
     }
 
+    /**
+     * This method sets the field for this mod on this entrypoint to itself
+     * @param entrypoint The entrypoint who contains the mod field
+     * @param mod The mod value to set this field to
+     */
     private static void setModEntrypointMod(ModEntrypoint entrypoint, Mod mod) {
         try {
             Field modField = entrypoint.getClass().getSuperclass().getDeclaredField("mod");
@@ -224,6 +238,11 @@ public class ModLoader {
         });
     }
 
+    /**
+     * Gets the mod-info.toml data from the specified JarFile if it has one and crashes if not
+     * @param jarFile the Jar file that we want the mod-info.toml file from
+     * @return A string that represents the content of the mod-info.toml file
+     */
     private static String getModInfoToml(JarFile jarFile) {
 
         Iterator<JarEntry> iterator = jarFile.entries().asIterator();
