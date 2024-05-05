@@ -8,6 +8,8 @@ public class WindowProperties {
     private int width;
     private int height;
     private String title;
+    private boolean focused;
+    private boolean mousedOver;
 
     Identifier renderer;
 
@@ -65,5 +67,21 @@ public class WindowProperties {
 
     public void setRenderer(Identifier renderer) {
         this.renderer = renderer;
+    }
+
+    public boolean isFocused() {
+        return focused;
+    }
+
+    public void setFocused(boolean focused) {
+        this.focused = focused;
+    }
+
+    public boolean isMousedOver() {
+        return mousedOver;
+    }
+
+    public void setMousedOver(boolean mousedOver) {
+        this.mousedOver = mousedOver;
     }
 }

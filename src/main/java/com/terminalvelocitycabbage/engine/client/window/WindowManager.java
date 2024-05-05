@@ -2,10 +2,7 @@ package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.*;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
@@ -13,6 +10,8 @@ import org.lwjgl.system.Platform;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -22,8 +21,6 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
 public class WindowManager {
 
     GLFWErrorCallback errorCallback;
-    GLFWKeyCallback keyCallback;
-    GLFWFramebufferSizeCallback framebufferSizeCallback;
     Callback debugProc;
     GLFWVidMode videoMode;
 
@@ -116,54 +113,79 @@ public class WindowManager {
     public void createNewWindow(WindowProperties properties) {
 
         //Create the glfw window
-        long window = glfwCreateWindow(properties.getWidth(), properties.getHeight(), properties.getTitle(), NULL, NULL);
+        long windowID = glfwCreateWindow(properties.getWidth(), properties.getHeight(), properties.getTitle(), NULL, NULL);
         //Error if the window is not created successfully
-        if (window == NULL) {
+        if (windowID == NULL) {
             throw new IllegalStateException("Failed to create GLFW window.");
         }
 
         //Add this window to the list of active window threads
-        threads.put(window, new WindowThread(window, this, properties));
+        threads.put(windowID, new WindowThread(windowID, this, properties));
 
-        //Set key callback
-        //TODO differ this to input handler
-        glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
-            public void invoke(long window, int key, int scancode, int action, int mods) {
-                ClientBase.getInstance().keyCallback(window, key, scancode, action, mods);
+        //Set framebuffer size callback
+        glfwSetFramebufferSizeCallback(windowID, (long window, int w, int h) -> {
+            if (w > 0 && h > 0) {
+                properties.setWidth(w);
+                properties.setHeight(h);
             }
         });
 
-        //Set framebuffer size callback
-        glfwSetFramebufferSizeCallback(window, framebufferSizeCallback = new GLFWFramebufferSizeCallback() {
-            public void invoke(long window, int w, int h) {
-                if (w > 0 && h > 0) {
-                    properties.setWidth(w);
-                    properties.setHeight(h);
-                }
-            }
+        //Set focus state callback
+        glfwSetWindowFocusCallback(windowID, (long window, boolean isActive) -> {
+            properties.setFocused(isActive);
+        });
+
+        //Set mouse enter callback
+        glfwSetCursorEnterCallback(windowID, (window, entered) -> {
+            properties.setMousedOver(entered);
+        });
+
+        //Set key callback
+        glfwSetKeyCallback(windowID, (long window, int key, int scancode, int action, int mods) -> {
+            ClientBase.getInstance().getInputMapper().keyCallback(window, key, scancode, action, mods);
+        });
+
+        //Set char callback
+        glfwSetCharCallback(windowID, (long window, int character) -> {
+            ClientBase.getInstance().getInputMapper().charCallback(window, character);
+        });
+
+        //Set cursor pos callback
+        glfwSetCursorPosCallback(windowID, (long window, double x, double y) -> {
+            ClientBase.getInstance().getInputMapper().cursorPosCallback(window, x, y);
+        });
+
+        //Set Mouse Button callback
+        glfwSetMouseButtonCallback(windowID, (long window, int button, int action, int mods) -> {
+            ClientBase.getInstance().getInputMapper().mouseButtonCallback(window, button, action, mods);
+        });
+
+        //Set Mouse Scroll callback
+        glfwSetScrollCallback(windowID, (window, deltaX, deltaY) -> {
+            ClientBase.getInstance().getInputMapper().scrollCallback(window, deltaX, deltaY);
         });
 
         //Center the window on the primary monitor
         //TODO allow the createWindow method to configure this somehow
         videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowPos(window, (videoMode.width() - properties.getWidth()) / 2, (videoMode.height() - properties.getHeight()) / 2);
+        glfwSetWindowPos(windowID, (videoMode.width() - properties.getWidth()) / 2, (videoMode.height() - properties.getHeight()) / 2);
 
         //Update the window size variables based on post-init dimensions before showing the window
         try (MemoryStack frame = MemoryStack.stackPush()) {
             IntBuffer framebufferSize = frame.mallocInt(2);
-            nglfwGetFramebufferSize(window, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
+            nglfwGetFramebufferSize(windowID, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
             properties.setWidth(framebufferSize.get(0));
             properties.setHeight(framebufferSize.get(1));
         }
 
         //Set the window title
-        glfwSetWindowTitle(window, properties.getTitle());
+        glfwSetWindowTitle(windowID, properties.getTitle());
 
         //Show the window
-        glfwShowWindow(window);
+        glfwShowWindow(windowID);
 
         //Start the window update loop
-        threads.get(window).start();
+        threads.get(windowID).start();
     }
 
     //Destroys the specified window
@@ -190,5 +212,23 @@ public class WindowManager {
 
     public WindowProperties getPropertiesFromWindow(long windowHandle) {
         return threads.get(windowHandle).getProperties();
+    }
+
+    public List<Long> getActiveWindowHandles() {
+        return threads.values().stream().map(WindowThread::getWindowHandle).collect(Collectors.toList());
+    }
+
+    public long getFocusedWindow() {
+        for (WindowThread thread : threads.values()) {
+            if (thread.getProperties().isFocused()) return thread.getWindowHandle();
+        }
+        return -1;
+    }
+
+    public long getMousedOverWindow() {
+        for (WindowThread thread : threads.values()) {
+            if (thread.getProperties().isMousedOver()) return thread.getWindowHandle();
+        }
+        return -1;
     }
 }

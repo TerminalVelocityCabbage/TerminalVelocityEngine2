@@ -91,4 +91,8 @@ public class WindowThread extends Thread {
     public WindowProperties getProperties() {
         return properties;
     }
+
+    public long getWindowHandle() {
+        return windowHandle;
+    }
 }

@@ -2,6 +2,8 @@ package com.terminalvelocitycabbage.engine.client;
 
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.client.input.InputHandler;
+import com.terminalvelocitycabbage.engine.client.input.InputMapper;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
@@ -43,6 +45,10 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     //Resources Stuff
     private GameFileSystem fileSystem;
 
+    //Input stuff
+    private InputHandler inputHandler;
+    private InputMapper inputMapper;
+
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
@@ -55,6 +61,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         windowManager = new WindowManager();
         rendererRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
+        inputHandler = new InputHandler();
+        inputMapper = new InputMapper();
         client = new Client();
     }
 
@@ -147,6 +155,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * The code to be executed every frame
      */
     public void update() {
+        inputHandler.update();
         tickManager.update();
         while (tickManager.hasTick()) {
             tick();
@@ -166,8 +175,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         windowManager.destroy();
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
     }
-
-    public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
 
     public GameFileSystem getFileSystem() {
         return fileSystem;
@@ -192,5 +199,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public WindowManager getWindowManager() {
         return windowManager;
+    }
+
+    public InputMapper getInputMapper() {
+        return inputMapper;
     }
 }
