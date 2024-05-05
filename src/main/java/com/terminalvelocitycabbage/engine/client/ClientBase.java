@@ -7,6 +7,7 @@ import com.terminalvelocitycabbage.engine.client.input.InputMapper;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
@@ -31,6 +32,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private WindowManager windowManager;
     private Registry<Pair<Class<? extends RendererBase>, RenderGraph>> rendererRegistry;
     private TickManager tickManager;
+    private TickManager inputTickManager;
     private Manager manager;
     private Scheduler scheduler;
 
@@ -53,6 +55,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         super(namespace);
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
+        inputTickManager = new TickManager(200); //TODO verify if 200hz input polling is good
         manager = new Manager();
         scheduler = new Scheduler();
         eventDispatcher = new EventDispatcher();
@@ -152,10 +155,13 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     }
 
     /**
-     * The code to be executed every frame
+     * The code to be executed every logic frame. NOT every renderer frame, that is handled by each window.
      */
     public void update() {
-        inputHandler.update();
+        inputTickManager.update();
+        while (inputTickManager.hasTick()) {
+            inputHandler.update();
+        }
         tickManager.update();
         while (tickManager.hasTick()) {
             tick();
