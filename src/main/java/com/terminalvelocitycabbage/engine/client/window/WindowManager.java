@@ -71,7 +71,10 @@ public class WindowManager {
         windowsToDestroy.clear();
 
         //Poll for window events (like input or closing etc.)
-        glfwWaitEvents();
+        glfwPollEvents();
+        //TODO make this configurable?
+        //wait events does not work for controllers, it only listens for callback updates.
+        //glfwWaitEvents();
 
         //Don't update the threads if there is nothing to update
         if (!hasAliveWindow()) return true;
@@ -110,7 +113,7 @@ public class WindowManager {
     }
 
     //Create a new window in this manager
-    public void createNewWindow(WindowProperties properties) {
+    public long createNewWindow(WindowProperties properties) {
 
         //Create the glfw window
         long windowID = glfwCreateWindow(properties.getWidth(), properties.getHeight(), properties.getTitle(), NULL, NULL);
@@ -186,6 +189,8 @@ public class WindowManager {
 
         //Start the window update loop
         threads.get(windowID).start();
+
+        return windowID;
     }
 
     //Destroys the specified window
@@ -230,5 +235,9 @@ public class WindowManager {
             if (thread.getProperties().isMousedOver()) return thread.getWindowHandle();
         }
         return -1;
+    }
+
+    public void focusWindow(long window) {
+        glfwFocusWindow(window);
     }
 }
