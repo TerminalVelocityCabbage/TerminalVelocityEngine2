@@ -1,15 +1,12 @@
 package com.terminalvelocitycabbage.engine.client.input;
 
-import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.input.types.KeyInput;
+import com.terminalvelocitycabbage.engine.client.input.util.KeyboardInputUtil;
+import com.terminalvelocitycabbage.engine.client.input.util.MouseInputUtil;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.system.MemoryStack;
-
-import java.nio.DoubleBuffer;
+import org.lwjgl.glfw.GLFWGamepadState;
+import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.system.MemoryStack.stackPush;
 
 //It may be better to use glfwGetKey and glfwGetCursorPos and friends as opposed to the key callbacks because the key
 //callbacks are not timed with the rest of the engine. we can update the input handler exactly when we want to if we
@@ -22,23 +19,29 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class InputHandler {
 
-    public void update() {
-//        Log.info("Key W: " + KeyInput.Action.fromGLFW(glfwGetKey(ClientBase.getInstance().getWindowManager().getFocusedWindow(), GLFW_KEY_W)));
+    GLFWGamepadState gamepadState;
 
-//        try (MemoryStack stack = stackPush()) {
-//            DoubleBuffer cx = stack.mallocDouble(1);
-//            DoubleBuffer cy = stack.mallocDouble(1);
-//            long mousedOverWindow = ClientBase.getInstance().getWindowManager().getMousedOverWindow();
-//            if (mousedOverWindow != -1) {
-//                glfwGetCursorPos(mousedOverWindow, cx, cy);
-//                Log.info("On-Demand Cursor Pos: " + cx.get(0) + " : " + cy.get(0));
-//            }
-//        }
+    public InputHandler() {
+        this.gamepadState = new GLFWGamepadState(MemoryUtil.memAlloc(GLFWGamepadState.SIZEOF));
+    }
 
-//        var window = ClientBase.getInstance().getWindowManager().getMousedOverWindow();
-//        if (window != -1) {
-//            Log.info("Mouse Button 1: " + KeyInput.Action.fromGLFW(glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_1)));
-//        }
+    public void update(long focusedWindow, long mousedOverWindow) {
+
+        if (KeyboardInputUtil.isKeyPressed(focusedWindow, GLFW_KEY_W)) Log.info("W");
+        //if (mousedOverWindow != -1) Log.info("On-Demand Cursor Pos: " + MouseInputUtil.getMousePosition(mousedOverWindow));
+        if (MouseInputUtil.isMouseButtonPressed(focusedWindow, GLFW_MOUSE_BUTTON_LEFT)) Log.info("Click");
+
+        for (int i = 0; i <= GLFW_JOYSTICK_LAST; i++) {
+            if (!glfwJoystickPresent(i)) continue;
+            if (glfwJoystickIsGamepad(i)) {
+                // Retrieve joystick axes data
+                glfwGetGamepadState(i, gamepadState);
+            } else {
+                //TODO this is a large undertaking and will likely result in needing to add a switch of MANY joystick
+                //mappings here to take raw button and axis inputs and map it to a useful xbox like controller scheme
+                Log.error("Joysticks not implemented in TVE, only gamepads. TODO! " + glfwGetJoystickName(i) + " will not work.. Sorry for the inconvenience.");
+            }
+        }
     }
 
     //Handle current input device status (auto switch between input devices)

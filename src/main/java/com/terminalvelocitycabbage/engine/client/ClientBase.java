@@ -7,7 +7,6 @@ import com.terminalvelocitycabbage.engine.client.input.InputMapper;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
-import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
@@ -160,7 +159,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     public void update() {
         inputTickManager.update();
         while (inputTickManager.hasTick()) {
-            inputHandler.update();
+            inputHandler.update(getWindowManager().getFocusedWindow(), getWindowManager().getMousedOverWindow());
         }
         tickManager.update();
         while (tickManager.hasTick()) {
