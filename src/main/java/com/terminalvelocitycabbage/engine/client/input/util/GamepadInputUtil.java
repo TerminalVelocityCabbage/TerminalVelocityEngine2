@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.input.util;
 
+import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 import org.joml.Vector2f;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWGamepadState;
 
 import static org.lwjgl.glfw.GLFW.*;

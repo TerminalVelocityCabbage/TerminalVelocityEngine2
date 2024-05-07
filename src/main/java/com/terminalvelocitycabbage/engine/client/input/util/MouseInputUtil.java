@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.input.util;
 
+import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 import org.joml.Vector2f;
 import org.lwjgl.system.MemoryStack;
 

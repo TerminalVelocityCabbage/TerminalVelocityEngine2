@@ -1,5 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.input.util;
 
+import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class KeyboardInputUtil {

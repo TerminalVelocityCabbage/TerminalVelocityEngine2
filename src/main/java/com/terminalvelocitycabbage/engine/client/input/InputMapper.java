@@ -1,9 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.input;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.input.types.KeyInput;
+import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * A class that converts raw glfw input callback events and converts them into listenable actions
@@ -14,7 +13,7 @@ public class InputMapper {
      * @param window The window which published this key callback
      * @param key The glfw recognized key that was pressed (not all are recognized)
      * @param scancode The unique system specific code which represents this key being pressed
-     * @param action The action that represents this key action Easily mapped to {@link KeyInput.Action}
+     * @param action The action that represents this key action Easily mapped to {@link ButtonAction}
      * @param mods
      */
     public void keyCallback(long window, int key, int scancode, int action, int mods) {

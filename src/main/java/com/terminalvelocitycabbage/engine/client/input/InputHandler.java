@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.input;
 
+import com.terminalvelocitycabbage.engine.client.input.util.GamepadInputUtil;
 import com.terminalvelocitycabbage.engine.client.input.util.KeyboardInputUtil;
 import com.terminalvelocitycabbage.engine.client.input.util.MouseInputUtil;
 import com.terminalvelocitycabbage.engine.debug.Log;
@@ -25,17 +26,27 @@ public class InputHandler {
         this.gamepadState = new GLFWGamepadState(MemoryUtil.memAlloc(GLFWGamepadState.SIZEOF));
     }
 
+    /**
+     * Marks an input read state, this updates all queues for input
+     * @param focusedWindow The window which is selected
+     * @param mousedOverWindow The window which the mouse is over (or -1 if none)
+     */
     public void update(long focusedWindow, long mousedOverWindow) {
 
-        if (KeyboardInputUtil.isKeyPressed(focusedWindow, GLFW_KEY_W)) Log.info("W");
-        //if (mousedOverWindow != -1) Log.info("On-Demand Cursor Pos: " + MouseInputUtil.getMousePosition(mousedOverWindow));
-        if (MouseInputUtil.isMouseButtonPressed(focusedWindow, GLFW_MOUSE_BUTTON_LEFT)) Log.info("Click");
+        //Process normal mouse/keyboard inputs
+        processMouseKeyboardInputs(focusedWindow, mousedOverWindow);
 
+        //Loop through all potential joysticks
+        //TODO replace this with a list of connected joysticks instead
         for (int i = 0; i <= GLFW_JOYSTICK_LAST; i++) {
+            //If this joystick is not connected skip it
             if (!glfwJoystickPresent(i)) continue;
+            //Is this joystick mapped to onw of the SDL mapped controllers?
             if (glfwJoystickIsGamepad(i)) {
-                // Retrieve joystick axes data
+                // Retrieve joystick axes data and update the current gamepadState for reading later
                 glfwGetGamepadState(i, gamepadState);
+                //In this section of the code we can process inputs from gamepads
+                processGamepadInputs();
             } else {
                 //TODO this is a large undertaking and will likely result in needing to add a switch of MANY joystick
                 //mappings here to take raw button and axis inputs and map it to a useful xbox like controller scheme
@@ -44,8 +55,14 @@ public class InputHandler {
         }
     }
 
-    //Handle current input device status (auto switch between input devices)
-    //Dispatch events for input connection/disconnection
-    //Dispatch events for when active controller changes (keyboard/controller)
+    private void processMouseKeyboardInputs(long focusedWindow, long mousedOverWindow) {
+        if (KeyboardInputUtil.isKeyPressed(focusedWindow, GLFW_KEY_W)) Log.info("W");
+        //if (mousedOverWindow != -1) Log.info("On-Demand Cursor Pos: " + MouseInputUtil.getMousePosition(mousedOverWindow));
+        if (MouseInputUtil.isMouseButtonPressed(focusedWindow, GLFW_MOUSE_BUTTON_LEFT)) Log.info("Click");
+    }
+
+    private void processGamepadInputs() {
+        if (GamepadInputUtil.isButtonAPressed(gamepadState)) Log.info("A");
+    }
 
 }

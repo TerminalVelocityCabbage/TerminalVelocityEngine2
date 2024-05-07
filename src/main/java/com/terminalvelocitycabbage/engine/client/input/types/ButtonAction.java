@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.engine.client.input.util;
+package com.terminalvelocitycabbage.engine.client.input.types;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
