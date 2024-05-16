@@ -137,9 +137,25 @@ public class GamepadInputUtil {
         return state.axes(GLFW_GAMEPAD_AXIS_LEFT_X);
     }
 
+    public static float getLeftJoystickLeftAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.LEFT_JOYSTICK_LEFT.getNormalizedDirection(getLeftJoystickX(state));
+    }
+
+    public static float getLeftJoystickRightAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.LEFT_JOYSTICK_RIGHT.getNormalizedDirection(getLeftJoystickX(state));
+    }
+
     public static float getLeftJoystickY(GLFWGamepadState state) {
         //Normalized from -1 to 1
         return state.axes(GLFW_GAMEPAD_AXIS_LEFT_Y);
+    }
+
+    public static float getLeftJoystickUpAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.LEFT_JOYSTICK_UP.getNormalizedDirection(getLeftJoystickY(state));
+    }
+
+    public static float getLeftJoystickDownAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.LEFT_JOYSTICK_DOWN.getNormalizedDirection(getLeftJoystickY(state));
     }
 
     public static float getRightJoystickX(GLFWGamepadState state) {
@@ -147,9 +163,25 @@ public class GamepadInputUtil {
         return state.axes(GLFW_GAMEPAD_AXIS_RIGHT_X);
     }
 
+    public static float getRightJoystickLeftAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.RIGHT_JOYSTICK_LEFT.getNormalizedDirection(getRightJoystickX(state));
+    }
+
+    public static float getRightJoystickRightAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.RIGHT_JOYSTICK_RIGHT.getNormalizedDirection(getRightJoystickX(state));
+    }
+
     public static float getRightJoystickY(GLFWGamepadState state) {
         //Normalized from -1 to 1
         return state.axes(GLFW_GAMEPAD_AXIS_RIGHT_Y);
+    }
+
+    public static float getRightJoystickUpAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.RIGHT_JOYSTICK_UP.getNormalizedDirection(getRightJoystickY(state));
+    }
+
+    public static float getRightJoystickDownAmount(GLFWGamepadState state) {
+        return GamepadInput.Axis.RIGHT_JOYSTICK_DOWN.getNormalizedDirection(getRightJoystickY(state));
     }
 
     public static Vector2f getLeftJoystickXY(GLFWGamepadState state) {
@@ -181,12 +213,27 @@ public class GamepadInputUtil {
             case BACK -> isBackButtonPressed(state);
             case START -> isStartButtonPressed(state);
             case GUIDE -> isGuideButtonPressed(state);
-            case LEFT_JOYSTICK_DOWN -> isLeftJoystickPressed(state);
-            case RIGHT_JOYSTICK_DOWN -> isRightJoystickPressed(state);
+            case LEFT_JOYSTICK_PRESSED -> isLeftJoystickPressed(state);
+            case RIGHT_JOYSTICK_PRESSED -> isRightJoystickPressed(state);
             case DPAD_UP -> isDPadUpPressed(state);
             case DPAD_DOWN -> isDPadDownPressed(state);
             case DPAD_LEFT -> isDPadLeftPressed(state);
             case DPAD_RIGHT -> isDPadRightPressed(state);
+        };
+    }
+
+    public static float getAxisAmount(GamepadInput.Axis axis, GLFWGamepadState state) {
+        return switch (axis) {
+            case LEFT_JOYSTICK_UP -> getLeftJoystickUpAmount(state);
+            case LEFT_JOYSTICK_DOWN -> getLeftJoystickDownAmount(state);
+            case LEFT_JOYSTICK_LEFT -> getLeftJoystickLeftAmount(state);
+            case LEFT_JOYSTICK_RIGHT -> getLeftJoystickRightAmount(state);
+            case RIGHT_JOYSTICK_UP -> getRightJoystickUpAmount(state);
+            case RIGHT_JOYSTICK_DOWN -> getRightJoystickDownAmount(state);
+            case RIGHT_JOYSTICK_LEFT -> getRightJoystickLeftAmount(state);
+            case RIGHT_JOYSTICK_RIGHT -> getRightJoystickRightAmount(state);
+            case LEFT_TRIGGER -> getLeftTriggerPressedAmount(state);
+            case RIGHT_TRIGGER -> getRightTriggerPressedAmount(state);
         };
     }
 }

@@ -17,8 +17,8 @@ public abstract class GamepadInput {
         BACK(GLFW_GAMEPAD_BUTTON_BACK),
         START(GLFW_GAMEPAD_BUTTON_START),
         GUIDE(GLFW_GAMEPAD_BUTTON_GUIDE),
-        LEFT_JOYSTICK_DOWN(GLFW_GAMEPAD_BUTTON_LEFT_THUMB),
-        RIGHT_JOYSTICK_DOWN(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB),
+        LEFT_JOYSTICK_PRESSED(GLFW_GAMEPAD_BUTTON_LEFT_THUMB),
+        RIGHT_JOYSTICK_PRESSED(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB),
         DPAD_UP(GLFW_GAMEPAD_BUTTON_DPAD_UP),
         DPAD_DOWN(GLFW_GAMEPAD_BUTTON_DPAD_DOWN),
         DPAD_LEFT(GLFW_GAMEPAD_BUTTON_DPAD_LEFT),
@@ -35,23 +35,23 @@ public abstract class GamepadInput {
         }
     }
 
-    public enum Joystick {
+    public enum Axis {
 
-        L_UP(GLFW_GAMEPAD_AXIS_LEFT_Y, 1),
-        L_DOWN(GLFW_GAMEPAD_AXIS_LEFT_Y, -1),
-        L_LEFT(GLFW_GAMEPAD_AXIS_LEFT_X, -1),
-        L_RIGHT(GLFW_GAMEPAD_AXIS_LEFT_X, 1),
-        R_UP(GLFW_GAMEPAD_AXIS_RIGHT_Y, 1),
-        R_DOWN(GLFW_GAMEPAD_AXIS_RIGHT_Y, -1),
-        R_LEFT(GLFW_GAMEPAD_AXIS_RIGHT_X, -1),
-        R_RIGHT(GLFW_GAMEPAD_AXIS_RIGHT_X, 1),
+        LEFT_JOYSTICK_UP(GLFW_GAMEPAD_AXIS_LEFT_Y, 1),
+        LEFT_JOYSTICK_DOWN(GLFW_GAMEPAD_AXIS_LEFT_Y, -1),
+        LEFT_JOYSTICK_LEFT(GLFW_GAMEPAD_AXIS_LEFT_X, -1),
+        LEFT_JOYSTICK_RIGHT(GLFW_GAMEPAD_AXIS_LEFT_X, 1),
+        RIGHT_JOYSTICK_UP(GLFW_GAMEPAD_AXIS_RIGHT_Y, 1),
+        RIGHT_JOYSTICK_DOWN(GLFW_GAMEPAD_AXIS_RIGHT_Y, -1),
+        RIGHT_JOYSTICK_LEFT(GLFW_GAMEPAD_AXIS_RIGHT_X, -1),
+        RIGHT_JOYSTICK_RIGHT(GLFW_GAMEPAD_AXIS_RIGHT_X, 1),
         LEFT_TRIGGER(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, 0),
         RIGHT_TRIGGER(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER, 0);
 
         final int glfwKey;
         final int direction; //-1 for down or left 1 for up or right, 0 for scalar normalization
 
-        Joystick(int glfwKey, int direction) {
+        Axis(int glfwKey, int direction) {
             this.glfwKey = glfwKey;
             this.direction = direction;
         }
