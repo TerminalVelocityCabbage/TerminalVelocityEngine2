@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.input.util;
 
 import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
+import com.terminalvelocitycabbage.engine.client.input.types.GamepadInput;
 import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWGamepadState;
 
@@ -167,5 +168,25 @@ public class GamepadInputUtil {
     public static float getRightTriggerPressedAmount(GLFWGamepadState state) {
         //Normalized from 0 to 1
         return (state.axes(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER) + 1) / 2f;
+    }
+
+    public static boolean isButtonPressed(GLFWGamepadState state, GamepadInput.Button button) {
+        return switch (button) {
+            case A -> isButtonAPressed(state);
+            case B -> isButtonBPressed(state);
+            case X -> isButtonXPressed(state);
+            case Y -> isButtonYPressed(state);
+            case LEFT_BUMPER -> isLeftBumperPressed(state);
+            case RIGHT_BUMPER -> isRightBumperPressed(state);
+            case BACK -> isBackButtonPressed(state);
+            case START -> isStartButtonPressed(state);
+            case GUIDE -> isGuideButtonPressed(state);
+            case LEFT_JOYSTICK_DOWN -> isLeftJoystickPressed(state);
+            case RIGHT_JOYSTICK_DOWN -> isRightJoystickPressed(state);
+            case DPAD_UP -> isDPadUpPressed(state);
+            case DPAD_DOWN -> isDPadDownPressed(state);
+            case DPAD_LEFT -> isDPadLeftPressed(state);
+            case DPAD_RIGHT -> isDPadRightPressed(state);
+        };
     }
 }
