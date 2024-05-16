@@ -2,26 +2,9 @@ package com.terminalvelocitycabbage.engine.client.input.controller;
 
 import com.terminalvelocitycabbage.engine.client.input.control.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract sealed class Controller permits FloatController, GroupedController2f, BooleanController {
 
-    final List<KeyboardKeyControl> keyboardKeyControls = new ArrayList<>();
-    final List<GamepadButtonControl> gamepadButtonControls = new ArrayList<>();
-    final List<MouseButtonControl> mouseButtonControls = new ArrayList<>();
-    final List<GamepadAxisControl> gamepadAxisControls = new ArrayList<>();
-
-    public Controller(Control... controls) {
-        for (Control control : controls) {
-            switch (control) {
-                case KeyboardKeyControl kkc -> keyboardKeyControls.add(kkc);
-                case GamepadButtonControl gpbc -> gamepadButtonControls.add(gpbc);
-                case MouseButtonControl mbc -> mouseButtonControls.add(mbc);
-                case GamepadAxisControl gpac -> gamepadAxisControls.add(gpac);
-            }
-        }
-    }
+    ControlGroup[] controlGroups;
 
     public abstract void act();
 
@@ -29,10 +12,12 @@ public abstract sealed class Controller permits FloatController, GroupedControll
 
     public void processInputs() {
         preProcess();
-        for (KeyboardKeyControl kkc : keyboardKeyControls) processKeyControlInput(kkc);
-        for (GamepadButtonControl gpbc : gamepadButtonControls) processGamepadButtonControl(gpbc);
-        for (MouseButtonControl mbc : mouseButtonControls) processMouseButtonControls(mbc);
-        for (GamepadAxisControl gpac : gamepadAxisControls) processGamepadAxisControls(gpac);
+        for (ControlGroup controlGroup : controlGroups) {
+            for (KeyboardKeyControl kkc : controlGroup.keyboardKeyControls) processKeyControlInput(kkc);
+            for (GamepadButtonControl gpbc : controlGroup.gamepadButtonControls) processGamepadButtonControl(gpbc);
+            for (MouseButtonControl mbc : controlGroup.mouseButtonControls) processMouseButtonControls(mbc);
+            for (GamepadAxisControl gpac : controlGroup.gamepadAxisControls) processGamepadAxisControls(gpac);
+        }
         postProcess();
         act();
         postAction();

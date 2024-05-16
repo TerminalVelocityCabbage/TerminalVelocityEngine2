@@ -13,7 +13,8 @@ public non-sealed abstract class FloatController extends Controller {
     }
 
     public FloatController(MultiInputResolutionStrategy mirs, Control... controls) {
-        super(controls);
+        this.controlGroups = new ControlGroup[1];
+        this.controlGroups[0] = new ControlGroup(controls);
         this.strategy = mirs;
     }
 

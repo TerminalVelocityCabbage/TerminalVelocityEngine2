@@ -9,9 +9,10 @@ public abstract non-sealed class BooleanController extends Controller {
     float amount;
 
     public BooleanController(ButtonAction action, boolean defaultState, Control[] controls) {
-        super(controls);
         this.action = action;
         this.amount = defaultState ? 1.0f : 0.0f;
+        this.controlGroups = new ControlGroup[1];
+        this.controlGroups[0] = new ControlGroup(controls);
     }
 
     @Override
