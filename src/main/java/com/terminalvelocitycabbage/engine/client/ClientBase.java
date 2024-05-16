@@ -15,6 +15,7 @@ import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
+import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
@@ -34,6 +35,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private TickManager inputTickManager;
     private Manager manager;
     private Scheduler scheduler;
+    private long deltaTime; //Tick delta time not render time
+    private MutableInstant tickClock;
 
     //Networking stuff
     private Client client;
@@ -57,6 +60,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         inputTickManager = new TickManager(200); //TODO verify if 200hz input polling is good
         manager = new Manager();
         scheduler = new Scheduler();
+        tickClock = MutableInstant.ofNow();
         eventDispatcher = new EventDispatcher();
         modRegistry = new Registry<>(null);
         fileSystem = new GameFileSystem();
@@ -148,6 +152,12 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * initializes the game loop
      */
     private void run() {
+
+        //Make sure the first frame has a somewhat valid deltatime
+        deltaTime = 1;
+        tickClock.now();
+
+        //Start the logic loop
         while (!windowManager.loop()) {
             update();
         }
@@ -157,10 +167,15 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * The code to be executed every logic frame. NOT every renderer frame, that is handled by each window.
      */
     public void update() {
+        //Update the tick timer
+        deltaTime = tickClock.getDeltaTime();
+        tickClock.now();
+        //Update the input handlers for use in game logic
         inputTickManager.update();
         while (inputTickManager.hasTick()) {
-            inputHandler.update(getWindowManager().getFocusedWindow(), getWindowManager().getMousedOverWindow());
+            inputHandler.update(getWindowManager().getFocusedWindow(), getWindowManager().getMousedOverWindow(), deltaTime);
         }
+        //update the tick manager for game logic
         tickManager.update();
         while (tickManager.hasTick()) {
             tick();
