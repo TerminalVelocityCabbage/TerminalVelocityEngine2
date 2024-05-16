@@ -1,11 +1,14 @@
 package com.terminalvelocitycabbage.engine.client.input;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.input.control.Control;
 import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
+import com.terminalvelocitycabbage.engine.client.input.controller.Controller;
 import com.terminalvelocitycabbage.engine.client.input.util.GamepadInputUtil;
 import com.terminalvelocitycabbage.engine.client.input.util.KeyboardInputUtil;
 import com.terminalvelocitycabbage.engine.client.input.util.MouseInputUtil;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import org.lwjgl.glfw.GLFWGamepadState;
 import org.lwjgl.system.MemoryUtil;
@@ -28,9 +31,12 @@ public class InputHandler {
     long mousedOverWindow;
 
     Registry<Control> controlRegistry;
+    Registry<Controller> controllerRegistry;
 
     public InputHandler() {
         this.gamepadState = new GLFWGamepadState(MemoryUtil.memAlloc(GLFWGamepadState.SIZEOF));
+        this.controlRegistry = new Registry<>();
+        this.controllerRegistry = new Registry<>();
     }
 
     /**
@@ -65,6 +71,9 @@ public class InputHandler {
                 Log.error("Joysticks not implemented in TVE, only gamepads. TODO! " + glfwGetJoystickName(i) + " will not work.. Sorry for the inconvenience.");
             }
         }
+
+        //Update controllers
+        controllerRegistry.getRegistryContents().values().forEach(Controller::processInputs);
     }
 
     private void processMouseKeyboardInputs(long deltaTime) {
@@ -97,5 +106,15 @@ public class InputHandler {
 
     public long getMousedOverWindow() {
         return mousedOverWindow;
+    }
+
+    public Control registerControlListener(Control control) {
+        return switch (control) {
+            case KeyboardKeyControl kkc -> controlRegistry.register(ClientBase.getInstance().identifierOf("key_control_" + kkc.getKey().name()), kkc);
+        };
+    }
+
+    public Controller registerController(Identifier identifier, Controller controller) {
+        return controllerRegistry.register(identifier, controller);
     }
 }

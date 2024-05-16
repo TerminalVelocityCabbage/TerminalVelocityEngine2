@@ -224,4 +224,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     public InputMapper getInputMapper() {
         return inputMapper;
     }
+
+    public InputHandler getInputHandler() {
+        return inputHandler;
+    }
 }

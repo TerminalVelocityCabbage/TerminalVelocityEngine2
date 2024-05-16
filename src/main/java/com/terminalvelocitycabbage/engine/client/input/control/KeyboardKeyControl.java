@@ -41,4 +41,7 @@ public non-sealed class KeyboardKeyControl extends Control {
         return holdTime;
     }
 
+    public KeyboardInput getKey() {
+        return key;
+    }
 }
