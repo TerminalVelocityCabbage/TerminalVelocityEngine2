@@ -240,4 +240,12 @@ public class WindowManager {
     public void focusWindow(long window) {
         glfwFocusWindow(window);
     }
+
+    public void closeFocusedWindow() {
+        threads.get(getFocusedWindow()).destroyThread();
+    }
+
+    public void closeMousedOverWindow() {
+        threads.get(getMousedOverWindow()).destroyThread();
+    }
 }
