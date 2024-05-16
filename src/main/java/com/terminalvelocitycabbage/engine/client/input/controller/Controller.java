@@ -24,11 +24,23 @@ public abstract class Controller {
         }
     }
 
+    public abstract void act();
+
+    public void preProcess() { }
+
     public void processInputs() {
+        preProcess();
         for (KeyboardKeyControl kkc : keyboardKeyControls) processKeyControlInput(kkc);
         for (GamepadButtonControl gpbc : gamepadButtonControls) processGamepadButtonControl(gpbc);
         for (MouseButtonControl mbc : mouseButtonControls) processMouseButtonControls(mbc);
+        postProcess();
+        act();
+        postAction();
     }
+
+    public void postProcess() { }
+
+    public void postAction() { }
 
     protected abstract void processKeyControlInput(KeyboardKeyControl kkc);
 

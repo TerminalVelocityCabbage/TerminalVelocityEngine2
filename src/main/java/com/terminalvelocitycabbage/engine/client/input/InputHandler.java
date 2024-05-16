@@ -6,9 +6,6 @@ import com.terminalvelocitycabbage.engine.client.input.control.GamepadButtonCont
 import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
 import com.terminalvelocitycabbage.engine.client.input.control.MouseButtonControl;
 import com.terminalvelocitycabbage.engine.client.input.controller.Controller;
-import com.terminalvelocitycabbage.engine.client.input.util.GamepadInputUtil;
-import com.terminalvelocitycabbage.engine.client.input.util.KeyboardInputUtil;
-import com.terminalvelocitycabbage.engine.client.input.util.MouseInputUtil;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
