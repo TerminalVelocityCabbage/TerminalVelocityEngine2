@@ -4,6 +4,7 @@ import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.input.control.Control;
 import com.terminalvelocitycabbage.engine.client.input.control.GamepadButtonControl;
 import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
+import com.terminalvelocitycabbage.engine.client.input.control.MouseButtonControl;
 import com.terminalvelocitycabbage.engine.client.input.controller.Controller;
 import com.terminalvelocitycabbage.engine.client.input.util.GamepadInputUtil;
 import com.terminalvelocitycabbage.engine.client.input.util.KeyboardInputUtil;
@@ -83,19 +84,22 @@ public class InputHandler {
         for (Control control : controlRegistry.getRegistryContents().values()) {
             switch (control) {
                 case KeyboardKeyControl keyboardKeyControl -> keyboardKeyControl.update(this, deltaTime);
-                case GamepadButtonControl gamepadButtonControl -> gamepadButtonControl.update(this, deltaTime);
+                case GamepadButtonControl gamepadButtonControl -> { }
+                case MouseButtonControl mouseButtonControl -> mouseButtonControl.update(this, deltaTime);
             }
         }
-
-
-
-        if (KeyboardInputUtil.isKeyPressed(focusedWindow, GLFW_KEY_W)) Log.info("W");
         //if (mousedOverWindow != -1) Log.info("On-Demand Cursor Pos: " + MouseInputUtil.getMousePosition(mousedOverWindow));
-        if (MouseInputUtil.isMouseButtonPressed(focusedWindow, GLFW_MOUSE_BUTTON_LEFT)) Log.info("Click");
     }
 
     private void processGamepadInputs(long deltaTime) {
-        if (GamepadInputUtil.isButtonAPressed(gamepadState)) Log.info("A");
+        //Loop through all control type and do something with them
+        for (Control control : controlRegistry.getRegistryContents().values()) {
+            switch (control) {
+                case KeyboardKeyControl keyboardKeyControl -> { }
+                case GamepadButtonControl gamepadButtonControl -> gamepadButtonControl.update(this, deltaTime);
+                case MouseButtonControl mouseButtonControl -> { }
+            }
+        }
     }
 
     public GLFWGamepadState getGamepadState() {
@@ -112,8 +116,9 @@ public class InputHandler {
 
     public Control registerControlListener(Control control) {
         return switch (control) {
-            case KeyboardKeyControl kkc -> controlRegistry.register(ClientBase.getInstance().identifierOf("key_control_" + kkc.getKey().name()), kkc);
+            case KeyboardKeyControl kkc -> controlRegistry.register(ClientBase.getInstance().identifierOf("keyboardKey_control_" + kkc.getKey().name()), kkc);
             case GamepadButtonControl gpbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadButton_control_" + gpbc.getButton().name()), gpbc);
+            case MouseButtonControl mbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseButton_control_" + mbc.getButton().name()), mbc);
         };
     }
 
