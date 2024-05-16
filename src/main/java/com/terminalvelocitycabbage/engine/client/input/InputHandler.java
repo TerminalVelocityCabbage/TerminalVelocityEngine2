@@ -1,10 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.input;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.input.control.Control;
-import com.terminalvelocitycabbage.engine.client.input.control.GamepadButtonControl;
-import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
-import com.terminalvelocitycabbage.engine.client.input.control.MouseButtonControl;
+import com.terminalvelocitycabbage.engine.client.input.control.*;
 import com.terminalvelocitycabbage.engine.client.input.controller.Controller;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -83,6 +80,7 @@ public class InputHandler {
                 case KeyboardKeyControl keyboardKeyControl -> keyboardKeyControl.update(this, deltaTime);
                 case GamepadButtonControl gamepadButtonControl -> { }
                 case MouseButtonControl mouseButtonControl -> mouseButtonControl.update(this, deltaTime);
+                case GamepadAxisControl gamepadAxisControl -> { }
             }
         }
         //if (mousedOverWindow != -1) Log.info("On-Demand Cursor Pos: " + MouseInputUtil.getMousePosition(mousedOverWindow));
@@ -95,6 +93,7 @@ public class InputHandler {
                 case KeyboardKeyControl keyboardKeyControl -> { }
                 case GamepadButtonControl gamepadButtonControl -> gamepadButtonControl.update(this, deltaTime);
                 case MouseButtonControl mouseButtonControl -> { }
+                case GamepadAxisControl gamepadAxisControl -> gamepadAxisControl.update(this, deltaTime);
             }
         }
     }
@@ -116,6 +115,7 @@ public class InputHandler {
             case KeyboardKeyControl kkc -> controlRegistry.register(ClientBase.getInstance().identifierOf("keyboardKey_control_" + kkc.getKey().name()), kkc);
             case GamepadButtonControl gpbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadButton_control_" + gpbc.getButton().name()), gpbc);
             case MouseButtonControl mbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseButton_control_" + mbc.getButton().name()), mbc);
+            case GamepadAxisControl gpac -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadAxis_control_" + gpac.getAxis().name()), gpac);
         };
     }
 

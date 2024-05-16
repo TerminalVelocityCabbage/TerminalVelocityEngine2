@@ -1,9 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.input.controller;
 
-import com.terminalvelocitycabbage.engine.client.input.control.Control;
-import com.terminalvelocitycabbage.engine.client.input.control.GamepadButtonControl;
-import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
-import com.terminalvelocitycabbage.engine.client.input.control.MouseButtonControl;
+import com.terminalvelocitycabbage.engine.client.input.control.*;
 import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 
 public abstract non-sealed class ToggleController extends Controller {
@@ -51,6 +48,11 @@ public abstract non-sealed class ToggleController extends Controller {
             case REPEAT -> mbc.isHolding();
             case INVALID -> false;
         }) enabled = true;
+    }
+
+    @Override
+    protected void processGamepadAxisControls(GamepadAxisControl gpac) {
+        //TODO discuss if needed to process these into a toggle, like all the way pressed = on?
     }
 
     public boolean isEnabled() {
