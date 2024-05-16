@@ -5,7 +5,7 @@ import com.terminalvelocitycabbage.engine.client.input.control.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract sealed class Controller permits FloatController, ToggleController {
+public abstract sealed class Controller permits FloatController, GroupedController2f, BooleanController {
 
     final List<KeyboardKeyControl> keyboardKeyControls = new ArrayList<>();
     final List<GamepadButtonControl> gamepadButtonControls = new ArrayList<>();
@@ -49,5 +49,4 @@ public abstract sealed class Controller permits FloatController, ToggleControlle
     protected abstract void processMouseButtonControls(MouseButtonControl mbc);
 
     protected abstract void processGamepadAxisControls(GamepadAxisControl gpac);
-
 }

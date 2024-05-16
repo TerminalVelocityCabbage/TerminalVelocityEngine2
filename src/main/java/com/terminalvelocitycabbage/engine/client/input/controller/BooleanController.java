@@ -3,21 +3,21 @@ package com.terminalvelocitycabbage.engine.client.input.controller;
 import com.terminalvelocitycabbage.engine.client.input.control.*;
 import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 
-public abstract non-sealed class ToggleController extends Controller {
+public abstract non-sealed class BooleanController extends Controller {
 
-    boolean enabled;
     ButtonAction action;
+    float amount;
 
-    public ToggleController(ButtonAction action, boolean defaultState, Control[] controls) {
+    public BooleanController(ButtonAction action, boolean defaultState, Control[] controls) {
         super(controls);
         this.action = action;
-        this.enabled = defaultState;
+        this.amount = defaultState ? 1.0f : 0.0f;
     }
 
     @Override
     public void preProcess() {
         super.preProcess();
-        enabled = false;
+        amount = 0.0f;
     }
 
     @Override
@@ -27,7 +27,7 @@ public abstract non-sealed class ToggleController extends Controller {
             case RELEASED -> kkc.isReleased();
             case REPEAT -> kkc.isHolding();
             case INVALID -> false;
-        }) enabled = true;
+        }) amount = 1.0f;
     }
 
     @Override
@@ -37,7 +37,7 @@ public abstract non-sealed class ToggleController extends Controller {
             case RELEASED -> gbc.isReleased();
             case REPEAT -> gbc.isHolding();
             case INVALID -> false;
-        }) enabled = true;
+        }) amount = 1.0f;
     }
 
     @Override
@@ -47,15 +47,20 @@ public abstract non-sealed class ToggleController extends Controller {
             case RELEASED -> mbc.isReleased();
             case REPEAT -> mbc.isHolding();
             case INVALID -> false;
-        }) enabled = true;
+        }) amount = 1.0f;
     }
 
     @Override
     protected void processGamepadAxisControls(GamepadAxisControl gpac) {
-        //TODO discuss if needed to process these into a toggle, like all the way pressed = on?
+        if (switch (action) {
+            case PRESSED -> gpac.getAmount() > 0.95f;
+            case RELEASED -> gpac.getAmount() < 0.05f;
+            case REPEAT -> gpac.getHoldTime() > 0;
+            case INVALID -> false;
+        }) amount = 1.0f;
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return amount > 0.95f;
     }
 }

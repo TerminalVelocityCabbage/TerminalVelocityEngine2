@@ -74,7 +74,7 @@ public class InputHandler {
 
     private void processMouseKeyboardInputs(long deltaTime) {
 
-        //Loop through all control type and do something with them
+        //Loop through all control types and do something with them
         for (Control control : controlRegistry.getRegistryContents().values()) {
             switch (control) {
                 case KeyboardKeyControl keyboardKeyControl -> keyboardKeyControl.update(this, deltaTime);
@@ -87,7 +87,7 @@ public class InputHandler {
     }
 
     private void processGamepadInputs(long deltaTime) {
-        //Loop through all control type and do something with them
+        //Loop through all control types and do something with them
         for (Control control : controlRegistry.getRegistryContents().values()) {
             switch (control) {
                 case KeyboardKeyControl keyboardKeyControl -> { }

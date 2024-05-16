@@ -6,7 +6,6 @@ import com.terminalvelocitycabbage.engine.client.input.util.GamepadInputUtil;
 
 public non-sealed class GamepadAxisControl extends Control {
 
-    float amount;
     GamepadInput.Axis axis;
 
     public GamepadAxisControl(GamepadInput.Axis axis) {
@@ -20,9 +19,5 @@ public non-sealed class GamepadAxisControl extends Control {
 
     public GamepadInput.Axis getAxis() {
         return axis;
-    }
-
-    public float getAmount() {
-        return amount;
     }
 }
