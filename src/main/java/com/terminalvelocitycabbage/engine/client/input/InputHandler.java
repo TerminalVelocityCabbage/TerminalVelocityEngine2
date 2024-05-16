@@ -1,9 +1,12 @@
 package com.terminalvelocitycabbage.engine.client.input;
 
+import com.terminalvelocitycabbage.engine.client.input.control.Control;
+import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
 import com.terminalvelocitycabbage.engine.client.input.util.GamepadInputUtil;
 import com.terminalvelocitycabbage.engine.client.input.util.KeyboardInputUtil;
 import com.terminalvelocitycabbage.engine.client.input.util.MouseInputUtil;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Registry;
 import org.lwjgl.glfw.GLFWGamepadState;
 import org.lwjgl.system.MemoryUtil;
 
@@ -21,6 +24,10 @@ import static org.lwjgl.glfw.GLFW.*;
 public class InputHandler {
 
     GLFWGamepadState gamepadState;
+    long focusedWindow;
+    long mousedOverWindow;
+
+    Registry<Control> controlRegistry;
 
     public InputHandler() {
         this.gamepadState = new GLFWGamepadState(MemoryUtil.memAlloc(GLFWGamepadState.SIZEOF));
@@ -28,13 +35,18 @@ public class InputHandler {
 
     /**
      * Marks an input read state, this updates all queues for input
-     * @param focusedWindow The window which is selected
-     * @param mousedOverWindow The window which the mouse is over (or -1 if none)
+     *
+     * @param focusedWindow1    The window which is selected
+     * @param mousedOverWindow1 The window which the mouse is over (or -1 if none)
+     * @param deltaTime
      */
-    public void update(long focusedWindow, long mousedOverWindow) {
+    public void update(long focusedWindow1, long mousedOverWindow1, long deltaTime) {
+
+        this.focusedWindow = focusedWindow1;
+        this.mousedOverWindow = mousedOverWindow1;
 
         //Process normal mouse/keyboard inputs
-        processMouseKeyboardInputs(focusedWindow, mousedOverWindow);
+        processMouseKeyboardInputs(deltaTime);
 
         //Loop through all potential joysticks
         //TODO replace this with a list of connected joysticks instead
@@ -46,7 +58,7 @@ public class InputHandler {
                 // Retrieve joystick axes data and update the current gamepadState for reading later
                 glfwGetGamepadState(i, gamepadState);
                 //In this section of the code we can process inputs from gamepads
-                processGamepadInputs();
+                processGamepadInputs(deltaTime);
             } else {
                 //TODO this is a large undertaking and will likely result in needing to add a switch of MANY joystick
                 //mappings here to take raw button and axis inputs and map it to a useful xbox like controller scheme
@@ -55,14 +67,35 @@ public class InputHandler {
         }
     }
 
-    private void processMouseKeyboardInputs(long focusedWindow, long mousedOverWindow) {
+    private void processMouseKeyboardInputs(long deltaTime) {
+
+        //Loop through all control type and do something with them
+        for (Control control : controlRegistry.getRegistryContents().values()) {
+            switch (control) {
+                case KeyboardKeyControl keyboardKeyControl -> keyboardKeyControl.update(this, deltaTime);
+            }
+        }
+
+
+
         if (KeyboardInputUtil.isKeyPressed(focusedWindow, GLFW_KEY_W)) Log.info("W");
         //if (mousedOverWindow != -1) Log.info("On-Demand Cursor Pos: " + MouseInputUtil.getMousePosition(mousedOverWindow));
         if (MouseInputUtil.isMouseButtonPressed(focusedWindow, GLFW_MOUSE_BUTTON_LEFT)) Log.info("Click");
     }
 
-    private void processGamepadInputs() {
+    private void processGamepadInputs(long deltaTime) {
         if (GamepadInputUtil.isButtonAPressed(gamepadState)) Log.info("A");
     }
 
+    public GLFWGamepadState getGamepadState() {
+        return gamepadState;
+    }
+
+    public long getFocusedWindow() {
+        return focusedWindow;
+    }
+
+    public long getMousedOverWindow() {
+        return mousedOverWindow;
+    }
 }
