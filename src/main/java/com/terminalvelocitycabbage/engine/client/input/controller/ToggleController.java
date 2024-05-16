@@ -5,7 +5,7 @@ import com.terminalvelocitycabbage.engine.client.input.control.GamepadButtonCont
 import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
 import com.terminalvelocitycabbage.engine.client.input.control.MouseButtonControl;
 
-public abstract class ToggleController extends Controller {
+public abstract non-sealed class ToggleController extends Controller {
 
     boolean enabled;
 

@@ -8,7 +8,7 @@ import com.terminalvelocitycabbage.engine.client.input.control.MouseButtonContro
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Controller {
+public abstract sealed class Controller permits ToggleController {
 
     final List<KeyboardKeyControl> keyboardKeyControls = new ArrayList<>();
     final List<GamepadButtonControl> gamepadButtonControls = new ArrayList<>();
