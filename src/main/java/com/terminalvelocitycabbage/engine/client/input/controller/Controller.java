@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.client.input.controller;
 
 import com.terminalvelocitycabbage.engine.client.input.control.*;
 
-public abstract sealed class Controller permits FloatController, GroupedController2f, BooleanController {
+public abstract sealed class Controller permits BooleanController, FloatController, GroupedController2f, GroupedController4f {
 
     ControlGroup[] controlGroups;
 
