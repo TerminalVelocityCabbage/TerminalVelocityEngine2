@@ -24,22 +24,22 @@ public non-sealed abstract class FloatController extends Controller {
     }
 
     @Override
-    protected void processKeyControlInput(KeyboardKeyControl kkc) {
+    protected void processKeyControlInput(KeyboardKeyControl kkc, int groupIndex) {
         amount = strategy.resolve(amount, kkc.getAmount());
     }
 
     @Override
-    protected void processGamepadButtonControl(GamepadButtonControl gbc) {
+    protected void processGamepadButtonControl(GamepadButtonControl gbc, int groupIndex) {
         amount = strategy.resolve(amount, gbc.getAmount());
     }
 
     @Override
-    protected void processMouseButtonControls(MouseButtonControl mbc) {
+    protected void processMouseButtonControls(MouseButtonControl mbc, int groupIndex) {
         amount = strategy.resolve(amount, mbc.getAmount());
     }
 
     @Override
-    protected void processGamepadAxisControls(GamepadAxisControl gpac) {
+    protected void processGamepadAxisControls(GamepadAxisControl gpac, int groupIndex) {
         amount = strategy.resolve(amount, gpac.getAmount());
     }
 

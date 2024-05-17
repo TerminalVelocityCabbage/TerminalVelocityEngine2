@@ -22,7 +22,7 @@ public abstract non-sealed class BooleanController extends Controller {
     }
 
     @Override
-    protected void processKeyControlInput(KeyboardKeyControl kkc) {
+    protected void processKeyControlInput(KeyboardKeyControl kkc, int groupIndex) {
         if (switch (action) {
             case PRESSED -> kkc.isPressed();
             case RELEASED -> kkc.isReleased();
@@ -32,7 +32,7 @@ public abstract non-sealed class BooleanController extends Controller {
     }
 
     @Override
-    protected void processGamepadButtonControl(GamepadButtonControl gbc) {
+    protected void processGamepadButtonControl(GamepadButtonControl gbc, int groupIndex) {
         if (switch (action) {
             case PRESSED -> gbc.isPressed();
             case RELEASED -> gbc.isReleased();
@@ -42,7 +42,7 @@ public abstract non-sealed class BooleanController extends Controller {
     }
 
     @Override
-    protected void processMouseButtonControls(MouseButtonControl mbc) {
+    protected void processMouseButtonControls(MouseButtonControl mbc, int groupIndex) {
         if (switch (action) {
             case PRESSED -> mbc.isPressed();
             case RELEASED -> mbc.isReleased();
@@ -52,7 +52,7 @@ public abstract non-sealed class BooleanController extends Controller {
     }
 
     @Override
-    protected void processGamepadAxisControls(GamepadAxisControl gpac) {
+    protected void processGamepadAxisControls(GamepadAxisControl gpac, int groupIndex) {
         if (switch (action) {
             case PRESSED -> gpac.getAmount() > 0.95f;
             case RELEASED -> gpac.getAmount() < 0.05f;

@@ -12,11 +12,13 @@ public abstract sealed class Controller permits FloatController, GroupedControll
 
     public void processInputs() {
         preProcess();
+        int groupIndex = 0;
         for (ControlGroup controlGroup : controlGroups) {
-            for (KeyboardKeyControl kkc : controlGroup.keyboardKeyControls) processKeyControlInput(kkc);
-            for (GamepadButtonControl gpbc : controlGroup.gamepadButtonControls) processGamepadButtonControl(gpbc);
-            for (MouseButtonControl mbc : controlGroup.mouseButtonControls) processMouseButtonControls(mbc);
-            for (GamepadAxisControl gpac : controlGroup.gamepadAxisControls) processGamepadAxisControls(gpac);
+            for (KeyboardKeyControl kkc : controlGroup.keyboardKeyControls) processKeyControlInput(kkc, groupIndex);
+            for (GamepadButtonControl gpbc : controlGroup.gamepadButtonControls) processGamepadButtonControl(gpbc, groupIndex);
+            for (MouseButtonControl mbc : controlGroup.mouseButtonControls) processMouseButtonControls(mbc, groupIndex);
+            for (GamepadAxisControl gpac : controlGroup.gamepadAxisControls) processGamepadAxisControls(gpac, groupIndex);
+            groupIndex++;
         }
         postProcess();
         act();
@@ -27,11 +29,11 @@ public abstract sealed class Controller permits FloatController, GroupedControll
 
     public void postAction() { }
 
-    protected abstract void processKeyControlInput(KeyboardKeyControl kkc);
+    protected abstract void processKeyControlInput(KeyboardKeyControl kkc, int groupIndex);
 
-    protected abstract void processGamepadButtonControl(GamepadButtonControl gbc);
+    protected abstract void processGamepadButtonControl(GamepadButtonControl gbc, int groupIndex);
 
-    protected abstract void processMouseButtonControls(MouseButtonControl mbc);
+    protected abstract void processMouseButtonControls(MouseButtonControl mbc, int groupIndex);
 
-    protected abstract void processGamepadAxisControls(GamepadAxisControl gpac);
+    protected abstract void processGamepadAxisControls(GamepadAxisControl gpac, int groupIndex);
 }
