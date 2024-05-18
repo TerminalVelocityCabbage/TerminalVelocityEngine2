@@ -143,29 +143,19 @@ public class WindowManager {
             properties.setMousedOver(entered);
         });
 
-        //Set key callback
-        glfwSetKeyCallback(windowID, (long window, int key, int scancode, int action, int mods) -> {
-            ClientBase.getInstance().getInputMapper().keyCallback(window, key, scancode, action, mods);
-        });
-
         //Set char callback
         glfwSetCharCallback(windowID, (long window, int character) -> {
-            ClientBase.getInstance().getInputMapper().charCallback(window, character);
+            ClientBase.getInstance().getInputCallbackListener().charCallback(window, character);
         });
 
         //Set cursor pos callback
         glfwSetCursorPosCallback(windowID, (long window, double x, double y) -> {
-            ClientBase.getInstance().getInputMapper().cursorPosCallback(window, x, y);
-        });
-
-        //Set Mouse Button callback
-        glfwSetMouseButtonCallback(windowID, (long window, int button, int action, int mods) -> {
-            ClientBase.getInstance().getInputMapper().mouseButtonCallback(window, button, action, mods);
+            ClientBase.getInstance().getInputCallbackListener().cursorPosCallback(window, x, y);
         });
 
         //Set Mouse Scroll callback
         glfwSetScrollCallback(windowID, (window, deltaX, deltaY) -> {
-            ClientBase.getInstance().getInputMapper().scrollCallback(window, deltaX, deltaY);
+            ClientBase.getInstance().getInputCallbackListener().scrollCallback(window, deltaX, deltaY);
         });
 
         //Center the window on the primary monitor

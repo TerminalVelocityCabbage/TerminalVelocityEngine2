@@ -1,16 +1,16 @@
 package com.terminalvelocitycabbage.engine.client.input.util;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.input.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
-import com.terminalvelocitycabbage.engine.client.input.types.MouseButtonInput;
+import com.terminalvelocitycabbage.engine.client.input.types.MouseInput;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Vector2f;
-import org.lwjgl.glfw.GLFWGamepadState;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.DoubleBuffer;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.glfwGetMouseButton;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class MouseInputUtil {
@@ -32,25 +32,37 @@ public class MouseInputUtil {
         return ButtonAction.fromGLFW(glfwGetMouseButton(window, button));
     }
 
-    public static boolean isMouseButtonPressed(long window, MouseButtonInput button) {
+    public static boolean isMouseButtonPressed(long window, MouseInput.Button button) {
         if (window == -1) return false;
         return glfwGetMouseButton(window, button.getGlfwKey()) == GLFW_PRESS;
     }
 
     public static boolean isLeftMouseButtonPressed(long window) {
-        return isMouseButtonPressed(window, MouseButtonInput.LEFT_CLICK);
+        return isMouseButtonPressed(window, MouseInput.Button.LEFT_CLICK);
     }
 
     public static boolean isRightMouseButtonPressed(long window) {
-        return isMouseButtonPressed(window, MouseButtonInput.RIGHT_CLICK);
+        return isMouseButtonPressed(window, MouseInput.Button.RIGHT_CLICK);
     }
 
     public static boolean isMiddleMouseButtonPressed(long window) {
-        return isMouseButtonPressed(window, MouseButtonInput.MIDDLE_CLICK);
+        return isMouseButtonPressed(window, MouseInput.Button.MIDDLE_CLICK);
     }
 
     public static boolean isInWindow(long window) {
         if (window == -1) return false;
         return glfwGetWindowAttrib(window, GLFW_HOVERED) == GLFW_TRUE;
+    }
+
+    public static float getAxisAmount(MouseInput.MovementAxis axis) {
+
+        InputCallbackListener inputCallbackListener = ClientBase.getInstance().getInputCallbackListener();
+
+        return switch (axis) {
+            case UP -> inputCallbackListener.getMouseUpwardDelta();
+            case DOWN -> inputCallbackListener.getMouseDownwardDelta();
+            case LEFT -> inputCallbackListener.getMouseLeftwardDelta();
+            case RIGHT -> inputCallbackListener.getMouseRightwardDelta();
+        };
     }
 }
