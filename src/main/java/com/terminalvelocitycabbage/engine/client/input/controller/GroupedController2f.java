@@ -49,6 +49,12 @@ public abstract non-sealed class GroupedController2f extends Controller {
         if (groupIndex == 1) negativeAmount = strategy.resolve(negativeAmount, gpac.getAmount());
     }
 
+    @Override
+    protected void processMouseMovementControls(MouseMovementControl mmc, int groupIndex) {
+        if (groupIndex == 0) positiveAmount = strategy.resolve(positiveAmount, mmc.getAmount());
+        if (groupIndex == 1) negativeAmount = strategy.resolve(negativeAmount, mmc.getAmount());
+    }
+
     public float getPositiveAmount() {
         return positiveAmount;
     }

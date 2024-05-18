@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.client.input.control;
 
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 
-public sealed abstract class Control permits ButtonControl, GamepadAxisControl {
+public sealed abstract class Control permits ButtonControl, GamepadAxisControl, MouseMovementControl {
 
     float amount;
 

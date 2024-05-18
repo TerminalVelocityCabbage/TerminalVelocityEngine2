@@ -2,8 +2,8 @@ package com.terminalvelocitycabbage.engine.client;
 
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.client.input.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
-import com.terminalvelocitycabbage.engine.client.input.InputMapper;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
@@ -51,7 +51,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     //Input stuff
     private InputHandler inputHandler;
-    private InputMapper inputMapper;
+    private InputCallbackListener inputCallbackListener;
 
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
@@ -68,7 +68,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         rendererRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
         inputHandler = new InputHandler();
-        inputMapper = new InputMapper();
+        inputCallbackListener = new InputCallbackListener();
         client = new Client();
     }
 
@@ -174,6 +174,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         inputTickManager.update();
         while (inputTickManager.hasTick()) {
             inputHandler.update(getWindowManager().getFocusedWindow(), getWindowManager().getMousedOverWindow(), deltaTime);
+            inputCallbackListener.reset();
         }
         //update the tick manager for game logic
         tickManager.update();
@@ -221,8 +222,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         return windowManager;
     }
 
-    public InputMapper getInputMapper() {
-        return inputMapper;
+    public InputCallbackListener getInputCallbackListener() {
+        return inputCallbackListener;
     }
 
     public InputHandler getInputHandler() {

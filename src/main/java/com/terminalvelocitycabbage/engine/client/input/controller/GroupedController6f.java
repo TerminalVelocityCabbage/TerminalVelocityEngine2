@@ -1,9 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.input.controller;
 
-import com.terminalvelocitycabbage.engine.client.input.control.GamepadAxisControl;
-import com.terminalvelocitycabbage.engine.client.input.control.GamepadButtonControl;
-import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
-import com.terminalvelocitycabbage.engine.client.input.control.MouseButtonControl;
+import com.terminalvelocitycabbage.engine.client.input.control.*;
 import com.terminalvelocitycabbage.engine.client.input.types.MultiInputResolutionStrategy;
 
 public abstract non-sealed class GroupedController6f extends Controller {
@@ -74,6 +71,16 @@ public abstract non-sealed class GroupedController6f extends Controller {
         if (groupIndex == 3) rightAmount = strategy.resolve(rightAmount, gpac.getAmount());
         if (groupIndex == 4) upAmount = strategy.resolve(upAmount, gpac.getAmount());
         if (groupIndex == 5) downAmount = strategy.resolve(downAmount, gpac.getAmount());
+    }
+
+    @Override
+    protected void processMouseMovementControls(MouseMovementControl mmc, int groupIndex) {
+        if (groupIndex == 0) forwardAmount = strategy.resolve(forwardAmount, mmc.getAmount());
+        if (groupIndex == 1) backwardAmount = strategy.resolve(backwardAmount, mmc.getAmount());
+        if (groupIndex == 2) leftAmount = strategy.resolve(leftAmount, mmc.getAmount());
+        if (groupIndex == 3) rightAmount = strategy.resolve(rightAmount, mmc.getAmount());
+        if (groupIndex == 4) upAmount = strategy.resolve(upAmount, mmc.getAmount());
+        if (groupIndex == 5) downAmount = strategy.resolve(downAmount, mmc.getAmount());
     }
 
     public float getForwardAmount() {
