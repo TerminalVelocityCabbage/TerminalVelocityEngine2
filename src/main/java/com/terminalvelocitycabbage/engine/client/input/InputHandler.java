@@ -82,9 +82,9 @@ public class InputHandler {
                 case MouseButtonControl mouseButtonControl -> mouseButtonControl.update(this, deltaTime);
                 case GamepadAxisControl gamepadAxisControl -> { }
                 case MouseMovementControl mouseMovementControl -> mouseMovementControl.update(this, deltaTime);
+                case MouseScrollControl mouseScrollControl -> mouseScrollControl.update(this, deltaTime);
             }
         }
-        //if (mousedOverWindow != -1) Log.info("On-Demand Cursor Pos: " + MouseInputUtil.getMousePosition(mousedOverWindow));
     }
 
     private void processGamepadInputs(long deltaTime) {
@@ -96,6 +96,7 @@ public class InputHandler {
                 case MouseButtonControl mouseButtonControl -> { }
                 case GamepadAxisControl gamepadAxisControl -> gamepadAxisControl.update(this, deltaTime);
                 case MouseMovementControl mouseMovementControl -> { }
+                case MouseScrollControl mouseScrollControl -> { }
             }
         }
     }
@@ -119,6 +120,7 @@ public class InputHandler {
             case MouseButtonControl mbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseButton_control_" + mbc.getButton().name()), mbc);
             case GamepadAxisControl gpac -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadAxis_control_" + gpac.getAxis().name()), gpac);
             case MouseMovementControl mmc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseMovement_control_" + mmc.getAxis().name()), mmc);
+            case MouseScrollControl msc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseScroll_control_" + msc.getDirection().name()), msc);
         };
     }
 

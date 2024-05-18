@@ -83,6 +83,16 @@ public abstract non-sealed class GroupedController6f extends Controller {
         if (groupIndex == 5) downAmount = strategy.resolve(downAmount, mmc.getAmount());
     }
 
+    @Override
+    protected void processMouseScrollControls(MouseScrollControl msc, int groupIndex) {
+        if (groupIndex == 0) forwardAmount = strategy.resolve(forwardAmount, msc.getAmount());
+        if (groupIndex == 1) backwardAmount = strategy.resolve(backwardAmount, msc.getAmount());
+        if (groupIndex == 2) leftAmount = strategy.resolve(leftAmount, msc.getAmount());
+        if (groupIndex == 3) rightAmount = strategy.resolve(rightAmount, msc.getAmount());
+        if (groupIndex == 4) upAmount = strategy.resolve(upAmount, msc.getAmount());
+        if (groupIndex == 5) downAmount = strategy.resolve(downAmount, msc.getAmount());
+    }
+
     public float getForwardAmount() {
         return forwardAmount;
     }

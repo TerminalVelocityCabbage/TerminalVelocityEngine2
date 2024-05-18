@@ -48,6 +48,11 @@ public non-sealed abstract class FloatController extends Controller {
         amount = strategy.resolve(amount, mmc.getAmount());
     }
 
+    @Override
+    protected void processMouseScrollControls(MouseScrollControl msc, int groupIndex) {
+        amount = strategy.resolve(amount, msc.getAmount());
+    }
+
     public float getAmount() {
         return amount;
     }

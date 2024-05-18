@@ -2,7 +2,6 @@ package com.terminalvelocitycabbage.engine.client.input;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
-import com.terminalvelocitycabbage.engine.debug.Log;
 
 /**
  * A class that converts raw glfw input callback events that cannot be queried by an instant into useful
@@ -18,11 +17,16 @@ public class InputCallbackListener {
     double lastMouseY = -1;
     double lastMouseX = -1;
 
+    float mouseScrollYDelta;
+    float mouseScrollXDelta;
+
     public void reset() {
         mouseUpwardDelta = 0;
         mouseDownwardDelta = 0;
         mouseLeftwardDelta = 0;
         mouseRightwardDelta = 0;
+        mouseScrollYDelta = 0;
+        mouseScrollXDelta = 0;
     }
 
     public void charCallback(long window, int character) {
@@ -56,12 +60,9 @@ public class InputCallbackListener {
         lastMouseX = x;
     }
 
-    //TODO note that this is called more than once per frame often times, so track more than one update
     public void scrollCallback(long window, double deltaX, double deltaY) {
-        Log.info("Scrolling: " +
-                ClientBase.getInstance().getWindowManager().getPropertiesFromWindow(window).getTitle() +
-                " " + deltaX +
-                ", " + deltaY);
+        mouseScrollYDelta += (float) deltaY;
+        mouseScrollXDelta += (float) deltaX;
     }
 
     public float getMouseUpwardDelta() {
@@ -78,5 +79,21 @@ public class InputCallbackListener {
 
     public float getMouseRightwardDelta() {
         return mouseRightwardDelta;
+    }
+
+    public float getMouseScrollUpDelta() {
+        return Math.max(0, mouseScrollYDelta);
+    }
+
+    public float getMouseScrollDownDelta() {
+        return Math.abs(Math.min(0, mouseScrollYDelta));
+    }
+
+    public float getMouseScrollLeftDelta() {
+        return Math.abs(Math.min(0, mouseScrollXDelta));
+    }
+
+    public float getMouseScrollRightDelta() {
+        return Math.max(0, mouseScrollXDelta);
     }
 }

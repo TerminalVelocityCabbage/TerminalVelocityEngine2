@@ -12,6 +12,7 @@ public class ControlGroup {
     protected final List<MouseButtonControl> mouseButtonControls = new ArrayList<>();
     protected final List<GamepadAxisControl> gamepadAxisControls = new ArrayList<>();
     protected final List<MouseMovementControl> mouseMovementControls = new ArrayList<>();
+    protected final List<MouseScrollControl> mouseScrollControls = new ArrayList<>();
 
     public ControlGroup(Control... controls) {
         for (Control control : controls) {
@@ -21,6 +22,7 @@ public class ControlGroup {
                 case MouseButtonControl mbc -> mouseButtonControls.add(mbc);
                 case GamepadAxisControl gpac -> gamepadAxisControls.add(gpac);
                 case MouseMovementControl mmc -> mouseMovementControls.add(mmc);
+                case MouseScrollControl msc -> mouseScrollControls.add(msc);
             }
         }
     }

@@ -19,6 +19,7 @@ public abstract sealed class Controller permits BooleanController, FloatControll
             for (MouseButtonControl mbc : controlGroup.mouseButtonControls) processMouseButtonControls(mbc, groupIndex);
             for (GamepadAxisControl gpac : controlGroup.gamepadAxisControls) processGamepadAxisControls(gpac, groupIndex);
             for (MouseMovementControl mmc: controlGroup.mouseMovementControls) processMouseMovementControls(mmc, groupIndex);
+            for (MouseScrollControl msc: controlGroup.mouseScrollControls) processMouseScrollControls(msc, groupIndex);
             groupIndex++;
         }
         postProcess();
@@ -39,4 +40,6 @@ public abstract sealed class Controller permits BooleanController, FloatControll
     protected abstract void processGamepadAxisControls(GamepadAxisControl gpac, int groupIndex);
 
     protected abstract void processMouseMovementControls(MouseMovementControl mmc, int groupIndex);
+
+    protected abstract void processMouseScrollControls(MouseScrollControl msc, int groupIndex);
 }

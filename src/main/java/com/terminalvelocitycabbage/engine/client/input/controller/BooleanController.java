@@ -66,6 +66,11 @@ public abstract non-sealed class BooleanController extends Controller {
         amount = mmc.hasMoved() ? 1.0f : 0.0f;
     }
 
+    @Override
+    protected void processMouseScrollControls(MouseScrollControl msc, int groupIndex) {
+        amount = msc.hasScrolled() ? 1.0f : 0.0f;
+    }
+
     public boolean isEnabled() {
         return amount > 0.95f;
     }

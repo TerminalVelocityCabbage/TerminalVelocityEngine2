@@ -34,4 +34,11 @@ public class MouseInput {
         LEFT,
         RIGHT;
     }
+
+    public enum ScrollDirection {
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT;
+    }
 }

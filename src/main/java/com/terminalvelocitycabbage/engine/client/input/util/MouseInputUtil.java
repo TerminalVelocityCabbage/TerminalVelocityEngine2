@@ -65,4 +65,16 @@ public class MouseInputUtil {
             case RIGHT -> inputCallbackListener.getMouseRightwardDelta();
         };
     }
+
+    public static float getScrollAmount(MouseInput.ScrollDirection direction) {
+
+        InputCallbackListener inputCallbackListener = ClientBase.getInstance().getInputCallbackListener();
+
+        return switch (direction) {
+            case UP -> inputCallbackListener.getMouseScrollUpDelta();
+            case DOWN -> inputCallbackListener.getMouseScrollDownDelta();
+            case LEFT -> inputCallbackListener.getMouseScrollLeftDelta();
+            case RIGHT -> inputCallbackListener.getMouseScrollRightDelta();
+        };
+    }
 }
