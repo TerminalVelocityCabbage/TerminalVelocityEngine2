@@ -6,6 +6,7 @@ import com.terminalvelocitycabbage.engine.client.input.util.MouseInputUtil;
 
 public non-sealed class MouseScrollControl extends Control {
 
+    //The direction of scrolling that this Control listens to
     MouseInput.ScrollDirection direction;
 
     public MouseScrollControl(final MouseInput.ScrollDirection direction, float sensitivity) {
@@ -18,10 +19,16 @@ public non-sealed class MouseScrollControl extends Control {
         amount = MouseInputUtil.getScrollAmount(direction);
     }
 
+    /**
+     * @return The direction of scrolling that this Control listens to
+     */
     public MouseInput.ScrollDirection getDirection() {
         return direction;
     }
 
+    /**
+     * @return Whether this direction of mouse scroll wheel has changed since the last frame
+     */
     public boolean hasScrolled() {
         return amount > 0;
     }
