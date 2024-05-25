@@ -11,15 +11,10 @@ import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-//It may be better to use glfwGetKey and glfwGetCursorPos and friends as opposed to the key callbacks because the key
-//callbacks are not timed with the rest of the engine. we can update the input handler exactly when we want to if we
-//get the status of a list of listened to keys.
-
-//The hard part of doing the above is for character input for chat windows and things like that. we want to listen to
-//Everything. So I think that it might make the most sense to use a combination of both? Key callback seems usless
-//for most things, except it might be useful when we want to listen for new keybinds in an ingame configuration. Like
-//"press which key you want to be for walk" etc. We will need the key callback for that.
-
+/**
+ * This is the class which handles all Input. Here you register controls, controllers, and controller sets for handling
+ * and managing the way your game listens to raw input and translates that into actions in the game.
+ */
 public class InputHandler {
 
     GLFWGamepadState gamepadState;
@@ -40,7 +35,7 @@ public class InputHandler {
      *
      * @param focusedWindow1    The window which is selected
      * @param mousedOverWindow1 The window which the mouse is over (or -1 if none)
-     * @param deltaTime
+     * @param deltaTime The amount of time in ms between now and the last update
      */
     public void update(long focusedWindow1, long mousedOverWindow1, long deltaTime) {
 
@@ -101,18 +96,32 @@ public class InputHandler {
         }
     }
 
+    /**
+     * @return The current GLFWGamepadState
+     */
     public GLFWGamepadState getGamepadState() {
         return gamepadState;
     }
 
+    /**
+     * @return A long which is the pointer to the currently active glfw window
+     */
     public long getFocusedWindow() {
         return focusedWindow;
     }
 
+    /**
+     * @return A long which is the pointer to the currently moused over glfw window
+     */
     public long getMousedOverWindow() {
         return mousedOverWindow;
     }
 
+    /**
+     * This is how the InputHandler knows to listen to input from a raw input device piece, like a key, button, joystick, etc.
+     * @param control The {@link Control} which defines the Raw input that shall be listened to
+     * @return The instance of the Control which was registered.
+     */
     public Control registerControlListener(Control control) {
         return switch (control) {
             case KeyboardKeyControl kkc -> controlRegistry.register(ClientBase.getInstance().identifierOf("keyboardKey_control_" + kkc.getKey().name()), kkc);
@@ -124,6 +133,13 @@ public class InputHandler {
         };
     }
 
+    /**
+     * Registers a group of controls which result in a common action. This is how you make the W key and forward on the
+     * gamepad joystick both mean "forward" etc.
+     * @param identifier An identifier which this controller can be identified by
+     * @param controller A {@link Controller} which groups the desired controls
+     * @return The Controller which was registered
+     */
     public Controller registerController(Identifier identifier, Controller controller) {
         return controllerRegistry.register(identifier, controller);
     }
