@@ -31,7 +31,9 @@ public class WindowManager {
     //The (usually) active windows of this manager
     private Map<Long, WindowThread> threads = new HashMap<>();
 
-    //Initialize this window manager (glfw)
+    /**
+     * Initializes this window manager and glfw
+     */
     public void init() {
 
         //Create the error callback
@@ -57,9 +59,9 @@ public class WindowManager {
     }
 
     /**
+     * The actual window update loop
      * @return Whether this game context should stop
      */
-    //The actual window update loop
     public boolean loop() {
         //Destroy all destroyable windows before polling for events
         windowsToDestroy.forEach(window -> {
@@ -87,7 +89,9 @@ public class WindowManager {
         return false;
     }
 
-    //Destroys this window manager and glfw context
+    /**
+     * Destroys this window manager and glfw context
+     */
     public void destroy() {
 
         //Mark all windows as needing to quit
@@ -112,7 +116,11 @@ public class WindowManager {
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
-    //Create a new window in this manager
+    /**
+     * Creates a new window in this manager and opens it
+     * @param properties The properties that the new window should posess
+     * @return the glfw window handle of the newly created window
+     */
     public long createNewWindow(WindowProperties properties) {
 
         //Create the glfw window
@@ -183,8 +191,10 @@ public class WindowManager {
         return windowID;
     }
 
-    //Destroys the specified window
-    //This MUST always be called from the main thread
+    /**
+     * Destroys the specified window, must be called from the main thread
+     * @param thread The thread which will be destroyed
+     */
     private void destroyWindow(WindowThread thread) {
         thread.destroyWindow();
         //Prevent an IllegalStateException on last destroyed window
@@ -193,7 +203,9 @@ public class WindowManager {
         }
     }
 
-    //Returns true if this window manager has any alive windows
+    /**
+     * @return Whether this window manager has any alive windows
+     */
     private boolean hasAliveWindow() {
         for (WindowThread thread : threads.values()) {
             if (!thread.quit) return true;
@@ -201,18 +213,32 @@ public class WindowManager {
         return false;
     }
 
+    /**
+     * Queues the specified window for destruction when it is safe to do so
+     * @param thread The thread which you wish to destroy
+     */
     public void queueDestroyWindow(WindowThread thread) {
         windowsToDestroy.add(thread);
     }
 
+    /**
+     * @param windowHandle the glfw window handle that you wish to retrieve properties for
+     * @return The {@link WindowProperties} of the specified window
+     */
     public WindowProperties getPropertiesFromWindow(long windowHandle) {
         return threads.get(windowHandle).getProperties();
     }
 
-    public List<Long> getActiveWindowHandles() {
+    /**
+     * @return A list of window handles for all currently open windows controlled by TVE
+     */
+    public List<Long> getAllOpenWindows() {
         return threads.values().stream().map(WindowThread::getWindowHandle).collect(Collectors.toList());
     }
 
+    /**
+     * @return The window handle of (or -1) the currently active window
+     */
     public long getFocusedWindow() {
         for (WindowThread thread : threads.values()) {
             if (thread.getProperties().isFocused()) return thread.getWindowHandle();
@@ -220,6 +246,9 @@ public class WindowManager {
         return -1;
     }
 
+    /**
+     * @return The window handle of (or -1) the currently moused over window
+     */
     public long getMousedOverWindow() {
         for (WindowThread thread : threads.values()) {
             if (thread.getProperties().isMousedOver()) return thread.getWindowHandle();
@@ -227,14 +256,24 @@ public class WindowManager {
         return -1;
     }
 
+    /**
+     * Focuses the specified window
+     * @param window The glfw handle to the window which is desired to be focused
+     */
     public void focusWindow(long window) {
         glfwFocusWindow(window);
     }
 
+    /**
+     * Closes the currently focused window
+     */
     public void closeFocusedWindow() {
         threads.get(getFocusedWindow()).destroyThread();
     }
 
+    /**
+     * Closes the currently moused over window
+     */
     public void closeMousedOverWindow() {
         threads.get(getMousedOverWindow()).destroyThread();
     }
