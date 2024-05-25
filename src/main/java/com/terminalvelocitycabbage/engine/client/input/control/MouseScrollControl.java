@@ -8,7 +8,8 @@ public non-sealed class MouseScrollControl extends Control {
 
     MouseInput.ScrollDirection direction;
 
-    public MouseScrollControl(final MouseInput.ScrollDirection direction) {
+    public MouseScrollControl(final MouseInput.ScrollDirection direction, float sensitivity) {
+        super(sensitivity);
         this.direction = direction;
     }
 

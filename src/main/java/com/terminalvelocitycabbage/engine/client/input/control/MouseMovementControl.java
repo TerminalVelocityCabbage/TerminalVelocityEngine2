@@ -8,7 +8,8 @@ public non-sealed class MouseMovementControl extends Control {
 
     MouseInput.MovementAxis axis;
 
-    public MouseMovementControl(final MouseInput.MovementAxis axis) {
+    public MouseMovementControl(final MouseInput.MovementAxis axis, float sensitivity) {
+        super(sensitivity);
         this.axis = axis;
     }
 

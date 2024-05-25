@@ -4,6 +4,10 @@ import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 
 public abstract sealed class ButtonControl extends Control permits KeyboardKeyControl, MouseButtonControl, GamepadButtonControl {
 
+    public ButtonControl() {
+        super(1);
+    }
+
     @Override
     public void update(InputHandler inputHandler, long deltaTime) {
         pressedLastFrame = pressedThisFrame;

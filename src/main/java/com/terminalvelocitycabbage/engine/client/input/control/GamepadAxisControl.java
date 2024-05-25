@@ -8,7 +8,8 @@ public non-sealed class GamepadAxisControl extends Control {
 
     GamepadInput.Axis axis;
 
-    public GamepadAxisControl(GamepadInput.Axis axis) {
+    public GamepadAxisControl(GamepadInput.Axis axis, float sensitivity) {
+        super(sensitivity);
         this.axis = axis;
     }
 
