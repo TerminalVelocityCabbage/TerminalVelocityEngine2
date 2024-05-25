@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.input.util;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.input.InputCallbackListener;
+import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 import com.terminalvelocitycabbage.engine.client.input.types.MouseInput;
 import com.terminalvelocitycabbage.engine.debug.Log;
