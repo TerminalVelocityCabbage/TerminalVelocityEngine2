@@ -3,6 +3,9 @@ package com.terminalvelocitycabbage.engine.client.input.controller;
 import com.terminalvelocitycabbage.engine.client.input.control.*;
 import com.terminalvelocitycabbage.engine.client.input.types.MultiInputResolutionStrategy;
 
+/**
+ * Similar to an {@link FloatController} but with 4 components.
+ */
 public abstract non-sealed class GroupedController4f extends Controller {
 
     MultiInputResolutionStrategy strategy;
@@ -12,10 +15,26 @@ public abstract non-sealed class GroupedController4f extends Controller {
     float leftAmount;
     float rightAmount;
 
+    /**
+     * @param forward An {@link ControlGroup} representing the first or "forward" component of this {@link Controller}
+     * @param backward An {@link ControlGroup} representing the second or "backward" component of this {@link Controller}
+     * @param left An {@link ControlGroup} representing the third or "left" component of this {@link Controller}
+     * @param right An {@link ControlGroup} representing the fourth or "right" component of this {@link Controller}
+     */
     public GroupedController4f(ControlGroup forward, ControlGroup backward, ControlGroup left, ControlGroup right) {
         this(MultiInputResolutionStrategy.FLOAT_MAX, forward, backward, left, right);
     }
 
+    /**
+     * @param strategy An {@link MultiInputResolutionStrategy} that determines how multiple input devices being used at the
+     *                 same time's inputs shall be resolved. For example if a W key and forward on a joystick is mapped to
+     *                 this controller and both are forward and MultiInputResolutionStrategy.FLOAT_MAX is used the input with
+     *                 the higher float value will be used.
+     * @param forward An {@link ControlGroup} representing the first or "forward" component of this {@link Controller}
+     * @param backward An {@link ControlGroup} representing the second or "backward" component of this {@link Controller}
+     * @param left An {@link ControlGroup} representing the third or "left" component of this {@link Controller}
+     * @param right An {@link ControlGroup} representing the fourth or "right" component of this {@link Controller}
+     */
     public GroupedController4f(MultiInputResolutionStrategy strategy, ControlGroup forward, ControlGroup backward, ControlGroup left, ControlGroup right) {
         this.strategy = strategy;
         controlGroups = new ControlGroup[]{forward, backward, left, right};
@@ -77,26 +96,44 @@ public abstract non-sealed class GroupedController4f extends Controller {
         if (groupIndex == 3) rightAmount = strategy.resolve(rightAmount, msc.getAmount());
     }
 
+    /**
+     * @return Get the first component of this Controller
+     */
     public float getForwardAmount() {
         return forwardAmount;
     }
 
+    /**
+     * @return Get the first component of this Controller
+     */
     public float getUpwardAmount() {
         return getForwardAmount();
     }
 
+    /**
+     * @return Get the second component of this Controller
+     */
     public float getBackwardAmount() {
         return backwardAmount;
     }
 
+    /**
+     * @return Get the second component of this Controller
+     */
     public float getDownwardAmount() {
         return getBackwardAmount();
     }
 
+    /**
+     * @return Get the third component of this Controller
+     */
     public float getLeftAmount() {
         return leftAmount;
     }
 
+    /**
+     * @return Get the fourth component of this Controller
+     */
     public float getRightAmount() {
         return rightAmount;
     }

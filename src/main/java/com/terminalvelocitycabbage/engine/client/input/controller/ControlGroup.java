@@ -5,6 +5,9 @@ import com.terminalvelocitycabbage.engine.client.input.control.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A Group of {@link Control}s that combine multiple input device types into a single mapped value.
+ */
 public class ControlGroup {
 
     protected final List<KeyboardKeyControl> keyboardKeyControls = new ArrayList<>();

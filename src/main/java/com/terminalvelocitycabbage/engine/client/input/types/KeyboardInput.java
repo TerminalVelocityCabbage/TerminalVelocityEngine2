@@ -3,6 +3,9 @@ package com.terminalvelocitycabbage.engine.client.input.types;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_MENU;
 
+/**
+ * An easily used value mapping to a Keyboard input
+ */
 public class KeyboardInput {
 
         public enum Key {
@@ -133,6 +136,9 @@ public class KeyboardInput {
                         this.glfwKey = glfwKey;
                 }
 
+                /**
+                 * @return The raw input GLFW key
+                 */
                 public int getGlfwKey() {
                         return glfwKey;
                 }

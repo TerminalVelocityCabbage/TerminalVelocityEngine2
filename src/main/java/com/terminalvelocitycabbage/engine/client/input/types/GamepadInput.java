@@ -1,11 +1,20 @@
 package com.terminalvelocitycabbage.engine.client.input.types;
 
+import com.terminalvelocitycabbage.engine.client.input.control.Control;
 import com.terminalvelocitycabbage.engine.debug.Log;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+/**
+ * Any input types from a gamepad, mapped to an xbox controller with the SDL GameControllerDB. These are mapped from
+ * raw glfw inputs for easier use by TVE users.
+ * See: <a href="https://github.com/mdqinc/SDL_GameControllerDB">https://github.com/mdqinc/SDL_GameControllerDB</a>
+ */
 public abstract class GamepadInput {
 
+    /**
+     * Any xbox mapped controller button
+     */
     public enum Button {
 
         A(GLFW_GAMEPAD_BUTTON_A), //Same as CROSS
@@ -30,11 +39,17 @@ public abstract class GamepadInput {
             this.glfwKey = glfwKey;
         }
 
+        /**
+         * @return Get the raw glfw key mapping from this button
+         */
         public int getGlfwKey() {
             return glfwKey;
         }
     }
 
+    /**
+     * Any xbox mapped controller axis, this means joysticks and triggers etc.
+     */
     public enum Axis {
 
         LEFT_JOYSTICK_UP(GLFW_GAMEPAD_AXIS_LEFT_Y, -1),
@@ -56,6 +71,10 @@ public abstract class GamepadInput {
             this.direction = direction;
         }
 
+        /**
+         * @param input The value of this axis
+         * @return A normalized from 0 to 1 value derived from this raw input mapping for easier use in an {@link Control}
+         */
         public float getNormalizedDirection(float input) {
             //We want to normalize the normally -1 to 1 input of a trigger to 0 to 1
             if (direction == 0) return (input + 1) / 2f;
@@ -67,6 +86,9 @@ public abstract class GamepadInput {
             return 0;
         }
 
+        /**
+         * @return Get the raw glfw key mapping from this axis
+         */
         public int getGlfwKey() {
             return glfwKey;
         }

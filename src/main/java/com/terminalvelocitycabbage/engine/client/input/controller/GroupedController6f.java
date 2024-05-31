@@ -3,6 +3,9 @@ package com.terminalvelocitycabbage.engine.client.input.controller;
 import com.terminalvelocitycabbage.engine.client.input.control.*;
 import com.terminalvelocitycabbage.engine.client.input.types.MultiInputResolutionStrategy;
 
+/**
+ * Similar to an {@link FloatController} but with 6 components.
+ */
 public abstract non-sealed class GroupedController6f extends Controller {
 
     MultiInputResolutionStrategy strategy;
@@ -14,10 +17,30 @@ public abstract non-sealed class GroupedController6f extends Controller {
     float upAmount;
     float downAmount;
 
+    /**
+     * @param forward An {@link ControlGroup} representing the first or "forward" component of this {@link Controller}
+     * @param backward An {@link ControlGroup} representing the second or "backward" component of this {@link Controller}
+     * @param left An {@link ControlGroup} representing the third or "left" component of this {@link Controller}
+     * @param right An {@link ControlGroup} representing the fourth or "right" component of this {@link Controller}
+     * @param up An {@link ControlGroup} representing the fifth or "up" component of this {@link Controller}
+     * @param down An {@link ControlGroup} representing the sixth or "down" component of this {@link Controller}
+     */
     public GroupedController6f(ControlGroup forward, ControlGroup backward, ControlGroup left, ControlGroup right, ControlGroup up, ControlGroup down) {
         this(MultiInputResolutionStrategy.FLOAT_MAX, forward, backward, left, right, up, down);
     }
 
+    /**
+     * @param strategy An {@link MultiInputResolutionStrategy} that determines how multiple input devices being used at the
+     *                 same time's inputs shall be resolved. For example if a W key and forward on a joystick is mapped to
+     *                 this controller and both are forward and MultiInputResolutionStrategy.FLOAT_MAX is used the input with
+     *                 the higher float value will be used.
+     * @param forward An {@link ControlGroup} representing the first or "forward" component of this {@link Controller}
+     * @param backward An {@link ControlGroup} representing the second or "backward" component of this {@link Controller}
+     * @param left An {@link ControlGroup} representing the third or "left" component of this {@link Controller}
+     * @param right An {@link ControlGroup} representing the fourth or "right" component of this {@link Controller}
+     * @param up An {@link ControlGroup} representing the fifth or "up" component of this {@link Controller}
+     * @param down An {@link ControlGroup} representing the sixth or "down" component of this {@link Controller}
+     */
     public GroupedController6f(MultiInputResolutionStrategy strategy, ControlGroup forward, ControlGroup backward, ControlGroup left, ControlGroup right, ControlGroup up, ControlGroup down) {
         this.strategy = strategy;
         controlGroups = new ControlGroup[]{forward, backward, left, right, up, down};
@@ -93,26 +116,44 @@ public abstract non-sealed class GroupedController6f extends Controller {
         if (groupIndex == 5) downAmount = strategy.resolve(downAmount, msc.getAmount());
     }
 
+    /**
+     * @return Get the first component of this Controller
+     */
     public float getForwardAmount() {
         return forwardAmount;
     }
 
+    /**
+     * @return Get the second component of this Controller
+     */
     public float getBackwardAmount() {
         return backwardAmount;
     }
 
+    /**
+     * @return Get the third component of this Controller
+     */
     public float getLeftAmount() {
         return leftAmount;
     }
 
+    /**
+     * @return Get the fourth component of this Controller
+     */
     public float getRightAmount() {
         return rightAmount;
     }
 
+    /**
+     * @return Get the fifth component of this Controller
+     */
     public float getUpAmount() {
         return upAmount;
     }
 
+    /**
+     * @return Get the sixth component of this Controller
+     */
     public float getDownAmount() {
         return downAmount;
     }

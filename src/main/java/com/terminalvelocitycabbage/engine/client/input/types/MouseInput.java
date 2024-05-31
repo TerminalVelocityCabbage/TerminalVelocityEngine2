@@ -2,8 +2,14 @@ package com.terminalvelocitycabbage.engine.client.input.types;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+/**
+ * Any input type relating to the Muse
+ */
 public class MouseInput {
 
+    /**
+     * Buttons on a mouse
+     */
     public enum Button {
         BUTTON_1(GLFW_MOUSE_BUTTON_1),
         BUTTON_2(GLFW_MOUSE_BUTTON_2),
@@ -23,11 +29,17 @@ public class MouseInput {
             this.glfwKey = glfwKey;
         }
 
+        /**
+         * @return The raw glfw input mapping for this button.
+         */
         public int getGlfwKey() {
             return glfwKey;
         }
     }
 
+    /**
+     * A way to break down the directions a mouse moves into individual 0 to 1 mappable values
+     */
     public enum MovementAxis {
         UP,
         DOWN,
@@ -35,6 +47,9 @@ public class MouseInput {
         RIGHT;
     }
 
+    /**
+     * A way to break down the directions a mouse can scroll into individual 0 to 1 values
+     */
     public enum ScrollDirection {
         UP,
         DOWN,
