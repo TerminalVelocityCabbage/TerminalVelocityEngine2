@@ -5,6 +5,10 @@ import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwGetKey;
 
+/**
+ * A set of utilities for getting useful information about keyboard keys used internally in TVE or if a user needs to
+ * query something manually using TVE Enums
+ */
 public class KeyboardInputUtil {
 
     public static ButtonAction getKeyStatus(long window, int glfwKey) {

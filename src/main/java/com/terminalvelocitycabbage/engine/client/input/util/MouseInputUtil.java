@@ -13,6 +13,10 @@ import java.nio.DoubleBuffer;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
+/**
+ * A set uf mouse input utilities to get useful information for use in the engine or if a user needs to handle something
+ * manually themselves using TVE enums.
+ */
 public class MouseInputUtil {
 
     public static Vector2f getMousePosition(long window) {
