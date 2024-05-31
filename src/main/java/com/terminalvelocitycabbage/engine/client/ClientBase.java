@@ -2,8 +2,10 @@ package com.terminalvelocitycabbage.engine.client;
 
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
@@ -13,6 +15,7 @@ import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
+import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
@@ -29,8 +32,11 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private WindowManager windowManager;
     private Registry<Pair<Class<? extends RendererBase>, RenderGraph>> rendererRegistry;
     private TickManager tickManager;
+    private TickManager inputTickManager;
     private Manager manager;
     private Scheduler scheduler;
+    private long deltaTime; //Tick delta time not render time
+    private MutableInstant tickClock;
 
     //Networking stuff
     private Client client;
@@ -43,18 +49,26 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     //Resources Stuff
     private GameFileSystem fileSystem;
 
+    //Input stuff
+    private InputHandler inputHandler;
+    private InputCallbackListener inputCallbackListener;
+
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
+        inputTickManager = new TickManager(200); //TODO verify if 200hz input polling is good
         manager = new Manager();
         scheduler = new Scheduler();
+        tickClock = MutableInstant.ofNow();
         eventDispatcher = new EventDispatcher();
         modRegistry = new Registry<>(null);
         fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
         rendererRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
+        inputHandler = new InputHandler();
+        inputCallbackListener = new InputCallbackListener();
         client = new Client();
     }
 
@@ -138,15 +152,31 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
      * initializes the game loop
      */
     private void run() {
+
+        //Make sure the first frame has a somewhat valid deltatime
+        deltaTime = 1;
+        tickClock.now();
+
+        //Start the logic loop
         while (!windowManager.loop()) {
             update();
         }
     }
 
     /**
-     * The code to be executed every frame
+     * The code to be executed every logic frame. NOT every renderer frame, that is handled by each window.
      */
     public void update() {
+        //Update the tick timer
+        deltaTime = tickClock.getDeltaTime();
+        tickClock.now();
+        //Update the input handlers for use in game logic
+        inputTickManager.update();
+        while (inputTickManager.hasTick()) {
+            inputHandler.update(getWindowManager().getFocusedWindow(), getWindowManager().getMousedOverWindow(), deltaTime);
+            inputCallbackListener.reset();
+        }
+        //update the tick manager for game logic
         tickManager.update();
         while (tickManager.hasTick()) {
             tick();
@@ -166,8 +196,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         windowManager.destroy();
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
     }
-
-    public abstract void keyCallback(long window, int key, int scancode, int action, int mods);
 
     public GameFileSystem getFileSystem() {
         return fileSystem;
@@ -192,5 +220,13 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public WindowManager getWindowManager() {
         return windowManager;
+    }
+
+    public InputCallbackListener getInputCallbackListener() {
+        return inputCallbackListener;
+    }
+
+    public InputHandler getInputHandler() {
+        return inputHandler;
     }
 }

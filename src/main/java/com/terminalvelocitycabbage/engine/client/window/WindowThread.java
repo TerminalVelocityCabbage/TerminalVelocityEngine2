@@ -79,16 +79,32 @@ public class WindowThread extends Thread {
         GL.setCapabilities(null);
     }
 
+    /**
+     * Destroys the current glfw window and frees it's callbacks
+     */
     public void destroyWindow() {
         glfwFreeCallbacks(windowHandle);
         glfwDestroyWindow(windowHandle);
     }
 
+    /**
+     * Queues this thread for destruction when it can safely do so
+     */
     public void destroyThread() {
         quit = true;
     }
 
+    /**
+     * @return The {@link WindowProperties} of this window
+     */
     public WindowProperties getProperties() {
         return properties;
+    }
+
+    /**
+     * @return The GLFW window handle for this window
+     */
+    public long getWindowHandle() {
+        return windowHandle;
     }
 }

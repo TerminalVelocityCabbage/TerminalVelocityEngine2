@@ -2,10 +2,7 @@ package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.*;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
@@ -13,6 +10,8 @@ import org.lwjgl.system.Platform;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -22,8 +21,6 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
 public class WindowManager {
 
     GLFWErrorCallback errorCallback;
-    GLFWKeyCallback keyCallback;
-    GLFWFramebufferSizeCallback framebufferSizeCallback;
     Callback debugProc;
     GLFWVidMode videoMode;
 
@@ -34,7 +31,9 @@ public class WindowManager {
     //The (usually) active windows of this manager
     private Map<Long, WindowThread> threads = new HashMap<>();
 
-    //Initialize this window manager (glfw)
+    /**
+     * Initializes this window manager and glfw
+     */
     public void init() {
 
         //Create the error callback
@@ -60,9 +59,9 @@ public class WindowManager {
     }
 
     /**
+     * The actual window update loop
      * @return Whether this game context should stop
      */
-    //The actual window update loop
     public boolean loop() {
         //Destroy all destroyable windows before polling for events
         windowsToDestroy.forEach(window -> {
@@ -74,7 +73,10 @@ public class WindowManager {
         windowsToDestroy.clear();
 
         //Poll for window events (like input or closing etc.)
-        glfwWaitEvents();
+        glfwPollEvents();
+        //TODO make this configurable?
+        //wait events does not work for controllers, it only listens for callback updates.
+        //glfwWaitEvents();
 
         //Don't update the threads if there is nothing to update
         if (!hasAliveWindow()) return true;
@@ -87,7 +89,9 @@ public class WindowManager {
         return false;
     }
 
-    //Destroys this window manager and glfw context
+    /**
+     * Destroys this window manager and glfw context
+     */
     public void destroy() {
 
         //Mark all windows as needing to quit
@@ -112,62 +116,85 @@ public class WindowManager {
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
-    //Create a new window in this manager
-    public void createNewWindow(WindowProperties properties) {
+    /**
+     * Creates a new window in this manager and opens it
+     * @param properties The properties that the new window should posess
+     * @return the glfw window handle of the newly created window
+     */
+    public long createNewWindow(WindowProperties properties) {
 
         //Create the glfw window
-        long window = glfwCreateWindow(properties.getWidth(), properties.getHeight(), properties.getTitle(), NULL, NULL);
+        long windowID = glfwCreateWindow(properties.getWidth(), properties.getHeight(), properties.getTitle(), NULL, NULL);
         //Error if the window is not created successfully
-        if (window == NULL) {
+        if (windowID == NULL) {
             throw new IllegalStateException("Failed to create GLFW window.");
         }
 
         //Add this window to the list of active window threads
-        threads.put(window, new WindowThread(window, this, properties));
+        threads.put(windowID, new WindowThread(windowID, this, properties));
 
-        //Set key callback
-        //TODO differ this to input handler
-        glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
-            public void invoke(long window, int key, int scancode, int action, int mods) {
-                ClientBase.getInstance().keyCallback(window, key, scancode, action, mods);
+        //Set framebuffer size callback
+        glfwSetFramebufferSizeCallback(windowID, (long window, int w, int h) -> {
+            if (w > 0 && h > 0) {
+                properties.setWidth(w);
+                properties.setHeight(h);
             }
         });
 
-        //Set framebuffer size callback
-        glfwSetFramebufferSizeCallback(window, framebufferSizeCallback = new GLFWFramebufferSizeCallback() {
-            public void invoke(long window, int w, int h) {
-                if (w > 0 && h > 0) {
-                    properties.setWidth(w);
-                    properties.setHeight(h);
-                }
-            }
+        //Set focus state callback
+        glfwSetWindowFocusCallback(windowID, (long window, boolean isActive) -> {
+            properties.setFocused(isActive);
+        });
+
+        //Set mouse enter callback
+        glfwSetCursorEnterCallback(windowID, (window, entered) -> {
+            properties.setMousedOver(entered);
+        });
+
+        //Set char callback
+        glfwSetCharCallback(windowID, (long window, int character) -> {
+            ClientBase.getInstance().getInputCallbackListener().charCallback(window, character);
+        });
+
+        //Set cursor pos callback
+        glfwSetCursorPosCallback(windowID, (long window, double x, double y) -> {
+            ClientBase.getInstance().getInputCallbackListener().cursorPosCallback(window, x, y);
+        });
+
+        //Set Mouse Scroll callback
+        glfwSetScrollCallback(windowID, (window, deltaX, deltaY) -> {
+            ClientBase.getInstance().getInputCallbackListener().scrollCallback(window, deltaX, deltaY);
         });
 
         //Center the window on the primary monitor
         //TODO allow the createWindow method to configure this somehow
         videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowPos(window, (videoMode.width() - properties.getWidth()) / 2, (videoMode.height() - properties.getHeight()) / 2);
+        glfwSetWindowPos(windowID, (videoMode.width() - properties.getWidth()) / 2, (videoMode.height() - properties.getHeight()) / 2);
 
         //Update the window size variables based on post-init dimensions before showing the window
         try (MemoryStack frame = MemoryStack.stackPush()) {
             IntBuffer framebufferSize = frame.mallocInt(2);
-            nglfwGetFramebufferSize(window, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
+            nglfwGetFramebufferSize(windowID, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
             properties.setWidth(framebufferSize.get(0));
             properties.setHeight(framebufferSize.get(1));
         }
 
         //Set the window title
-        glfwSetWindowTitle(window, properties.getTitle());
+        glfwSetWindowTitle(windowID, properties.getTitle());
 
         //Show the window
-        glfwShowWindow(window);
+        glfwShowWindow(windowID);
 
         //Start the window update loop
-        threads.get(window).start();
+        threads.get(windowID).start();
+
+        return windowID;
     }
 
-    //Destroys the specified window
-    //This MUST always be called from the main thread
+    /**
+     * Destroys the specified window, must be called from the main thread
+     * @param thread The thread which will be destroyed
+     */
     private void destroyWindow(WindowThread thread) {
         thread.destroyWindow();
         //Prevent an IllegalStateException on last destroyed window
@@ -176,7 +203,9 @@ public class WindowManager {
         }
     }
 
-    //Returns true if this window manager has any alive windows
+    /**
+     * @return Whether this window manager has any alive windows
+     */
     private boolean hasAliveWindow() {
         for (WindowThread thread : threads.values()) {
             if (!thread.quit) return true;
@@ -184,11 +213,68 @@ public class WindowManager {
         return false;
     }
 
+    /**
+     * Queues the specified window for destruction when it is safe to do so
+     * @param thread The thread which you wish to destroy
+     */
     public void queueDestroyWindow(WindowThread thread) {
         windowsToDestroy.add(thread);
     }
 
+    /**
+     * @param windowHandle the glfw window handle that you wish to retrieve properties for
+     * @return The {@link WindowProperties} of the specified window
+     */
     public WindowProperties getPropertiesFromWindow(long windowHandle) {
         return threads.get(windowHandle).getProperties();
+    }
+
+    /**
+     * @return A list of window handles for all currently open windows controlled by TVE
+     */
+    public List<Long> getAllOpenWindows() {
+        return threads.values().stream().map(WindowThread::getWindowHandle).collect(Collectors.toList());
+    }
+
+    /**
+     * @return The window handle of (or -1) the currently active window
+     */
+    public long getFocusedWindow() {
+        for (WindowThread thread : threads.values()) {
+            if (thread.getProperties().isFocused()) return thread.getWindowHandle();
+        }
+        return -1;
+    }
+
+    /**
+     * @return The window handle of (or -1) the currently moused over window
+     */
+    public long getMousedOverWindow() {
+        for (WindowThread thread : threads.values()) {
+            if (thread.getProperties().isMousedOver()) return thread.getWindowHandle();
+        }
+        return -1;
+    }
+
+    /**
+     * Focuses the specified window
+     * @param window The glfw handle to the window which is desired to be focused
+     */
+    public void focusWindow(long window) {
+        glfwFocusWindow(window);
+    }
+
+    /**
+     * Closes the currently focused window
+     */
+    public void closeFocusedWindow() {
+        threads.get(getFocusedWindow()).destroyThread();
+    }
+
+    /**
+     * Closes the currently moused over window
+     */
+    public void closeMousedOverWindow() {
+        threads.get(getMousedOverWindow()).destroyThread();
     }
 }
