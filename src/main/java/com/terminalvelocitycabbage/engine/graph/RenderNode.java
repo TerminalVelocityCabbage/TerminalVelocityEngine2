@@ -1,5 +1,6 @@
-package com.terminalvelocitycabbage.engine.client.renderer.graph;
+package com.terminalvelocitycabbage.engine.graph;
 
+import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 
 /**

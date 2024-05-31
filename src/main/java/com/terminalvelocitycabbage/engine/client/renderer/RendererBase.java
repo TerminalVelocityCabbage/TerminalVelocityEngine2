@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.engine.client.renderer;
 
-import com.terminalvelocitycabbage.engine.client.renderer.graph.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 
 public abstract class RendererBase {
