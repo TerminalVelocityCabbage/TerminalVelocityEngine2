@@ -26,7 +26,7 @@ public class WindowProperties {
         this.width = properties.getWidth();
         this.height = properties.getHeight();
         this.title = properties.getTitle();
-        this.renderer = properties.getRenderer();
+        this.renderer = properties.getRenderGraph();
     }
 
     public WindowProperties(int width, int height, String title, Identifier renderer) {
@@ -88,7 +88,7 @@ public class WindowProperties {
     /**
      * @return The Identifier that refers to the current active renderer of this window
      */
-    public Identifier getRenderer() {
+    public Identifier getRenderGraph() {
         return renderer;
     }
 

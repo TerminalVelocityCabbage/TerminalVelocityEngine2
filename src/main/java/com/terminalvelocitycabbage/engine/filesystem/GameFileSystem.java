@@ -55,11 +55,13 @@ public class GameFileSystem {
 
     /**
      * Registers the provided resource to the registry of it's type
-     * @param sourceIdentifier The identifier of the resource you are registering
+     * @param sourceIdentifier The identifier of the source this resource is retrieved from
      * @param resourceType The type of resource you are registering
+     * @param fileName The file name that this resource can be found as
      */
     public void registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
-        resourceLocationRegistry.register(sourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, new Identifier(sourceIdentifier.getNamespace(), fileName)));
+        Identifier resourceIdentifier = new Identifier(sourceIdentifier.getNamespace(), fileName);
+        resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, resourceIdentifier));
     }
 
     /**

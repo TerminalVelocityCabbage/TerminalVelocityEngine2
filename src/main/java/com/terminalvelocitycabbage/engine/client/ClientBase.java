@@ -3,7 +3,6 @@ package com.terminalvelocitycabbage.engine.client;
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
-import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
@@ -17,7 +16,6 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,7 +28,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     //Game loop stuff
     private WindowManager windowManager;
-    private Registry<Pair<Class<? extends RendererBase>, RenderGraph>> rendererRegistry;
+    private Registry<RenderGraph> renderGraphRegistry;
     private TickManager tickManager;
     private TickManager inputTickManager;
     private Manager manager;
@@ -65,7 +63,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         modRegistry = new Registry<>(null);
         fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
-        rendererRegistry = new Registry<>();
+        renderGraphRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
@@ -97,6 +95,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     @Override
     public void init() {
         preInit();
+        getFileSystem().init();
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
@@ -209,8 +208,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         return scheduler;
     }
 
-    public Registry<Pair<Class<? extends RendererBase>, RenderGraph>> getRendererRegistry() {
-        return rendererRegistry;
+    public Registry<RenderGraph> getRenderGraphRegistry() {
+        return renderGraphRegistry;
     }
 
     @Override

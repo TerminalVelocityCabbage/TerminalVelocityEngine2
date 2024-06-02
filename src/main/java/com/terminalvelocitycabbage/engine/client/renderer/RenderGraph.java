@@ -1,6 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.renderer;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgram;
+import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.graph.GraphNode;
@@ -18,9 +20,13 @@ import java.util.Map;
 
 public class RenderGraph {
 
+    private final ShaderProgramConfig shaderProgramConfig;
+    //TODO allow this to be hot-swapped. This is why it is separated from the config
+    private ShaderProgram compiledShaderProgram;
     private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
 
-    private RenderGraph(Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes) {
+    private RenderGraph(ShaderProgramConfig shaderProgram, Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes) {
+        this.shaderProgramConfig = shaderProgram;
         this.graphNodes = graphNodes;
     }
 
@@ -52,6 +58,12 @@ public class RenderGraph {
      * @param deltaTime The time passed since the last frame was started
      */
     public void render(WindowProperties windowProperties, long deltaTime) {
+
+        //Compile this shader program now that this renderer is ready to do (if needed)
+        if (compiledShaderProgram == null && shaderProgramConfig != null) {
+            compiledShaderProgram = ShaderProgram.of(shaderProgramConfig);
+        }
+
         graphNodes.forEach((identifier, graphNode) -> {
             var enabled = graphNode.getValue0().getStatus();
             //Publish an event before this GraphNode so mods can inject their own logic into these renderers
@@ -60,7 +72,7 @@ public class RenderGraph {
             if (enabled) {
                 switch (graphNode.getValue1()) {
                     case Routine routine -> routine.update(ClientBase.getInstance().getManager()); //We assume that the server is not rendering anything
-                    case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties, deltaTime);
+                    case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties, deltaTime, compiledShaderProgram);
                 }
             }
             //Publish an event before this GraphNode so mods can inject their own logic into these renderers
@@ -70,10 +82,20 @@ public class RenderGraph {
 
     public static class Builder {
 
+        ShaderProgramConfig shaderProgram;
         private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
 
         private Builder() {
             graphNodes = new HashMap<>();
+        }
+
+        /**
+         * @param shaderProgram The shader program that this render graph will use to render objects
+         * @return this Builder (for each chaining of methods)
+         */
+        public Builder shaderProgram(ShaderProgramConfig shaderProgram) {
+            this.shaderProgram = shaderProgram;
+            return this;
         }
 
         /**
@@ -107,7 +129,7 @@ public class RenderGraph {
          * @return A new {@link RenderGraph} instance generated from this builder.
          */
         public RenderGraph build() {
-            return new RenderGraph(graphNodes);
+            return new RenderGraph(shaderProgram, graphNodes);
         }
 
     }

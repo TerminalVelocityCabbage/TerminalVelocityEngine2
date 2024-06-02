@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.graph;
 
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgram;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 
 /**
@@ -8,6 +9,6 @@ import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
  */
 public abstract non-sealed class RenderNode implements GraphNode {
 
-    public abstract void executeRenderStage(WindowProperties properties, long deltaTime);
+    public abstract void executeRenderStage(WindowProperties properties, long deltaTime, ShaderProgram shaderProgram);
 
 }

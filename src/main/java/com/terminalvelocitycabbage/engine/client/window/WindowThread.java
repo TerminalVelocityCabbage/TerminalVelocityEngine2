@@ -1,14 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
-import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
-import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
 import org.lwjgl.opengl.GL;
-
-import javax.management.ReflectionException;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -48,29 +42,14 @@ public class WindowThread extends Thread {
         //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
         glfwSwapInterval(1);
 
-        //Create an instance of this renderer and init it
-        RendererBase renderer;
-        try {
-            Pair<Class<? extends RendererBase>, RenderGraph> registryPair = ClientBase.getInstance().getRendererRegistry().get(properties.getRenderer());
-            renderer = ClassUtils.createInstance(registryPair.getValue0(), registryPair.getValue1());
-        } catch (ReflectionException e) {
-            throw new RuntimeException(e);
-        }
-
-        //Initialize this renderer
-        renderer.init(getProperties(), windowHandle);
-
         //swap the image in this window with the new one
         long deltaTime;
         while (!quit) {
             deltaTime = rendererClock.getDeltaTime();
             rendererClock.now();
-            renderer.render(getProperties(), deltaTime);
+            ClientBase.getInstance().getRenderGraphRegistry().get(properties.getRenderGraph()).render(getProperties(), deltaTime);
             glfwSwapBuffers(windowHandle);
         }
-
-        //Destroy the renderer
-        renderer.destroy();
 
         //queue this window for destruction
         windowManager.queueDestroyWindow(this);
