@@ -1,17 +1,17 @@
 package com.terminalvelocitycabbage.engine.client.renderer.elements;
 
-public class VertexElement {
+public enum VertexElement {
 
-    public static final VertexElement XYZ_POSITION = new VertexElement("position", 3, false);
-    public static final VertexElement UV = new VertexElement("uv", 2, false);
-    public static final VertexElement RGB_NORMAL = new VertexElement("normal", 3, true);
-    public static final VertexElement RGBA_COLOR = new VertexElement("color", 4, false);
+    XYZ_POSITION("position", 3, false),
+    UV("uv", 2, false),
+    RGB_NORMAL("normal", 3, true),
+    RGBA_COLOR("color", 4, false);
 
     private final String name;
     private final int components;
     private final boolean normalized;
 
-    public VertexElement(String name, int components, boolean normalized) {
+    VertexElement(String name, int components, boolean normalized) {
         this.name = name;
         this.components = components;
         this.normalized = normalized;

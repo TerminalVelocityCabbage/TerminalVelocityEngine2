@@ -7,15 +7,17 @@ public class VertexFormat {
 
     private int stride;
     private int numComponents;
+    Map<VertexElement, Integer> vertexElementOffsetMap;
 
     public VertexFormat(Map<VertexElement, Integer> vertexElementOffsetMap) {
-        vertexElementOffsetMap.forEach((vertexElement, offset) -> {
-            stride += vertexElement.getNumComponents() * vertexElement.getComponentByteSize();
-            numComponents += vertexElement.getNumComponents();
+        this.vertexElementOffsetMap = vertexElementOffsetMap;
+        vertexElementOffsetMap.forEach((element, offset) -> {
+            stride += element.getNumComponents() * element.getComponentByteSize();
+            numComponents += element.getNumComponents();
         });
     }
 
-    public Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -27,7 +29,15 @@ public class VertexFormat {
         return numComponents;
     }
 
-    static class Builder {
+    public int getOffset(VertexElement element) {
+        return vertexElementOffsetMap.get(element);
+    }
+
+    public boolean containsElement(VertexElement vertexElement) {
+        return vertexElementOffsetMap.containsKey(vertexElement);
+    }
+
+    public static class Builder {
 
         private final Map<VertexElement, Integer> elementsOffsetMap;
         private int currentOffset;
