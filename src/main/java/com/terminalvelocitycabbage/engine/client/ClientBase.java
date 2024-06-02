@@ -27,29 +27,29 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private static ClientBase instance;
 
     //Game loop stuff
-    private WindowManager windowManager;
-    private Registry<RenderGraph> renderGraphRegistry;
-    private TickManager tickManager;
-    private TickManager inputTickManager;
-    private Manager manager;
-    private Scheduler scheduler;
+    private final WindowManager windowManager;
+    private final Registry<RenderGraph> renderGraphRegistry;
+    private final TickManager tickManager;
+    private final TickManager inputTickManager;
+    private final Manager manager;
+    private final Scheduler scheduler;
     private long deltaTime; //Tick delta time not render time
-    private MutableInstant tickClock;
+    private final MutableInstant tickClock;
 
     //Networking stuff
-    private Client client;
-    private PacketRegistry packetRegistry;
+    private final Client client;
+    private final PacketRegistry packetRegistry;
 
     //Scope Stuff
-    private EventDispatcher eventDispatcher;
-    private Registry<Mod> modRegistry;
+    private final EventDispatcher eventDispatcher;
+    private final Registry<Mod> modRegistry;
 
     //Resources Stuff
-    private GameFileSystem fileSystem;
+    private final GameFileSystem fileSystem;
 
     //Input stuff
-    private InputHandler inputHandler;
-    private InputCallbackListener inputCallbackListener;
+    private final InputHandler inputHandler;
+    private final InputCallbackListener inputCallbackListener;
 
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);

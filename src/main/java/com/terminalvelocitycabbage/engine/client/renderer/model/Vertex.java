@@ -1,17 +1,18 @@
 package com.terminalvelocitycabbage.engine.client.renderer.model;
 
-import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexElement;
+import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
+import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.util.ArrayUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Vertex {
 
-    private final Map<VertexElement, float[]> data;
+    private final Map<VertexAttribute, float[]> data;
     private final int numComponents;
 
-    private Vertex(int numComponents, Map<VertexElement, float[]> data) {
+    private Vertex(int numComponents, Map<VertexAttribute, float[]> data) {
         this.numComponents = numComponents;
         this.data = data;
     }
@@ -20,26 +21,35 @@ public class Vertex {
         return new Builder();
     }
 
-    public float[] getSubData(VertexElement element) {
+    public float[] getSubData(VertexAttribute element) {
         return data.get(element);
     }
 
-    public float[] getData() {
-        return ArrayUtils.combineFloatArrays(data.values().stream().toList());
+    public int getNumComponents() {
+        return numComponents;
+    }
+
+    public float[] getData(VertexFormat format) {
+        List<float[]> dataToCompile = new ArrayList<>();
+        for (VertexAttribute attribute : format.getAttributes()) {
+            dataToCompile.add(data.get(attribute));
+        }
+        return ArrayUtils.combineFloatArrays(dataToCompile);
     }
 
     public static class Builder {
 
         int numComponents = 0;
-        Map<VertexElement, float[]> data;
+        private final Map<VertexAttribute, float[]> data;
 
         private Builder() {
             this.data = new HashMap<>();
         }
 
-        public Builder addElement(VertexElement element, float[] data) {
-            this.data.put(element, data);
-            numComponents += element.getNumComponents();
+        public Builder addAttribute(VertexAttribute attribute, float[] data) {
+            if (attribute.getNumComponents() != data.length) Log.crash("Number of components supplied in element data does not match expected number for attribute given: " + attribute.getName() + " " + Arrays.toString(data));
+            this.data.put(attribute, data);
+            numComponents += attribute.getNumComponents();
             return this;
         }
 
