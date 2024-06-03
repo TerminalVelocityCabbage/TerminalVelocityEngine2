@@ -12,6 +12,7 @@ public class WindowProperties {
     private String title;
     private boolean focused;
     private boolean mousedOver;
+    private boolean resized;
 
     Identifier renderer;
 
@@ -127,5 +128,13 @@ public class WindowProperties {
      */
     protected void setMousedOver(boolean mousedOver) {
         this.mousedOver = mousedOver;
+    }
+
+    public void setResized(boolean resized) {
+        this.resized = resized;
+    }
+
+    public boolean isResized() {
+        return resized;
     }
 }

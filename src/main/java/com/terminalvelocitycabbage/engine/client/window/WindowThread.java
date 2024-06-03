@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
 
 public class WindowThread extends Thread {
 
@@ -47,6 +48,11 @@ public class WindowThread extends Thread {
         while (!quit) {
             deltaTime = rendererClock.getDeltaTime();
             rendererClock.now();
+            if (properties.isResized()) {
+                glViewport(0, 0, properties.getWidth(), properties.getHeight());
+                properties.setResized(false);
+            }
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             ClientBase.getInstance().getRenderGraphRegistry().get(properties.getRenderGraph()).render(getProperties(), deltaTime);
             glfwSwapBuffers(windowHandle);
         }
