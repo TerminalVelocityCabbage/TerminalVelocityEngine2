@@ -7,8 +7,13 @@ import static org.lwjgl.opengl.GL20.*;
 public class ShaderProgram {
 
     private final int programID;
+    ShaderProgramConfig config;
 
-    private ShaderProgram(Shader[] shaders) {
+    private ShaderProgram(ShaderProgramConfig config) {
+
+        this.config = config;
+
+        Shader[] shaders = config.getShaders().toArray(new Shader[0]);
 
         //Create this shader program and make sure it was successful
         programID = glCreateProgram();
@@ -27,7 +32,7 @@ public class ShaderProgram {
     }
 
     public static ShaderProgram of(ShaderProgramConfig config) {
-        return new ShaderProgram(config.getShaders().toArray(new Shader[0]));
+        return new ShaderProgram(config);
     }
 
     public void bind() {
@@ -50,5 +55,9 @@ public class ShaderProgram {
     public boolean validate() {
         glValidateProgram(programID);
         return glGetProgrami(programID, GL_VALIDATE_STATUS) == GL_TRUE;
+    }
+
+    public ShaderProgramConfig getConfig() {
+        return config;
     }
 }

@@ -108,4 +108,8 @@ public class Mesh {
     public boolean isInitialized() {
         return initialized;
     }
+
+    public VertexFormat getFormat() {
+        return format;
+    }
 }
