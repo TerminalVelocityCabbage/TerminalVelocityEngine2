@@ -4,6 +4,7 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
@@ -51,6 +52,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private final InputHandler inputHandler;
     private final InputCallbackListener inputCallbackListener;
 
+    //Textures
+    private final TextureCache textureCache;
+
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
@@ -68,6 +72,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
         client = new Client();
+        textureCache = new TextureCache();
     }
 
     /**
@@ -227,5 +232,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public InputHandler getInputHandler() {
         return inputHandler;
+    }
+
+    public TextureCache getTextureCache() {
+        return textureCache;
     }
 }

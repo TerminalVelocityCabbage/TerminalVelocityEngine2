@@ -29,6 +29,9 @@ public class ShaderProgram {
         //Link this program
         glLinkProgram(programID);
         if (glGetProgrami(programID, GL_LINK_STATUS) == GL_FALSE) Log.crash("Could not link shader program");
+
+        //Create uniforms for this shader
+        config.getUniforms().forEach(uniform -> uniform.create(this));
     }
 
     public static ShaderProgram of(ShaderProgramConfig config) {
@@ -37,6 +40,10 @@ public class ShaderProgram {
 
     public void bind() {
         glUseProgram(programID);
+    }
+
+    public Uniform getUniform(String uniformName) {
+        return config.getUniform(uniformName);
     }
 
     public void unbind() {
