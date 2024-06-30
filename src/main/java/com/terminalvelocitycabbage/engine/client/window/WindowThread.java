@@ -43,6 +43,9 @@ public class WindowThread extends Thread {
         //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
         glfwSwapInterval(1);
 
+        //Initialize the RenderGraph
+        ClientBase.getInstance().getRenderGraphRegistry().get(properties.getRenderGraph()).init();
+
         //swap the image in this window with the new one
         long deltaTime;
         while (!quit) {

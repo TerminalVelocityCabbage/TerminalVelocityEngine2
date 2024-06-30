@@ -7,10 +7,8 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A GameFileSystem is a way to merge all resources available to your project into a single virtual file system that
@@ -59,11 +57,12 @@ public class GameFileSystem {
      * @param resourceType The type of resource you are registering
      * @param fileName The file name that this resource can be found as
      */
-    public void registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
+    public Identifier registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
         Identifier resourceIdentifier = new Identifier(sourceIdentifier.getNamespace(), fileName);
         resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, resourceIdentifier));
         if (!resouceIdTypeMap.containsKey(resourceType)) resouceIdTypeMap.put(resourceType, new ArrayList<>());
         resouceIdTypeMap.get(resourceType).add(resourceIdentifier);
+        return resourceIdentifier;
     }
 
     /**

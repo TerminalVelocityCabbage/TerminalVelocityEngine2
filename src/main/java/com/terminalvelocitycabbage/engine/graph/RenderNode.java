@@ -9,6 +9,6 @@ import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
  */
 public abstract non-sealed class RenderNode implements GraphNode {
 
-    public abstract void executeRenderStage(WindowProperties properties, long deltaTime, ShaderProgram shaderProgram);
+    public abstract void executeRenderStage(RenderGraph renderGraph, WindowProperties properties, long deltaTime, ShaderProgram shaderProgram);
 
 }

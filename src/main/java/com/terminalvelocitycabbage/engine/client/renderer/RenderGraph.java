@@ -1,10 +1,12 @@
 package com.terminalvelocitycabbage.engine.client.renderer;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgram;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.graph.GraphNode;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.graph.Routine;
@@ -20,14 +22,27 @@ import java.util.Map;
 
 public class RenderGraph {
 
+    private boolean initialized;
     private final ShaderProgramConfig shaderProgramConfig;
     //TODO allow this to be hot-swapped. This is why it is separated from the config
     private ShaderProgram compiledShaderProgram;
     private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
+    private TextureCache textureCache;
 
     private RenderGraph(ShaderProgramConfig shaderProgram, Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes) {
+        this.initialized = false;
         this.shaderProgramConfig = shaderProgram;
         this.graphNodes = graphNodes;
+        this.textureCache = new TextureCache();
+    }
+
+    public void init() {
+        ClientBase.getInstance().getFileSystem().getResourceIdentifiersOfType(ResourceType.TEXTURE).forEach(identifier -> textureCache.createTexture(identifier));
+        initialized = true;
+    }
+
+    public void cleanup() {
+
     }
 
     /**
@@ -59,6 +74,8 @@ public class RenderGraph {
      */
     public void render(WindowProperties windowProperties, long deltaTime) {
 
+        if (!initialized) Log.error("Tried to render before render graph was initialized");
+
         //Compile this shader program now that this renderer is ready to do (if needed)
         if (compiledShaderProgram == null && shaderProgramConfig != null) {
             compiledShaderProgram = ShaderProgram.of(shaderProgramConfig);
@@ -72,7 +89,7 @@ public class RenderGraph {
             if (enabled) {
                 switch (graphNode.getValue1()) {
                     case Routine routine -> routine.update(ClientBase.getInstance().getManager()); //We assume that the server is not rendering anything
-                    case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties, deltaTime, compiledShaderProgram);
+                    case RenderNode renderNode -> renderNode.executeRenderStage(this, windowProperties, deltaTime, compiledShaderProgram);
                 }
             }
             //Publish an event before this GraphNode so mods can inject their own logic into these renderers
@@ -134,4 +151,7 @@ public class RenderGraph {
 
     }
 
+    public TextureCache getTextureCache() {
+        return textureCache;
+    }
 }

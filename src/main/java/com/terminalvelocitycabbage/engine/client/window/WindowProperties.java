@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 /**
@@ -99,7 +100,9 @@ public class WindowProperties {
      */
     //TODO this should likely invoke some renderer lifecycle events for setup and destroy
     public void setRenderer(Identifier renderer) {
+        ClientBase.getInstance().getRenderGraphRegistry().get(this.renderer).cleanup();
         this.renderer = renderer;
+        ClientBase.getInstance().getRenderGraphRegistry().get(renderer).init();
     }
 
     /**

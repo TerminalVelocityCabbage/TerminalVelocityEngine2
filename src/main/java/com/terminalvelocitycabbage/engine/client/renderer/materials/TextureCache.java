@@ -34,4 +34,7 @@ public class TextureCache {
         return textures.size();
     }
 
+    public Map<Identifier, Texture> getTextures() {
+        return textures;
+    }
 }
