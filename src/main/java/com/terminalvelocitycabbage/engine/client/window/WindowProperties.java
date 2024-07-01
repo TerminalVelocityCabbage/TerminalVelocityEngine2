@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 /**
@@ -12,6 +13,7 @@ public class WindowProperties {
     private String title;
     private boolean focused;
     private boolean mousedOver;
+    private boolean resized;
 
     Identifier renderer;
 
@@ -26,7 +28,7 @@ public class WindowProperties {
         this.width = properties.getWidth();
         this.height = properties.getHeight();
         this.title = properties.getTitle();
-        this.renderer = properties.getRenderer();
+        this.renderer = properties.getRenderGraph();
     }
 
     public WindowProperties(int width, int height, String title, Identifier renderer) {
@@ -88,7 +90,7 @@ public class WindowProperties {
     /**
      * @return The Identifier that refers to the current active renderer of this window
      */
-    public Identifier getRenderer() {
+    public Identifier getRenderGraph() {
         return renderer;
     }
 
@@ -98,7 +100,9 @@ public class WindowProperties {
      */
     //TODO this should likely invoke some renderer lifecycle events for setup and destroy
     public void setRenderer(Identifier renderer) {
+        ClientBase.getInstance().getRenderGraphRegistry().get(this.renderer).cleanup();
         this.renderer = renderer;
+        ClientBase.getInstance().getRenderGraphRegistry().get(renderer).init();
     }
 
     /**
@@ -127,5 +131,13 @@ public class WindowProperties {
      */
     protected void setMousedOver(boolean mousedOver) {
         this.mousedOver = mousedOver;
+    }
+
+    public void setResized(boolean resized) {
+        this.resized = resized;
+    }
+
+    public boolean isResized() {
+        return resized;
     }
 }

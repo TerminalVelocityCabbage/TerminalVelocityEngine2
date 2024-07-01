@@ -8,8 +8,7 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A GameFileSystem is a way to merge all resources available to your project into a single virtual file system that
@@ -32,15 +31,14 @@ public class GameFileSystem {
     final Registry<ResourceSource> sourceRegistry;
     //TODO replace the map with a resource type registry so we can remove ResourceType to allow mods to create more etc.
     final Registry<ResourceLocation> resourceLocationRegistry;
-    final Map<String, Map<String, Resource>> fileSystemContents;
-
-    //Default Locations for things
-    public String configDir = "configs";
+    final Map<String, Map<String, Resource>> fileSystemContents; //TODO replace use of String for Identifier with Identifier so we can remove below
+    final Map<ResourceType, List<Identifier>> resouceIdTypeMap; //TODO remove
 
     public GameFileSystem() {
         this.sourceRegistry = new Registry<>();
         this.resourceLocationRegistry = new Registry<>();
         this.fileSystemContents = new HashMap<>();
+        this.resouceIdTypeMap = new HashMap<>();
     }
 
     /**
@@ -55,11 +53,16 @@ public class GameFileSystem {
 
     /**
      * Registers the provided resource to the registry of it's type
-     * @param sourceIdentifier The identifier of the resource you are registering
+     * @param sourceIdentifier The identifier of the source this resource is retrieved from
      * @param resourceType The type of resource you are registering
+     * @param fileName The file name that this resource can be found as
      */
-    public void registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
-        resourceLocationRegistry.register(sourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, new Identifier(sourceIdentifier.getNamespace(), fileName)));
+    public Identifier registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
+        Identifier resourceIdentifier = new Identifier(sourceIdentifier.getNamespace(), fileName);
+        resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, resourceIdentifier));
+        if (!resouceIdTypeMap.containsKey(resourceType)) resouceIdTypeMap.put(resourceType, new ArrayList<>());
+        resouceIdTypeMap.get(resourceType).add(resourceIdentifier);
+        return resourceIdentifier;
     }
 
     /**
@@ -114,7 +117,20 @@ public class GameFileSystem {
         return fileSystemContents.get(resourceType.getName()).get(identifier.toString());
     }
 
-    public String getConfigsDirectory() {
-        return configDir;
+    /**
+     * @param resourceType The type of resource you are retrieving
+     * @return A collection of resources with that type
+     */
+    public Collection<Resource> getResourcesOfType(ResourceType resourceType) {
+        if (!fileSystemContents.containsKey(resourceType)) Log.error("No resources of type " + resourceType.getName() + "exist on file system");
+        return fileSystemContents.get(resourceType).values();
+    }
+
+    /**
+     * @param resourceType The type of resource you are retrieving
+     * @return A collection of resource identifiers with that type
+     */
+    public List<Identifier> getResourceIdentifiersOfType(ResourceType resourceType) {
+        return resouceIdTypeMap.get(resourceType);
     }
 }

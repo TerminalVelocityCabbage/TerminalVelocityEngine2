@@ -74,6 +74,10 @@ public class Log {
 		}
 	}
 
+	public static void crash(String message) {
+		crash(message, new RuntimeException(message));
+	}
+
 	public static void crash(Object message, Throwable throwable) {
 		crash(throwable.getMessage(), message, throwable);
 	}

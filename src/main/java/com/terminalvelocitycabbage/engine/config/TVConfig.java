@@ -24,7 +24,7 @@ public class TVConfig {
      */
     public static FileConfig getOrCreateFileConfig(GameFileSystem fileSystem, Identifier resourceIdentifier) {
 
-        String configDir = fileSystem.getConfigsDirectory() + "/" + resourceIdentifier.getNamespace();
+        String configDir = "configs/" + resourceIdentifier.getNamespace();
         FileConfig fileConfig = null;
         try {
             //init directory
