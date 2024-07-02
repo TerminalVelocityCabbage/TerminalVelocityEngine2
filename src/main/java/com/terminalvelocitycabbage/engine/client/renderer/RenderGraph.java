@@ -28,12 +28,14 @@ public class RenderGraph {
     private ShaderProgram compiledShaderProgram;
     private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
     private TextureCache textureCache;
+    private boolean recompileShaders;
 
     private RenderGraph(ShaderProgramConfig shaderProgram, Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes) {
         this.initialized = false;
         this.shaderProgramConfig = shaderProgram;
         this.graphNodes = graphNodes;
         this.textureCache = new TextureCache();
+        this.recompileShaders = false;
     }
 
     public void init() {
@@ -76,9 +78,16 @@ public class RenderGraph {
 
         if (!initialized) Log.error("Tried to render before render graph was initialized");
 
+        //Wipe the current shader program for re-compilation
+        if (recompileShaders) {
+            compiledShaderProgram.cleanup();
+            compiledShaderProgram = null;
+        }
+
         //Compile this shader program now that this renderer is ready to do (if needed)
         if (compiledShaderProgram == null && shaderProgramConfig != null) {
             compiledShaderProgram = ShaderProgram.of(shaderProgramConfig);
+            recompileShaders = false;
         }
 
         graphNodes.forEach((identifier, graphNode) -> {
@@ -153,5 +162,9 @@ public class RenderGraph {
 
     public TextureCache getTextureCache() {
         return textureCache;
+    }
+
+    public void recompileShaders() {
+        recompileShaders = true;
     }
 }
