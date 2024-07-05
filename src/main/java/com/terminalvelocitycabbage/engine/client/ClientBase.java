@@ -4,6 +4,7 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
@@ -51,6 +52,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private final InputHandler inputHandler;
     private final InputCallbackListener inputCallbackListener;
 
+    //Scene Stuff
+    private final Registry<Scene> sceneRegistry;
+
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
@@ -60,13 +64,14 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         scheduler = new Scheduler();
         tickClock = MutableInstant.ofNow();
         eventDispatcher = new EventDispatcher();
-        modRegistry = new Registry<>(null);
+        modRegistry = new Registry<>();
         fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
         renderGraphRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
+        sceneRegistry = new Registry<>();
         client = new Client();
     }
 
@@ -227,5 +232,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public InputHandler getInputHandler() {
         return inputHandler;
+    }
+
+    public Registry<Scene> getSceneRegistry() {
+        return sceneRegistry;
     }
 }

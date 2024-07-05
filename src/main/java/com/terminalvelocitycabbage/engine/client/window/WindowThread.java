@@ -43,8 +43,9 @@ public class WindowThread extends Thread {
         //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
         glfwSwapInterval(1);
 
-        //Initialize the RenderGraph
-        ClientBase.getInstance().getRenderGraphRegistry().get(properties.getRenderGraph()).init();
+        //Initialize the RenderGraph & scene
+        properties.setScene(properties.getInitialScene());
+        ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).init();
 
         //swap the image in this window with the new one
         long deltaTime;
@@ -56,7 +57,7 @@ public class WindowThread extends Thread {
                 properties.setResized(false);
             }
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            ClientBase.getInstance().getRenderGraphRegistry().get(properties.getRenderGraph()).render(getProperties(), deltaTime);
+            ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).render(getProperties(), deltaTime);
             glfwSwapBuffers(windowHandle);
         }
 

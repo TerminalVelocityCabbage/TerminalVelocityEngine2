@@ -233,4 +233,12 @@ public class Manager {
     public System getSystem(Class<? extends System> systemClass) {
         return systems.get(systemClass);
     }
+
+    /**
+     * Removes all entities from this manager without the 'persistent' tag
+     */
+    public void freeNonPersistentEntities() {
+        //TODO add tag system and include persistent logic
+        getEntities().forEach(this::freeEntity);
+    }
 }

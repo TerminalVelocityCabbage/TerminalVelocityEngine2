@@ -1,6 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
+import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 /**
@@ -15,27 +17,26 @@ public class WindowProperties {
     private boolean mousedOver;
     private boolean resized;
 
-    Identifier renderer;
+    Identifier initialScene;
+    Scene activeScene;
 
     public WindowProperties() {
-        this.width = 600;
-        this.height = 400;
-        this.title = "Default Title";
-        this.renderer = null;
+        this(600, 400, "Default Title", null);
     }
 
     public WindowProperties(WindowProperties properties) {
-        this.width = properties.getWidth();
-        this.height = properties.getHeight();
-        this.title = properties.getTitle();
-        this.renderer = properties.getRenderGraph();
+        this(
+                properties.getWidth(),
+                properties.getHeight(),
+                properties.getTitle(),
+                properties.getInitialScene());
     }
 
-    public WindowProperties(int width, int height, String title, Identifier renderer) {
+    public WindowProperties(int width, int height, String title, Identifier initialSceneIdentifier) {
         this.width = width;
         this.height = height;
         this.title = title;
-        this.renderer = renderer;
+        this.initialScene = initialSceneIdentifier;
     }
 
     /**
@@ -88,24 +89,6 @@ public class WindowProperties {
     }
 
     /**
-     * @return The Identifier that refers to the current active renderer of this window
-     */
-    public Identifier getRenderGraph() {
-        return renderer;
-    }
-
-    /**
-     * Updates the current active renderer for this window
-     * @param renderer The identifier which you wish this window to update
-     */
-    //TODO this should likely invoke some renderer lifecycle events for setup and destroy
-    public void setRenderer(Identifier renderer) {
-        ClientBase.getInstance().getRenderGraphRegistry().get(this.renderer).cleanup();
-        this.renderer = renderer;
-        ClientBase.getInstance().getRenderGraphRegistry().get(renderer).init();
-    }
-
-    /**
      * @return Whether this window is currently the active window
      */
     public boolean isFocused() {
@@ -139,5 +122,34 @@ public class WindowProperties {
 
     public boolean isResized() {
         return resized;
+    }
+
+    public void init(Identifier initialScene) {
+        activeScene = ClientBase.getInstance().getSceneRegistry().get(initialScene);
+        activeScene.setTextureCache(new TextureCache());
+        activeScene.init();
+    }
+
+    public void setScene(Identifier sceneIdentifier) {
+        var client = ClientBase.getInstance();
+        TextureCache textureCache;
+        if (activeScene != null) {
+            textureCache = activeScene.getTextureCache();
+            activeScene.cleanup();
+            client.getManager().freeNonPersistentEntities();
+        } else {
+            textureCache = new TextureCache();
+        }
+        activeScene = client.getSceneRegistry().get(sceneIdentifier);
+        activeScene.setTextureCache(textureCache);
+        activeScene.init();
+    }
+
+    public Scene getActiveScene() {
+        return activeScene;
+    }
+
+    public Identifier getInitialScene() {
+        return initialScene;
     }
 }
