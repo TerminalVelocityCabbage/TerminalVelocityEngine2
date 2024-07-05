@@ -47,28 +47,10 @@ public class WindowProperties {
     }
 
     /**
-     * Updates the width of this window
-     * @param width The width in pixels that this window should be changed to
-     */
-    //TODO expose this and make it do something
-    protected void setWidth(int width) {
-        this.width = width;
-    }
-
-    /**
      * @return The height of this window in pixels
      */
     public int getHeight() {
         return height;
-    }
-
-    /**
-     * Updates the height of this window
-     * @param height The height in pixels that this window should be changed to
-     */
-    //TODO expose this and make it do something
-    protected void setHeight(int height) {
-        this.height = height;
     }
 
     /**
@@ -116,8 +98,14 @@ public class WindowProperties {
         this.mousedOver = mousedOver;
     }
 
-    public void setResized(boolean resized) {
-        this.resized = resized;
+    public void resize(int width, int height) {
+        this.resized = true;
+        this.width = width;
+        this.height = height;
+    }
+
+    public void endFrame() {
+        this.resized = false;
     }
 
     public boolean isResized() {

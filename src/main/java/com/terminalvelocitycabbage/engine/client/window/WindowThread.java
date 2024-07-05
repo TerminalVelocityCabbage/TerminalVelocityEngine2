@@ -55,7 +55,7 @@ public class WindowThread extends Thread {
             if (properties.isResized()) glViewport(0, 0, properties.getWidth(), properties.getHeight());
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).render(getProperties(), deltaTime);
-            properties.setResized(false);
+            properties.endFrame();
             glfwSwapBuffers(windowHandle);
         }
 
