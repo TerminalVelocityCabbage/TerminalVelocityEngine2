@@ -13,7 +13,7 @@ public class Projection {
 
     public Projection(Type type, float fieldOfView, float nearPlane, float farPlane) {
         this.type = type;
-        this.fieldOfView = fieldOfView;
+        this.fieldOfView = (float) Math.toRadians(fieldOfView);
         this.nearPlane = nearPlane;
         this.farPlane = farPlane;
         projectionMatrix = new Matrix4f();
@@ -23,9 +23,9 @@ public class Projection {
         return projectionMatrix;
     }
 
-    public void updateProjectionMatrix(int width, int height) {
+    public void updateProjectionMatrix(float width, float height) {
         switch (type) {
-            case PERSPECTIVE -> projectionMatrix.setPerspective(fieldOfView, (float) width / (float) height, nearPlane, farPlane);
+            case PERSPECTIVE -> projectionMatrix.setPerspective(fieldOfView, width / height, nearPlane, farPlane);
             case ORTHOGONAL -> projectionMatrix.setOrtho(0, width, 0, height, nearPlane, farPlane); //TODO verify
         }
     }
