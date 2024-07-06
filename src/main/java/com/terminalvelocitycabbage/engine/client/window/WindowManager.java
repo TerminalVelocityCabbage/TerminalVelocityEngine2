@@ -9,12 +9,14 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
 
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.system.MemoryUtil.memAddress;
 
 public class WindowManager {
 
@@ -165,6 +167,13 @@ public class WindowManager {
         //TODO allow the createWindow method to configure this somehow
         videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         glfwSetWindowPos(windowID, (videoMode.width() - properties.getWidth()) / 2, (videoMode.height() - properties.getHeight()) / 2);
+
+        //Update the window size variables based on post-init dimensions before showing the window
+        try (MemoryStack frame = MemoryStack.stackPush()) {
+            IntBuffer framebufferSize = frame.mallocInt(2);
+            nglfwGetFramebufferSize(windowID, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
+            properties.resize(framebufferSize.get(0), framebufferSize.get(1));
+        }
 
         //Set the window title
         glfwSetWindowTitle(windowID, properties.getTitle());

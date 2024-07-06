@@ -119,29 +119,38 @@ public class RenderGraph {
             return this;
         }
 
+        public Builder addRoutineNode(Identifier identifier, Routine routine) {
+            return addRoutineNode(identifier, routine, true);
+        }
+
+        public Builder addRoutineNode(Identifier identifier, Routine routine, boolean automaticallyEnable) {
+            graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), routine));
+            return this;
+        }
+
         /**
          * Adds a node to this render graph and automatically enables it
          * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
          * @param graphNode the node to be added to this graph
          * @return this Builder (for easy changing of methods)
          */
-        public Builder addNode(Identifier identifier, Class<? extends GraphNode> graphNode) {
-            return addNode(identifier, graphNode, true);
+        public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> graphNode) {
+            return addRenderNode(identifier, graphNode, true);
         }
 
         /**
          * Adds a node to this render graph and allows you to specify whether to enable it by default or not
          * useful for nodes that don't always get used or on nodes that don't need to run on the first iteration.
          * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
-         * @param graphNode the node to be added to this graph
+         * @param renderNode the node to be added to this graph
          * @param automaticallyEnable a boolean to represent if this node should be enabled or paused on initialization
          * @return this Builder (for easy changing of methods)
          */
-        public Builder addNode(Identifier identifier, Class<? extends GraphNode> graphNode, boolean automaticallyEnable) {
+        public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> renderNode, boolean automaticallyEnable) {
             try {
-                graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), ClassUtils.createInstance(graphNode)));
+                graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), ClassUtils.createInstance(renderNode)));
             } catch (ReflectionException e) {
-                Log.crash("Could not add node " + identifier + " to graph node " + graphNode, new RuntimeException(e));
+                Log.crash("Could not add node " + identifier + " to graph node " + renderNode, new RuntimeException(e));
             }
             return this;
         }
