@@ -124,12 +124,12 @@ public class InputHandler {
      */
     public Control registerControlListener(Control control) {
         return switch (control) {
-            case KeyboardKeyControl kkc -> controlRegistry.register(ClientBase.getInstance().identifierOf("keyboardKey_control_" + kkc.getKey().name()), kkc);
-            case GamepadButtonControl gpbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadButton_control_" + gpbc.getButton().name()), gpbc);
-            case MouseButtonControl mbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseButton_control_" + mbc.getButton().name()), mbc);
-            case GamepadAxisControl gpac -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadAxis_control_" + gpac.getAxis().name()), gpac);
-            case MouseMovementControl mmc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseMovement_control_" + mmc.getAxis().name()), mmc);
-            case MouseScrollControl msc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseScroll_control_" + msc.getDirection().name()), msc);
+            case KeyboardKeyControl kkc -> controlRegistry.register(ClientBase.getInstance().identifierOf("keyboardKey_control_" + kkc.getKey().name()), kkc).getValue();
+            case GamepadButtonControl gpbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadButton_control_" + gpbc.getButton().name()), gpbc).getValue();
+            case MouseButtonControl mbc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseButton_control_" + mbc.getButton().name()), mbc).getValue();
+            case GamepadAxisControl gpac -> controlRegistry.register(ClientBase.getInstance().identifierOf("gamepadAxis_control_" + gpac.getAxis().name()), gpac).getValue();
+            case MouseMovementControl mmc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseMovement_control_" + mmc.getAxis().name()), mmc).getValue();
+            case MouseScrollControl msc -> controlRegistry.register(ClientBase.getInstance().identifierOf("mouseScroll_control_" + msc.getDirection().name()), msc).getValue();
         };
     }
 
@@ -141,6 +141,6 @@ public class InputHandler {
      * @return The Controller which was registered
      */
     public Controller registerController(Identifier identifier, Controller controller) {
-        return controllerRegistry.register(identifier, controller);
+        return controllerRegistry.register(identifier, controller).getValue();
     }
 }
