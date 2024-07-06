@@ -53,6 +53,10 @@ public class VertexFormat {
         return attributes;
     }
 
+    public boolean hasComponent(VertexAttribute vertexAttribute) {
+        return attributes.contains(vertexAttribute);
+    }
+
     public static class Builder {
 
         private final Map<VertexAttribute, Integer> elementsOffsetMap;

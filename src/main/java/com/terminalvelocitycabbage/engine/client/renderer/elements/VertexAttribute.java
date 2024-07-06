@@ -4,7 +4,7 @@ public enum VertexAttribute {
 
     XYZ_POSITION("position", 3, false),
     UV("uv", 2, false),
-    RGB_NORMAL("normal", 3, true),
+    XYZ_NORMAL("normal", 3, true),
     RGBA_COLOR("color_rgba", 4, false),
     RGB_COLOR("color_rgb", 3, false);
 

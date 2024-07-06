@@ -3,58 +3,75 @@ package com.terminalvelocitycabbage.engine.client.renderer.model;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.util.ArrayUtils;
 
-import java.util.*;
+import java.util.Arrays;
 
 public class Vertex {
 
-    private final Map<VertexAttribute, float[]> data;
-    private final int numComponents;
+    private final VertexFormat format;
+    private final float[] data;
 
-    private Vertex(int numComponents, Map<VertexAttribute, float[]> data) {
-        this.numComponents = numComponents;
-        this.data = data;
+    public Vertex(VertexFormat format) {
+        this.format = format;
+        this.data = new float[format.getNumComponents()];
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public Vertex setXYZPosition(float x, float y, float z) {
+        var offset = getOffsetOrCrash(VertexAttribute.XYZ_POSITION);
+        data[offset] = x;
+        data[offset + 1] = y;
+        data[offset + 2] = z;
+        return this;
+    }
+
+    public Vertex setUV(float u, float v) {
+        var offset = getOffsetOrCrash(VertexAttribute.UV);
+        data[offset] = u;
+        data[offset + 1] = v;
+        return this;
+    }
+
+    public Vertex setXYZNormal(float x, float y, float z) {
+        var offset = getOffsetOrCrash(VertexAttribute.XYZ_NORMAL);
+        data[offset] = x;
+        data[offset + 1] = y;
+        data[offset + 2] = z;
+        return this;
+    }
+
+    public Vertex setRGBColor(float r, float g, float b) {
+        var offset = getOffsetOrCrash(VertexAttribute.RGB_COLOR);
+        data[offset] = r;
+        data[offset + 1] = g;
+        data[offset + 2] = b;
+        return this;
+    }
+
+    public Vertex setRGBAColor(float r, float g, float b, float a) {
+        var offset = getOffsetOrCrash(VertexAttribute.RGBA_COLOR);
+        data[offset] = r;
+        data[offset + 1] = g;
+        data[offset + 2] = b;
+        data[offset + 3] = a;
+        return this;
+    }
+
+    private int getOffsetOrCrash(VertexAttribute attribute) {
+        if (!format.hasComponent(attribute)) Log.crash("The vertex format of this vertex does not include " + attribute.getName());
+        return format.getOffset(attribute);
     }
 
     public float[] getSubData(VertexAttribute element) {
-        return data.get(element);
+        var offset = format.getOffset(element);
+        var end = offset + element.getNumComponents();
+        return Arrays.copyOfRange(data, offset, end);
     }
 
     public int getNumComponents() {
-        return numComponents;
+        return format.getNumComponents();
     }
 
     public float[] getData(VertexFormat format) {
-        List<float[]> dataToCompile = new ArrayList<>();
-        for (VertexAttribute attribute : format.getAttributes()) {
-            dataToCompile.add(data.get(attribute));
-        }
-        return ArrayUtils.combineFloatArrays(dataToCompile);
-    }
-
-    public static class Builder {
-
-        int numComponents = 0;
-        private final Map<VertexAttribute, float[]> data;
-
-        private Builder() {
-            this.data = new HashMap<>();
-        }
-
-        public Builder addAttribute(VertexAttribute attribute, float[] data) {
-            if (attribute.getNumComponents() != data.length) Log.crash("Number of components supplied in element data does not match expected number for attribute given: " + attribute.getName() + " " + Arrays.toString(data));
-            this.data.put(attribute, data);
-            numComponents += attribute.getNumComponents();
-            return this;
-        }
-
-        public Vertex build() {
-            return new Vertex(numComponents, data);
-        }
+        return data;
     }
 }
