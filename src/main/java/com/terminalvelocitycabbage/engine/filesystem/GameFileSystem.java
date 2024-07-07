@@ -7,6 +7,7 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
+import com.terminalvelocitycabbage.engine.registry.RegistryPair;
 
 import java.util.*;
 
@@ -47,8 +48,8 @@ public class GameFileSystem {
      * @param sourceIdentifier the namespace of this source
      * @param source the actual source to register
      */
-    public void registerResourceSource(Identifier sourceIdentifier, ResourceSource source) {
-        getSourceRegistry().register(sourceIdentifier, source);
+    public RegistryPair<ResourceSource> registerResourceSource(Identifier sourceIdentifier, ResourceSource source) {
+        return getSourceRegistry().register(sourceIdentifier, source);
     }
 
     /**
@@ -57,12 +58,12 @@ public class GameFileSystem {
      * @param resourceType The type of resource you are registering
      * @param fileName The file name that this resource can be found as
      */
-    public Identifier registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
+    public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
         Identifier resourceIdentifier = new Identifier(sourceIdentifier.getNamespace(), fileName);
-        resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, resourceIdentifier));
+        var ret = resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, resourceIdentifier));
         if (!resouceIdTypeMap.containsKey(resourceType)) resouceIdTypeMap.put(resourceType, new ArrayList<>());
         resouceIdTypeMap.get(resourceType).add(resourceIdentifier);
-        return resourceIdentifier;
+        return ret;
     }
 
     /**
