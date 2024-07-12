@@ -168,6 +168,7 @@ public class RenderGraph {
         return initialized;
     }
 
+    //TODO make this a part of a render node instead of the whole graph
     public ShaderProgram getShaderProgram() {
         return compiledShaderProgram;
     }
