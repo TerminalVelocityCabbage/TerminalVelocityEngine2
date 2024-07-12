@@ -2,7 +2,7 @@ ext {
     jomlVersion = "1.10.5"
     simpleNetVersion = "1.6.6"
     jansiVersion = "2.1.0"
-    nightConfigVersion = "3.6.6"
+    nightConfigVersion = "3.8.0"
     jsemverVersion = "0.10.2"
 }
 

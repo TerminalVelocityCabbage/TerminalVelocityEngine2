@@ -14,12 +14,12 @@ public abstract sealed class ButtonControl extends Control permits KeyboardKeyCo
 
     @Override
     public void update(InputHandler inputHandler, long deltaTime) {
+        pressedLastFrame = pressedThisFrame;
         pressedThisFrame = isPressed(inputHandler);
         if (!pressedLastFrame) holdTime = 0;
         if (pressedThisFrame && pressedLastFrame) {
             holdTime += deltaTime;
         }
-        pressedLastFrame = pressedThisFrame;
     }
 
     @Override

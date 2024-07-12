@@ -1,5 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
+import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 /**
@@ -12,28 +15,28 @@ public class WindowProperties {
     private String title;
     private boolean focused;
     private boolean mousedOver;
+    private boolean resized;
 
-    Identifier renderer;
+    Identifier initialScene;
+    Scene activeScene;
 
     public WindowProperties() {
-        this.width = 600;
-        this.height = 400;
-        this.title = "Default Title";
-        this.renderer = null;
+        this(600, 400, "Default Title", null);
     }
 
     public WindowProperties(WindowProperties properties) {
-        this.width = properties.getWidth();
-        this.height = properties.getHeight();
-        this.title = properties.getTitle();
-        this.renderer = properties.getRenderer();
+        this(
+                properties.width,
+                properties.height,
+                properties.title,
+                properties.initialScene);
     }
 
-    public WindowProperties(int width, int height, String title, Identifier renderer) {
+    public WindowProperties(int width, int height, String title, Identifier initialSceneIdentifier) {
         this.width = width;
         this.height = height;
         this.title = title;
-        this.renderer = renderer;
+        this.initialScene = initialSceneIdentifier;
     }
 
     /**
@@ -44,28 +47,10 @@ public class WindowProperties {
     }
 
     /**
-     * Updates the width of this window
-     * @param width The width in pixels that this window should be changed to
-     */
-    //TODO expose this and make it do something
-    protected void setWidth(int width) {
-        this.width = width;
-    }
-
-    /**
      * @return The height of this window in pixels
      */
     public int getHeight() {
         return height;
-    }
-
-    /**
-     * Updates the height of this window
-     * @param height The height in pixels that this window should be changed to
-     */
-    //TODO expose this and make it do something
-    protected void setHeight(int height) {
-        this.height = height;
     }
 
     /**
@@ -83,22 +68,6 @@ public class WindowProperties {
     //TODO this should probably downcall to the window and update it's title, but it does not
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    /**
-     * @return The Identifier that refers to the current active renderer of this window
-     */
-    public Identifier getRenderer() {
-        return renderer;
-    }
-
-    /**
-     * Updates the current active renderer for this window
-     * @param renderer The identifier which you wish this window to update
-     */
-    //TODO this should likely invoke some renderer lifecycle events for setup and destroy
-    public void setRenderer(Identifier renderer) {
-        this.renderer = renderer;
     }
 
     /**
@@ -127,5 +96,67 @@ public class WindowProperties {
      */
     protected void setMousedOver(boolean mousedOver) {
         this.mousedOver = mousedOver;
+    }
+
+    /**
+     * @param width the size of this window
+     * @param height the height of this window
+     */
+    public void resize(int width, int height) {
+        this.resized = true;
+        this.width = width;
+        this.height = height;
+    }
+
+    /**
+     * called at the end of a frame
+     */
+    public void endFrame() {
+        this.resized = false;
+    }
+
+    /**
+     * @return whether this window has been resized since the last update
+     */
+    public boolean isResized() {
+        return resized;
+    }
+
+    /**
+     * called at the start of the lifecycle of a window
+     */
+    public void init() {
+        setScene(initialScene);
+    }
+
+    /**
+     * Updates the currently active scene being drawn by this window
+     * @param sceneIdentifier the scene identifier that this window should start rendering from
+     */
+    public void setScene(Identifier sceneIdentifier) {
+        var client = ClientBase.getInstance();
+        TextureCache textureCache;
+        //Cleanup the currently active scene so it can be closed
+        if (activeScene != null) {
+            textureCache = activeScene.getTextureCache();
+            activeScene.cleanup();
+            //All entities that should not persist into the next scene should be removed from the global manager
+            client.getManager().freeNonPersistentEntities();
+        } else {
+            textureCache = new TextureCache();
+        }
+        //Set the currently active scene to the one specified
+        activeScene = client.getSceneRegistry().get(sceneIdentifier);
+        //Re-use the previous scene's texture cache
+        activeScene.setTextureCache(textureCache);
+        //Initialize the new scene
+        activeScene.init();
+    }
+
+    /**
+     * @return The active scene
+     */
+    public Scene getActiveScene() {
+        return activeScene;
     }
 }

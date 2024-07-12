@@ -1,5 +1,7 @@
 package com.terminalvelocitycabbage.engine.registry;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
+
 /**
  * A class which represents an identifier to a registered resource on the virtual filesystem
  */
@@ -23,11 +25,8 @@ public class Identifier {
 	 */
 	public static Identifier of(String identifierString) {
 		var parts = identifierString.split(":");
-		if (parts.length == 2) {
-			return new Identifier(parts[0], parts[1]);
-		} else {
-			throw new RuntimeException("Invalid identifier name " + identifierString + " it must be in format namespace:path");
-		}
+		if (parts.length != 2) Log.crash("Invalid identifier name " + identifierString + " it must be in format namespace:path");
+		return new Identifier(parts[0], parts[1]);
 	}
 
 	/**

@@ -2,7 +2,8 @@ package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import org.lwjgl.glfw.*;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
@@ -10,7 +11,6 @@ import org.lwjgl.system.Platform;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -74,7 +74,7 @@ public class WindowManager {
 
         //Poll for window events (like input or closing etc.)
         glfwPollEvents();
-        //TODO make this configurable?
+        //TODO make this configurable? poll events is good for always listening, wait events does not push a new frame unless there was an event
         //wait events does not work for controllers, it only listens for callback updates.
         //glfwWaitEvents();
 
@@ -135,10 +135,7 @@ public class WindowManager {
 
         //Set framebuffer size callback
         glfwSetFramebufferSizeCallback(windowID, (long window, int w, int h) -> {
-            if (w > 0 && h > 0) {
-                properties.setWidth(w);
-                properties.setHeight(h);
-            }
+            properties.resize(w, h);
         });
 
         //Set focus state callback
@@ -175,8 +172,7 @@ public class WindowManager {
         try (MemoryStack frame = MemoryStack.stackPush()) {
             IntBuffer framebufferSize = frame.mallocInt(2);
             nglfwGetFramebufferSize(windowID, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
-            properties.setWidth(framebufferSize.get(0));
-            properties.setHeight(framebufferSize.get(1));
+            properties.resize(framebufferSize.get(0), framebufferSize.get(1));
         }
 
         //Set the window title

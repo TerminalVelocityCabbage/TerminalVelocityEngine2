@@ -38,7 +38,6 @@ public class ModInfo {
     }
 
     public List<Pair<String, Version>> getAllDependencies() {
-        //TODO replace with call directly to parsed fields when issue is resolved
         List<Pair<String, Version>> deps = new ArrayList<>();
         deps.addAll(getRequiredDependencies());
         deps.addAll(getOptionalDependencies());
@@ -82,104 +81,18 @@ public class ModInfo {
         List<String> required;
         List<String> optional;
     }
-}
 
-//TODO use below code when issue response is had to solve subsequent issue
-//public class ModInfo {
-//
-//    private ModIdentity identity;
-//    private ModAuthors authors;
-//    private ModDependencies dependencies;
-//
-//    public String getNamespace() {
-//        return identity.namespace;
-//    }
-//
-//    public String getName() {
-//        return identity.name;
-//    }
-//
-//    public String getDescription() {
-//        return identity.description;
-//    }
-//
-//    public Version getVersion() {
-//        //TODO replace with direct conversion to version from toml file
-//        return Version.parse(identity.version);
-//    }
-//
-//    public List<String> getCreators() {
-//        return authors.creators;
-//    }
-//
-//    public List<String> getContributors() {
-//        return authors.contributors;
-//    }
-//
-//    public List<VersionPair> getAllDependencies() {
-//        List<VersionPair> deps = new ArrayList<>();
-//        deps.addAll(getRequiredDependencies());
-//        deps.addAll(getOptionalDependencies());
-//        return deps;
-//    }
-//
-//    public List<VersionPair> getRequiredDependencies() {
-//        return dependencies.required;
-//    }
-//
-//    public List<VersionPair> getOptionalDependencies() {
-//        return dependencies.optional;
-//    }
-//
-//    public static class ModIdentity {
-//        String namespace;
-//        String name;
-//        String description;
-//        String version; //TODO add @SpecValidator here to confirm in semver format
-//    }
-//
-//    public static class ModAuthors {
-//        List<String> creators;
-//        List<String> contributors;
-//    }
-//
-//    //This is a temporary workaround for a night-config feature. When not requiring a class to parse to replace this
-//    public static class VersionPair {
-//        //A Pair defined as <Namespace, Version>
-//        @Conversion(VersionToStringConverter.class)
-//        String namespace;
-//        Version version;
-//
-//        public VersionPair(String namespace, Version version) {
-//            this.namespace = namespace;
-//            this.version = version;
-//        }
-//
-//        public String getNamespace() {
-//            return namespace;
-//        }
-//
-//        public Version getVersion() {
-//            return version;
-//        }
-//    }
-//
-//    public static class ModDependencies {
-//        List<VersionPair> required;
-//        List<VersionPair> optional;
-//    }
-//
-//    static class VersionToStringConverter implements Converter<String, VersionPair> {
+//    static class VersionToStringConverter implements Converter<String, Pair<String, Version>> {
 //
 //        @Override
-//        public String convertToField(VersionPair stringVersionPair) {
-//            return stringVersionPair.getNamespace() + ":" + stringVersionPair.getVersion();
+//        public String convertToField(Pair<String, Version> stringVersionPair) {
+//            return stringVersionPair.getValue0() + ":" + stringVersionPair.getValue1();
 //        }
 //
 //        @Override
-//        public VersionPair convertFromField(String s) {
+//        public Pair<String, Version> convertFromField(String s) {
 //            String[] split = s.split(":");
-//            return new VersionPair(split[0], Version.parse(split[1]));
+//            return new Pair<>(split[0], Version.parse(split[1]));
 //        }
 //    }
-//}
+}

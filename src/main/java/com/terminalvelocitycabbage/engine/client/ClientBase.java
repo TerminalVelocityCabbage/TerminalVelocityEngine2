@@ -3,8 +3,8 @@ package com.terminalvelocitycabbage.engine.client;
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
-import com.terminalvelocitycabbage.engine.client.renderer.RendererBase;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
@@ -17,7 +17,6 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,29 +28,32 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private static ClientBase instance;
 
     //Game loop stuff
-    private WindowManager windowManager;
-    private Registry<Pair<Class<? extends RendererBase>, RenderGraph>> rendererRegistry;
-    private TickManager tickManager;
-    private TickManager inputTickManager;
-    private Manager manager;
-    private Scheduler scheduler;
+    private final WindowManager windowManager;
+    private final Registry<RenderGraph> renderGraphRegistry;
+    private final TickManager tickManager;
+    private final TickManager inputTickManager;
+    private final Manager manager;
+    private final Scheduler scheduler;
     private long deltaTime; //Tick delta time not render time
-    private MutableInstant tickClock;
+    private final MutableInstant tickClock;
 
     //Networking stuff
-    private Client client;
-    private PacketRegistry packetRegistry;
+    private final Client client;
+    private final PacketRegistry packetRegistry;
 
     //Scope Stuff
-    private EventDispatcher eventDispatcher;
-    private Registry<Mod> modRegistry;
+    private final EventDispatcher eventDispatcher;
+    private final Registry<Mod> modRegistry;
 
     //Resources Stuff
-    private GameFileSystem fileSystem;
+    private final GameFileSystem fileSystem;
 
     //Input stuff
-    private InputHandler inputHandler;
-    private InputCallbackListener inputCallbackListener;
+    private final InputHandler inputHandler;
+    private final InputCallbackListener inputCallbackListener;
+
+    //Scene Stuff
+    private final Registry<Scene> sceneRegistry;
 
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
@@ -62,13 +64,14 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         scheduler = new Scheduler();
         tickClock = MutableInstant.ofNow();
         eventDispatcher = new EventDispatcher();
-        modRegistry = new Registry<>(null);
+        modRegistry = new Registry<>();
         fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
-        rendererRegistry = new Registry<>();
+        renderGraphRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
+        sceneRegistry = new Registry<>();
         client = new Client();
     }
 
@@ -97,6 +100,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     @Override
     public void init() {
         preInit();
+        getFileSystem().init();
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
@@ -209,8 +213,8 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         return scheduler;
     }
 
-    public Registry<Pair<Class<? extends RendererBase>, RenderGraph>> getRendererRegistry() {
-        return rendererRegistry;
+    public Registry<RenderGraph> getRenderGraphRegistry() {
+        return renderGraphRegistry;
     }
 
     @Override
@@ -228,5 +232,9 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     public InputHandler getInputHandler() {
         return inputHandler;
+    }
+
+    public Registry<Scene> getSceneRegistry() {
+        return sceneRegistry;
     }
 }
