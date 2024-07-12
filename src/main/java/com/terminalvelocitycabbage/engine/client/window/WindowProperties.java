@@ -26,10 +26,10 @@ public class WindowProperties {
 
     public WindowProperties(WindowProperties properties) {
         this(
-                properties.getWidth(),
-                properties.getHeight(),
-                properties.getTitle(),
-                properties.getInitialScene());
+                properties.width,
+                properties.height,
+                properties.title,
+                properties.initialScene);
     }
 
     public WindowProperties(int width, int height, String title, Identifier initialSceneIdentifier) {
@@ -98,46 +98,65 @@ public class WindowProperties {
         this.mousedOver = mousedOver;
     }
 
+    /**
+     * @param width the size of this window
+     * @param height the height of this window
+     */
     public void resize(int width, int height) {
         this.resized = true;
         this.width = width;
         this.height = height;
     }
 
+    /**
+     * called at the end of a frame
+     */
     public void endFrame() {
         this.resized = false;
     }
 
+    /**
+     * @return whether this window has been resized since the last update
+     */
     public boolean isResized() {
         return resized;
     }
 
-    public void init(Identifier initialScene) {
-        activeScene = ClientBase.getInstance().getSceneRegistry().get(initialScene);
-        activeScene.setTextureCache(new TextureCache());
-        activeScene.init();
+    /**
+     * called at the start of the lifecycle of a window
+     */
+    public void init() {
+        setScene(initialScene);
     }
 
+    /**
+     * Updates the currently active scene being drawn by this window
+     * @param sceneIdentifier the scene identifier that this window should start rendering from
+     */
     public void setScene(Identifier sceneIdentifier) {
         var client = ClientBase.getInstance();
         TextureCache textureCache;
+        //Cleanup the currently active scene so it can be closed
         if (activeScene != null) {
             textureCache = activeScene.getTextureCache();
             activeScene.cleanup();
+            //All entities that should not persist into the next scene should be removed from the global manager
             client.getManager().freeNonPersistentEntities();
         } else {
             textureCache = new TextureCache();
         }
+        //Set the currently active scene to the one specified
         activeScene = client.getSceneRegistry().get(sceneIdentifier);
+        //Re-use the previous scene's texture cache
         activeScene.setTextureCache(textureCache);
+        //Initialize the new scene
         activeScene.init();
     }
 
+    /**
+     * @return The active scene
+     */
     public Scene getActiveScene() {
         return activeScene;
-    }
-
-    public Identifier getInitialScene() {
-        return initialScene;
     }
 }

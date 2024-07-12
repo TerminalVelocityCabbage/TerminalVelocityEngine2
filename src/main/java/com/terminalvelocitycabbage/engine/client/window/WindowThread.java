@@ -44,7 +44,7 @@ public class WindowThread extends Thread {
         glfwSwapInterval(1);
 
         //Initialize the RenderGraph & scene
-        properties.setScene(properties.getInitialScene());
+        properties.init();
         ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).init();
 
         //swap the image in this window with the new one
