@@ -1,7 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgram;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
@@ -21,16 +20,11 @@ import java.util.Map;
 public class RenderGraph {
 
     private boolean initialized;
-    private final ShaderProgramConfig shaderProgramConfig;
-    private ShaderProgram compiledShaderProgram;
     private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
-    private boolean recompileShaders;
 
-    private RenderGraph(ShaderProgramConfig shaderProgram, Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes) {
+    private RenderGraph(Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes) {
         this.initialized = false;
-        this.shaderProgramConfig = shaderProgram;
         this.graphNodes = graphNodes;
-        this.recompileShaders = false;
     }
 
     public void init() {
@@ -46,6 +40,14 @@ public class RenderGraph {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * @param identifier The identifier of the node you want to retrieve from this graph
+     * @return The graph node
+     */
+    public GraphNode getNode(Identifier identifier) {
+        return graphNodes.get(identifier).getValue1();
     }
 
     /**
@@ -72,18 +74,6 @@ public class RenderGraph {
 
         if (!initialized) Log.error("Tried to render before render graph was initialized");
 
-        //Wipe the current shader program for re-compilation
-        if (recompileShaders) {
-            compiledShaderProgram.cleanup();
-            compiledShaderProgram = null;
-        }
-
-        //Compile this shader program now that this renderer is ready to do (if needed)
-        if (compiledShaderProgram == null && shaderProgramConfig != null) {
-            compiledShaderProgram = ShaderProgram.of(shaderProgramConfig);
-            recompileShaders = false;
-        }
-
         graphNodes.forEach((identifier, graphNode) -> {
             if (graphNode.getValue1() == null) return;
             var enabled = graphNode.getValue0().getStatus();
@@ -103,20 +93,10 @@ public class RenderGraph {
 
     public static class Builder {
 
-        ShaderProgramConfig shaderProgram;
         private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
 
         private Builder() {
             graphNodes = new HashMap<>();
-        }
-
-        /**
-         * @param shaderProgram The shader program that this render graph will use to render objects
-         * @return this Builder (for each chaining of methods)
-         */
-        public Builder shaderProgram(ShaderProgramConfig shaderProgram) {
-            this.shaderProgram = shaderProgram;
-            return this;
         }
 
         public Builder addRoutineNode(Identifier identifier, Routine routine) {
@@ -134,8 +114,8 @@ public class RenderGraph {
          * @param graphNode the node to be added to this graph
          * @return this Builder (for easy changing of methods)
          */
-        public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> graphNode) {
-            return addRenderNode(identifier, graphNode, true);
+        public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> graphNode, ShaderProgramConfig config) {
+            return addRenderNode(identifier, graphNode, config, true);
         }
 
         /**
@@ -146,9 +126,9 @@ public class RenderGraph {
          * @param automaticallyEnable a boolean to represent if this node should be enabled or paused on initialization
          * @return this Builder (for easy changing of methods)
          */
-        public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> renderNode, boolean automaticallyEnable) {
+        public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> renderNode, ShaderProgramConfig config, boolean automaticallyEnable) {
             try {
-                graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), ClassUtils.createInstance(renderNode)));
+                graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), ClassUtils.createInstance(renderNode, config)));
             } catch (ReflectionException e) {
                 Log.crash("Could not add node " + identifier + " to graph node " + renderNode, new RuntimeException(e));
             }
@@ -159,21 +139,12 @@ public class RenderGraph {
          * @return A new {@link RenderGraph} instance generated from this builder.
          */
         public RenderGraph build() {
-            return new RenderGraph(shaderProgram, graphNodes);
+            return new RenderGraph(graphNodes);
         }
 
     }
 
     public boolean isInitialized() {
         return initialized;
-    }
-
-    //TODO make this a part of a render node instead of the whole graph
-    public ShaderProgram getShaderProgram() {
-        return compiledShaderProgram;
-    }
-
-    public void recompileShaders() {
-        recompileShaders = true;
     }
 }
