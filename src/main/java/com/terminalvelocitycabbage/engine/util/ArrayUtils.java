@@ -4,6 +4,12 @@ import java.util.List;
 
 public class ArrayUtils {
 
+    /**
+     * Combines a list of float arrays into a single float array
+     *
+     * @param arrays a list of arrays to combine
+     * @return A combined array
+     */
     public static float[] combineFloatArrays(List<float[]> arrays) {
 
         int totalElements = 0;

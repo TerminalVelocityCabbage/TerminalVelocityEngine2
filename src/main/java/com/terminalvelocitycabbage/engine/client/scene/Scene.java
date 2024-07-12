@@ -35,18 +35,30 @@ public abstract class Scene {
      */
     public abstract void cleanup();
 
+    /**
+     * @return The Identifier that points to this scenes render graph in the render graph registry
+     */
     public Identifier getRenderGraph() {
         return renderGraph;
     }
 
+    /**
+     * @return The list of routines that run each update cycle on this scene
+     */
     public List<Routine> getRoutines() {
         return routines;
     }
 
+    /**
+     * @param textureCache The texture cache that this scene should be rendered with
+     */
     public void setTextureCache(TextureCache textureCache) {
         this.textureCache = textureCache;
     }
 
+    /**
+     * @return This scene's Texture Cache
+     */
     public TextureCache getTextureCache() {
         return textureCache;
     }
