@@ -45,9 +45,8 @@ public class Mesh {
             int vboId;
 
             // Attribute VBOs
-            for (int i = 0; i < format.getNumElements(); i++) {
-                VertexAttribute attribute = format.getElement(i);
-
+            int attributeIndex = 0;
+            for (VertexAttribute attribute : format.getAttributes()) {
                 vboId = glGenBuffers();
                 vboIdList.add(vboId);
                 var attributeData = getDataOfType(attribute);
@@ -55,8 +54,9 @@ public class Mesh {
                 attributeBuffer.put(0, attributeData);
                 glBindBuffer(GL_ARRAY_BUFFER, vboId);
                 glBufferData(GL_ARRAY_BUFFER, attributeBuffer, GL_STATIC_DRAW);
-                glEnableVertexAttribArray(i);
-                glVertexAttribPointer(i, attribute.getNumComponents(), GL_FLOAT, attribute.isNormalized(), 0, 0);
+                glEnableVertexAttribArray(attributeIndex);
+                glVertexAttribPointer(attributeIndex, attribute.getNumComponents(), GL_FLOAT, attribute.isNormalized(), 0, 0);
+                attributeIndex++;
             }
 
             //Index VBO
