@@ -18,11 +18,21 @@ public class Shader {
     final Type shaderType;
     final Identifier shaderSourceIdentifier;
 
+    /**
+     * @param shaderType The type of shader that this is
+     * @param shaderSourceIdentifier The identifer that is used to find this shader
+     */
     public Shader(Type shaderType, Identifier shaderSourceIdentifier) {
         this.shaderType = shaderType;
         this.shaderSourceIdentifier = shaderSourceIdentifier;
     }
 
+    /**
+     * Replaces all #include "blah:blah" with the source of the resource defined by that identifier
+     *
+     * @param source the source for this shader to be parsing
+     * @return a modified version of the source with inclusions included from this filesystem
+     */
     private String parseInclusions(String source) {
         //Get the identifier of the shader that the parent shader is trying to import from its include definition
         String importName = StringUtils.getStringBetween(source, "#include \"", "\";");
@@ -35,6 +45,9 @@ public class Shader {
         return source.replace("#include \"" + importName + "\";", resource.asString());
     }
 
+    /**
+     * @return Create this shader based on it's configured attributes
+     */
     public int create() {
 
         //Create this shader
@@ -58,6 +71,9 @@ public class Shader {
         return shaderID;
     }
 
+    /**
+     * The types of shader that TVE supports
+     */
     public enum Type {
         VERTEX(GL_VERTEX_SHADER),
         FRAGMENT(GL_FRAGMENT_SHADER),
@@ -71,6 +87,9 @@ public class Shader {
             this.glCode = glCode;
         }
 
+        /**
+         * @return The opengl number associated with this type
+         */
         public int getGLType() {
             return this.glCode;
         }
