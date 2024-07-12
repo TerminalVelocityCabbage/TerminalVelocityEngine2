@@ -1,5 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.renderer.elements;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,11 +48,12 @@ public class VertexFormat {
     }
 
     /**
-     * @param element The {@link VertexAttribute} which you need the offset for
+     * @param attribute The {@link VertexAttribute} which you need the offset for
      * @return an int representing the offset of this attribute's data
      */
-    public int getOffset(VertexAttribute element) {
-        return vertexAttributeOffsetMap.get(element);
+    public int getOffset(VertexAttribute attribute) {
+        if (!hasComponent(attribute)) Log.crash("The vertex format of this vertex does not include " + attribute.getName());
+        return vertexAttributeOffsetMap.get(attribute);
     }
 
     /**
