@@ -11,7 +11,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.Toggle;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
+import com.terminalvelocitycabbage.engine.util.tuples.Pair;
 
 import javax.management.ReflectionException;
 import java.io.File;
