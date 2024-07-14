@@ -38,7 +38,7 @@ public class TransformationComponent implements Component {
     }
 
     public TransformationComponent rotate(float x, float y, float z) {
-        this.rotation.rotateYXZ((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
+        this.rotation.rotateXYZ((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
         dirty = true;
         return this;
     }
