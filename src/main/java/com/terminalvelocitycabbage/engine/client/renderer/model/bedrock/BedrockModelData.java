@@ -143,12 +143,12 @@ public class BedrockModelData {
          *     *        1_______2_______3           ---
          *              |       |BR   BL|
          *              |   T   |   B   |           s2
-         *              |       |TR   TL|
-         *      4_______5_______6_______7_______8   ---
+         *              |       |TR   TL|7
+         *      4_______5_______6_______8_______9   ---
          *      |       |       |       |       |
          *      |   E   |   N   |   W   |   S   |   s1
          *      |       |       |       |       |
-         *      9------10------11------12------13   ---
+         *      10-----11------12------13------14   ---
          *      For UVs all except Bottom use top/bottom/left/right based on above
          *      only 13 UV positions matter, numbered above
          *
@@ -165,6 +165,7 @@ public class BedrockModelData {
         public Mesh toMesh(int textureWidth, int textureHeight) {
 
             //Vertex positions
+            //TODO start all at the origin, rotate them, then move them to their size to apply rotations to vertex positions
             Vector3f netPos = new Vector3f(origin[0] + size[0],  origin[1] + size[1],   origin[2] + 0f);
             Vector3f nebPos = new Vector3f(origin[0] + size[0],  origin[1] + 0f,        origin[2] + 0f);
             Vector3f nwtPos = new Vector3f(origin[0] + 0f,       origin[1] + size[1],   origin[2] + 0f);
@@ -183,45 +184,46 @@ public class BedrockModelData {
             Vector3f downNormal = new Vector3f(0, -1, 0);
 
             //UVs
-            Vector2f uv1 = new Vector2f(uv[0] + size[2],                                uv[0]).div(textureWidth, textureHeight);
-            Vector2f uv2 = new Vector2f(uv[0] + size[2] + size[0],                      uv[0]).div(textureWidth, textureHeight);
-            Vector2f uv3 = new Vector2f(uv[0] + size[2] + size[0] + size[2],            uv[0]).div(textureWidth, textureHeight);
-            Vector2f uv4 = new Vector2f(uv[0] + 0f,                                     uv[0] + size[2]).div(textureWidth, textureHeight);
-            Vector2f uv5 = new Vector2f(uv[0] + size[2],                                uv[0] + size[2]).div(textureWidth, textureHeight);
-            Vector2f uv6 = new Vector2f(uv[0] + size[2] + size[0],                      uv[0] + size[2]).div(textureWidth, textureHeight);
-            Vector2f uv7 = new Vector2f(uv[0] + size[2] + size[0] + size[2],            uv[0] + size[2]).div(textureWidth, textureHeight);
-            Vector2f uv8 = new Vector2f(uv[0] + size[2] + size[0] + size[2] + size[0],  uv[0] + size[2]).div(textureWidth, textureHeight);
-            Vector2f uv9 = new Vector2f(uv[0] + 0f,                                     uv[0] + size[2] + size[1]).div(textureWidth, textureHeight);
-            Vector2f uv10 = new Vector2f(uv[0] + size[2],                               uv[0] + size[2] + size[1]).div(textureWidth, textureHeight);
-            Vector2f uv11 = new Vector2f(uv[0] + size[2] + size[0],                     uv[0] + size[2] + size[1]).div(textureWidth, textureHeight);
-            Vector2f uv12 = new Vector2f(uv[0] + size[2] + size[0] + size[2],           uv[0] + size[2] + size[1]).div(textureWidth, textureHeight);
-            Vector2f uv13 = new Vector2f(uv[0] + size[2] + size[0] + size[2] + size[0], uv[0] + size[2] + size[1]).div(textureWidth, textureHeight);
+            Vector2f uv1 = new Vector2f(uv[0] + size[2],                                uv[1]).div(textureWidth, textureHeight);
+            Vector2f uv2 = new Vector2f(uv[0] + size[2] + size[0],                      uv[1]).div(textureWidth, textureHeight);
+            Vector2f uv3 = new Vector2f(uv[0] + size[2] + size[0] + size[0],            uv[1] + size[2]).div(textureWidth, textureHeight);
+            Vector2f uv4 = new Vector2f(uv[0],                                             uv[1] + size[2]).div(textureWidth, textureHeight);
+            Vector2f uv5 = new Vector2f(uv[0] + size[2],                                uv[1] + size[2]).div(textureWidth, textureHeight);
+            Vector2f uv6 = new Vector2f(uv[0] + size[2] + size[0],                      uv[1] + size[2]).div(textureWidth, textureHeight);
+            Vector2f uv7 = new Vector2f(uv[0] + size[2] + size[0] + size[0],            uv[1] + size[2]).div(textureWidth, textureHeight);
+            Vector2f uv8 = new Vector2f(uv[0] + size[2] + size[0] + size[2],            uv[1] + size[2]).div(textureWidth, textureHeight);
+            Vector2f uv9 = new Vector2f(uv[0] + size[2] + size[0] + size[2] + size[0],  uv[1] + size[2]).div(textureWidth, textureHeight);
+            Vector2f uv10 = new Vector2f(uv[0],                                            uv[1] + size[2] + size[1]).div(textureWidth, textureHeight);
+            Vector2f uv11 = new Vector2f(uv[0] + size[2],                               uv[1] + size[2] + size[1]).div(textureWidth, textureHeight);
+            Vector2f uv12 = new Vector2f(uv[0] + size[2] + size[0],                     uv[1] + size[2] + size[1]).div(textureWidth, textureHeight);
+            Vector2f uv13 = new Vector2f(uv[0] + size[2] + size[0] + size[2],           uv[1] + size[2] + size[1]).div(textureWidth, textureHeight);
+            Vector2f uv14 = new Vector2f(uv[0] + size[2] + size[0] + size[2] + size[0], uv[1] + size[2] + size[1]).div(textureWidth, textureHeight);
 
             //North Face
             Vertex northTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(northNormal).setUV(uv6);
             Vertex northTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(northNormal).setUV(uv5);
-            Vertex northBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(northNormal).setUV(uv11);
-            Vertex northBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(northNormal).setUV(uv10);
+            Vertex northBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(northNormal).setUV(uv12);
+            Vertex northBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(northNormal).setUV(uv11);
             Vertex eastTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(eastNormal).setUV(uv5);
             Vertex eastTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(eastNormal).setUV(uv4);
-            Vertex eastBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(eastNormal).setUV(uv10);
-            Vertex eastBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(eastNormal).setUV(uv9);
-            Vertex southTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(southNormal).setUV(uv8);
-            Vertex southTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(southNormal).setUV(uv7);
-            Vertex southBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(southNormal).setUV(uv13);
-            Vertex southBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(southNormal).setUV(uv12);
-            Vertex westTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(westNormal).setUV(uv7);
+            Vertex eastBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(eastNormal).setUV(uv11);
+            Vertex eastBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(eastNormal).setUV(uv10);
+            Vertex southTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(southNormal).setUV(uv9);
+            Vertex southTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(southNormal).setUV(uv8);
+            Vertex southBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(southNormal).setUV(uv14);
+            Vertex southBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(southNormal).setUV(uv13);
+            Vertex westTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(westNormal).setUV(uv8);
             Vertex westTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(westNormal).setUV(uv6);
-            Vertex westBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(westNormal).setUV(uv12);
-            Vertex westBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(westNormal).setUV(uv11);
+            Vertex westBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(westNormal).setUV(uv13);
+            Vertex westBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(westNormal).setUV(uv12);
             Vertex topTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(upNormal).setUV(uv2);
             Vertex topTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(upNormal).setUV(uv1);
             Vertex topBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(upNormal).setUV(uv6);
             Vertex topBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(upNormal).setUV(uv5);
-            Vertex bottomTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(downNormal).setUV(uv6);
-            Vertex bottomTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(downNormal).setUV(uv7);
-            Vertex bottomBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(downNormal).setUV(uv2);
-            Vertex bottomBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(downNormal).setUV(uv3);
+            Vertex bottomTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(downNormal).setUV(uv7);
+            Vertex bottomTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(downNormal).setUV(uv6);
+            Vertex bottomBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(downNormal).setUV(uv3);
+            Vertex bottomBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(downNormal).setUV(uv2);
 
             // 0 1 2 3
             // 4 5 6 7
