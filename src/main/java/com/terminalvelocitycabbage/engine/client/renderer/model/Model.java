@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import com.terminalvelocitycabbage.engine.debug.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,10 @@ public class Model {
 
         public Mesh getMesh() {
             return mesh;
+        }
+
+        public String getName() {
+            return name;
         }
     }
 

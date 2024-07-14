@@ -13,7 +13,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.model.Vertex;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.util.ConfigUtils;
-import com.terminalvelocitycabbage.engine.util.tuples.Triplet;
+import com.terminalvelocitycabbage.engine.util.tuples.Quartet;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -38,10 +38,10 @@ public class BedrockModelData {
         this.bones = bones;
     }
 
-    private static class StagedModelPart extends Triplet<String, String, Mesh> {
+    private static class StagedModelPart extends Quartet<String, String, Mesh, List<String>> {
 
-        public StagedModelPart(String value0, String value1, Mesh value2) {
-            super(value0, value1, value2);
+        public StagedModelPart(String name, String parentName, Mesh mesh) {
+            super(name, parentName, mesh, new ArrayList<>());
         }
 
         public String getName() {
@@ -55,31 +55,16 @@ public class BedrockModelData {
         public Mesh getMesh() {
             return getValue2();
         }
-    }
 
-    private static class PartInfo extends Triplet<String, Mesh, List<String>> {
-
-        public PartInfo(String value0, Mesh value1, List<String> value2) {
-            super(value0, value1, value2);
-        }
-
-        public String getParentName() {
-            return getValue0();
-        }
-
-        public Mesh getMesh() {
-            return getValue1();
-        }
-
-        public List<String> getChildNames() {
-            return getValue2();
+        public List<String> getChildren() {
+            return getValue3();
         }
     }
 
     public Model toModel() {
 
         //The information needed to create a model part extracted from all bones
-        List<StagedModelPart> partsStaging = new ArrayList<>();
+        Map<String, StagedModelPart> partsStaging = new HashMap<>();
 
         //Loop through all bones to get staging data for a model part
         for (BedrockBone bone : bones) {
@@ -88,32 +73,25 @@ public class BedrockModelData {
                 //Convert cubes to meshes
                 meshes.add(cube.toMesh(geometryDescription.textureWidth, geometryDescription.textureHeight));
             }
-            partsStaging.add(new StagedModelPart(bone.name, bone.parent, Mesh.of(meshes)));
+            partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, Mesh.of(meshes)));
         }
 
-        //Create a map of bones that can store children
-        //Name: Parent, Mesh, Children
-        Map<String, PartInfo> boneMap = new HashMap<>();
-        for (StagedModelPart triplet : partsStaging) {
-            boneMap.put(triplet.getValue0(), new PartInfo(triplet.getParentName(), triplet.getMesh(), new ArrayList<>()));
-        }
-
-        //Map these parts to the bones map
+        //Assign children to all staged model parts
         List<StagedModelPart> roots = new ArrayList<>();
-        for (StagedModelPart part : partsStaging) {
-            if (part.getParentName().equals("none")) {
-                roots.add(part);
+        for (StagedModelPart part : partsStaging.values()) {
+            if (!part.getParentName().equals("none")) {
+                partsStaging.get(part.getParentName()).getChildren().add(part.getName());
             } else {
-                if (!boneMap.containsKey(part.getParentName())) Log.crash("Parent bone not found on tree, verify model integrity or report this to TVE developers: " + part.getParentName());
+                roots.add(part);
             }
-            //Add this part's name to the list of the parent's children
-            boneMap.get(part.getName()).getChildNames().add(part.getName());
         }
 
         //Construct this model from these bones into model parts
         List<Model.Part> parts = new ArrayList<>();
         for (StagedModelPart part : roots) {
-            parts.add(createPart(boneMap, part.getName(), part.getParentName(), part.getMesh()));
+            var newPart = new Model.Part(part.getName(), null, part.getMesh());
+            parts.add(newPart);
+            addChildren(partsStaging, newPart);
         }
 
         Log.info("Loaded model " + geometryDescription.identifier);
@@ -121,12 +99,14 @@ public class BedrockModelData {
         return new Model(BEDROCK_VERTEX_FORMAT, parts);
     }
 
-    private Model.Part createPart(Map<String, PartInfo> boneMap, String partName, String parentName, Mesh mesh) {
-        PartInfo parentInfo = boneMap.get(parentName);
+    private void addChildren(Map<String, StagedModelPart> boneMap, Model.Part part) {
+        var childrenNames = boneMap.get(part.getName()).getChildren();
         if (parentInfo == null) {
-            return new Model.Part(partName, null, mesh);
+        for (String childName : childrenNames) {
+            var childPart = new Model.Part(childName, part, boneMap.get(childName).getMesh());
+            part.addChild(childPart);
+            addChildren(boneMap, childPart);
         }
-        return new Model.Part(partName, createPart(boneMap, partName, parentInfo.getParentName(), parentInfo.getMesh()), mesh);
     }
 
     public void print() {
