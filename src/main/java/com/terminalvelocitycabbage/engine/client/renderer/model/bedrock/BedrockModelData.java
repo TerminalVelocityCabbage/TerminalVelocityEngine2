@@ -14,6 +14,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.util.ConfigUtils;
 import com.terminalvelocitycabbage.engine.util.tuples.Quartet;
+import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -38,92 +39,20 @@ public class BedrockModelData {
         this.bones = bones;
     }
 
-    private static class StagedModelPart extends Quartet<String, String, Mesh, List<String>> {
-
-        public StagedModelPart(String name, String parentName, Mesh mesh) {
-            super(name, parentName, mesh, new ArrayList<>());
-        }
-
-        public String getName() {
-            return getValue0();
-        }
-
-        public String getParentName() {
-            return getValue1();
-        }
-
-        public Mesh getMesh() {
-            return getValue2();
-        }
-
-        public List<String> getChildren() {
-            return getValue3();
-        }
-    }
-
-    public Model toModel() {
-
-        //The information needed to create a model part extracted from all bones
-        Map<String, StagedModelPart> partsStaging = new HashMap<>();
-
-        //Loop through all bones to get staging data for a model part
-        for (BedrockBone bone : bones) {
-            List<Mesh> meshes = new ArrayList<>();
-            for (BedrockCube cube : bone.cubes) {
-                //Convert cubes to meshes
-                meshes.add(cube.toMesh(geometryDescription.textureWidth, geometryDescription.textureHeight));
-            }
-            partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, Mesh.of(meshes)));
-        }
-
-        //Assign children to all staged model parts
-        List<StagedModelPart> roots = new ArrayList<>();
-        for (StagedModelPart part : partsStaging.values()) {
-            if (!part.getParentName().equals("none")) {
-                partsStaging.get(part.getParentName()).getChildren().add(part.getName());
-            } else {
-                roots.add(part);
-            }
-        }
-
-        //Construct this model from these bones into model parts
-        List<Model.Part> parts = new ArrayList<>();
-        for (StagedModelPart part : roots) {
-            var newPart = new Model.Part(part.getName(), null, part.getMesh());
-            parts.add(newPart);
-            addChildren(partsStaging, newPart);
-        }
-
-        return new Model(BEDROCK_VERTEX_FORMAT, parts);
-    }
-
-    private void addChildren(Map<String, StagedModelPart> boneMap, Model.Part part) {
-        var childrenNames = boneMap.get(part.getName()).getChildren();
-        for (String childName : childrenNames) {
-            var childPart = new Model.Part(childName, part, boneMap.get(childName).getMesh());
-            part.addChild(childPart);
-            addChildren(boneMap, childPart);
-        }
-    }
-
-    public void print() {
-        Log.info(formatVersion.toString());
-        Log.info(geometryDescription.toString());
-        for (BedrockBone bone : bones) {
-            Log.info(bone.toString());
-        }
-    }
-
     private static class BedrockCube {
 
         float[] origin;
         int[] size;
         int[] uv;
+        float[] pivot;
+        float[] rotation;
 
-        public BedrockCube(float[] origin, int[] size, int[] uv) {
+        public BedrockCube(float[] origin, int[] size, int[] uv, float[] pivot, float[] rotation) {
             this.origin = origin;
             this.size = size;
             this.uv = uv;
+            this.pivot = pivot;
+            this.rotation = rotation;
         }
 
         /**
@@ -174,6 +103,39 @@ public class BedrockModelData {
             Vector3f sebPos = new Vector3f(origin[0] + size[0],  origin[1] + 0f,        origin[2] + size[2]);
             Vector3f swtPos = new Vector3f(origin[0] + 0f,       origin[1] + size[1],   origin[2] + size[2]);
             Vector3f swbPos = new Vector3f(origin[0] + 0f,       origin[1] + 0f,        origin[2] + size[2]);
+
+            if (rotation.length > 0 && pivot.length > 0) {
+
+                Quaternionf q = new Quaternionf();
+                q.rotateXYZ((float) Math.toRadians(rotation[0]), (float) Math.toRadians(rotation[1]), (float) Math.toRadians(rotation[2]));
+
+                netPos.sub(pivot[0], pivot[1], pivot[2]);
+                nebPos.sub(pivot[0], pivot[1], pivot[2]);
+                nwtPos.sub(pivot[0], pivot[1], pivot[2]);
+                nwbPos.sub(pivot[0], pivot[1], pivot[2]);
+                setPos.sub(pivot[0], pivot[1], pivot[2]);
+                sebPos.sub(pivot[0], pivot[1], pivot[2]);
+                swtPos.sub(pivot[0], pivot[1], pivot[2]);
+                swbPos.sub(pivot[0], pivot[1], pivot[2]);
+
+                netPos.rotate(q);
+                nebPos.rotate(q);
+                nwtPos.rotate(q);
+                nwbPos.rotate(q);
+                setPos.rotate(q);
+                sebPos.rotate(q);
+                swtPos.rotate(q);
+                swbPos.rotate(q);
+
+                netPos.add(pivot[0], pivot[1], pivot[2]);
+                nebPos.add(pivot[0], pivot[1], pivot[2]);
+                nwtPos.add(pivot[0], pivot[1], pivot[2]);
+                nwbPos.add(pivot[0], pivot[1], pivot[2]);
+                setPos.add(pivot[0], pivot[1], pivot[2]);
+                sebPos.add(pivot[0], pivot[1], pivot[2]);
+                swtPos.add(pivot[0], pivot[1], pivot[2]);
+                swbPos.add(pivot[0], pivot[1], pivot[2]);
+            }
 
             //Face normals
             Vector3f northNormal = new Vector3f(0, 0, -1);
@@ -384,8 +346,10 @@ public class BedrockModelData {
             float[] origin = ConfigUtils.numberListToFloatArray(cube.get("origin"));
             int[] size = ConfigUtils.numberListToIntArray(cube.get("size"));
             int[] uv = ConfigUtils.numberListToIntArray(cube.get("uv"));
+            float[] pivot = ConfigUtils.numberListToFloatArray(cube.get("pivot"));
+            float[] rotation = ConfigUtils.numberListToFloatArray(cube.get("rotation"));
 
-            return new BedrockCube(origin, size, uv);
+            return new BedrockCube(origin, size, uv, pivot, rotation);
         }
 
         private static BedrockGeometryDescription parseGeometryDescription(Config config) {
@@ -400,6 +364,82 @@ public class BedrockModelData {
             return new BedrockGeometryDescription(identifier, textureWidth, textureHeight, visibleBoundsWidth, visibleBoundsHeight, visibleBoundsOffset);
         }
 
+    }
+
+    private static class StagedModelPart extends Quartet<String, String, Mesh, List<String>> {
+
+        public StagedModelPart(String name, String parentName, Mesh mesh) {
+            super(name, parentName, mesh, new ArrayList<>());
+        }
+
+        public String getName() {
+            return getValue0();
+        }
+
+        public String getParentName() {
+            return getValue1();
+        }
+
+        public Mesh getMesh() {
+            return getValue2();
+        }
+
+        public List<String> getChildren() {
+            return getValue3();
+        }
+    }
+
+    public Model toModel() {
+
+        //The information needed to create a model part extracted from all bones
+        Map<String, StagedModelPart> partsStaging = new HashMap<>();
+
+        //Loop through all bones to get staging data for a model part
+        for (BedrockBone bone : bones) {
+            List<Mesh> meshes = new ArrayList<>();
+            for (BedrockCube cube : bone.cubes) {
+                //Convert cubes to meshes
+                meshes.add(cube.toMesh(geometryDescription.textureWidth, geometryDescription.textureHeight));
+            }
+            partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, Mesh.of(meshes)));
+        }
+
+        //Assign children to all staged model parts
+        List<StagedModelPart> roots = new ArrayList<>();
+        for (StagedModelPart part : partsStaging.values()) {
+            if (!part.getParentName().equals("none")) {
+                partsStaging.get(part.getParentName()).getChildren().add(part.getName());
+            } else {
+                roots.add(part);
+            }
+        }
+
+        //Construct this model from these bones into model parts
+        List<Model.Part> parts = new ArrayList<>();
+        for (StagedModelPart part : roots) {
+            var newPart = new Model.Part(part.getName(), null, part.getMesh());
+            parts.add(newPart);
+            addChildren(partsStaging, newPart);
+        }
+
+        return new Model(BEDROCK_VERTEX_FORMAT, parts);
+    }
+
+    private void addChildren(Map<String, StagedModelPart> boneMap, Model.Part part) {
+        var childrenNames = boneMap.get(part.getName()).getChildren();
+        for (String childName : childrenNames) {
+            var childPart = new Model.Part(childName, part, boneMap.get(childName).getMesh());
+            part.addChild(childPart);
+            addChildren(boneMap, childPart);
+        }
+    }
+
+    public void print() {
+        Log.info(formatVersion.toString());
+        Log.info(geometryDescription.toString());
+        for (BedrockBone bone : bones) {
+            Log.info(bone.toString());
+        }
     }
 
 }
