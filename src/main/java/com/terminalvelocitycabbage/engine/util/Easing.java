@@ -34,6 +34,7 @@ public class Easing {
     public enum Function {
 
         LINEAR("linear"),
+        STEP("step"),
         SIN("sin"),
         QUADRATIC("quadratic"),
         CUBIC("cubic"),
@@ -71,6 +72,7 @@ public class Easing {
     public static float easeIn(Function function, float progress) {
         return switch (function) {
             case LINEAR -> easeInLinear(progress);
+            case STEP -> easeInStep(progress);
             case SIN -> easeInSin(progress);
             case QUADRATIC -> easeInQuad(progress);
             case CUBIC -> easeInCubic(progress);
@@ -87,6 +89,7 @@ public class Easing {
     public static float easeOut(Function function, float progress) {
         return switch (function) {
             case LINEAR -> easeOutLinear(progress);
+            case STEP -> easeOutStep(progress);
             case SIN -> easeOutSin(progress);
             case QUADRATIC -> easeOutQuad(progress);
             case CUBIC -> easeOutCubic(progress);
@@ -103,6 +106,7 @@ public class Easing {
     public static float easeInOut(Function function, float progress) {
         return switch (function) {
             case LINEAR -> easeInOutLinear(progress);
+            case STEP -> easeInOutStep(progress);
             case SIN -> easeInOutSin(progress);
             case QUADRATIC -> easeInOutQuad(progress);
             case CUBIC -> easeInOutCubic(progress);
@@ -126,6 +130,18 @@ public class Easing {
 
     public static float easeInOutLinear(float progress) {
         return progress;
+    }
+
+    public static float easeInStep(float progress) {
+        return progress > 0 ? 1f : 0f;
+    }
+
+    public static float easeOutStep(float progress) {
+        return progress > 0 ? 0f : 1f;
+    }
+
+    public static float easeInOutStep(float progress) {
+        return progress > 0.5 ? 1f : 0f;
     }
 
     public static float easeInSin(float progress) {
