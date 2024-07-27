@@ -13,7 +13,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.model.Vertex;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.util.ConfigUtils;
-import com.terminalvelocitycabbage.engine.util.tuples.Quartet;
+import com.terminalvelocitycabbage.engine.util.tuples.Sextet;
 import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -336,7 +336,7 @@ public class BedrockModelData {
             List<Config> cubes = config.get("cubes");
             List<BedrockCube> cubesList = new ArrayList<>();
 
-            cubes.forEach(cube -> cubesList.add(parseCube(cube)));
+            if (cubes != null) cubes.forEach(cube -> cubesList.add(parseCube(cube)));
 
             return cubesList.toArray(new BedrockCube[0]);
         }
@@ -366,10 +366,10 @@ public class BedrockModelData {
 
     }
 
-    private static class StagedModelPart extends Quartet<String, String, Mesh, List<String>> {
+    private static class StagedModelPart extends Sextet<String, String, Mesh, List<String>, float[], float[]> {
 
-        public StagedModelPart(String name, String parentName, Mesh mesh) {
-            super(name, parentName, mesh, new ArrayList<>());
+        public StagedModelPart(String name, String parentName, Mesh mesh, float[] bonePivot, float[] boneRotation) {
+            super(name, parentName, mesh, new ArrayList<>(), bonePivot, boneRotation);
         }
 
         public String getName() {
@@ -387,6 +387,14 @@ public class BedrockModelData {
         public List<String> getChildren() {
             return getValue3();
         }
+
+        public float[] getBonePivot() {
+            return getValue4();
+        }
+
+        public float[] getBoneRotation() {
+            return getValue5();
+        }
     }
 
     public Model toModel() {
@@ -401,7 +409,7 @@ public class BedrockModelData {
                 //Convert cubes to meshes
                 meshes.add(cube.toMesh(geometryDescription.textureWidth, geometryDescription.textureHeight));
             }
-            partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, Mesh.of(meshes)));
+            partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, Mesh.of(meshes), bone.pivot, bone.rotation));
         }
 
         //Assign children to all staged model parts
@@ -417,7 +425,11 @@ public class BedrockModelData {
         //Construct this model from these bones into model parts
         List<Model.Part> parts = new ArrayList<>();
         for (StagedModelPart part : roots) {
-            var newPart = new Model.Part(part.getName(), null, part.getMesh());
+            var partPivot = new Vector3f();
+            var partRotation = new Quaternionf();
+            if (part.getBonePivot().length > 0) partPivot.add(part.getBonePivot()[0], part.getBonePivot()[1], part.getBonePivot()[2]);
+            if (part.getBoneRotation().length > 0) partRotation.rotateXYZ(part.getBoneRotation()[0], part.getBoneRotation()[1], part.getBoneRotation()[2]);
+            var newPart = new Model.Part(part.getName(), null, part.getMesh(), partPivot, partRotation);
             parts.add(newPart);
             addChildren(partsStaging, newPart);
         }
@@ -428,7 +440,12 @@ public class BedrockModelData {
     private void addChildren(Map<String, StagedModelPart> boneMap, Model.Part part) {
         var childrenNames = boneMap.get(part.getName()).getChildren();
         for (String childName : childrenNames) {
-            var childPart = new Model.Part(childName, part, boneMap.get(childName).getMesh());
+            var stagedPart = boneMap.get(childName);
+            var partPivot = new Vector3f();
+            var partRotation = new Quaternionf();
+            if (stagedPart.getBonePivot().length > 0) partPivot.add(stagedPart.getBonePivot()[0], stagedPart.getBonePivot()[1], stagedPart.getBonePivot()[2]);
+            if (stagedPart.getBoneRotation().length > 0) partRotation.rotateXYZ(stagedPart.getBoneRotation()[0], stagedPart.getBoneRotation()[1], stagedPart.getBoneRotation()[2]);
+            var childPart = new Model.Part(childName, part, stagedPart.getMesh(), partPivot, partRotation);
             part.addChild(childPart);
             addChildren(boneMap, childPart);
         }

@@ -27,6 +27,10 @@ public class TransformationComponent implements Component {
         return position;
     }
 
+    public TransformationComponent setPosition(Vector3f position) {
+        return setPosition(position.x, position.y, position.z);
+    }
+
     public TransformationComponent setPosition(float x, float y, float z) {
         this.position.set(x, y, z);
         dirty = true;

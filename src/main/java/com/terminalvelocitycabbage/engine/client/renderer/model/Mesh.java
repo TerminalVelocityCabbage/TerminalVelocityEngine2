@@ -76,6 +76,13 @@ public class Mesh {
      * Initializes this mesh to be rendered. Only needs to be called once
      */
     public void init() {
+
+        //Just in case it makes it to this point (it shouldn't)
+        if (vertices.length == 0) {
+            Log.error("Tried to initialize an empty mesh.");
+            return;
+        }
+
         try (MemoryStack stack = MemoryStack.stackPush()) {
             vboIdList = new ArrayList<>();
 
@@ -123,6 +130,7 @@ public class Mesh {
      * Renders this mesh
      */
     public void render() {
+        if (vertices.length == 0) return;
         if (!isInitialized()) init();
         glBindVertexArray(getVaoId());
         glDrawElements(GL_TRIANGLES, getNumIndices(), GL_UNSIGNED_INT, 0);
