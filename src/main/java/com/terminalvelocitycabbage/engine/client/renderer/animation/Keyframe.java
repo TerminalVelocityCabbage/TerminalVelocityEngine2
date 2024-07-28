@@ -1,50 +1,32 @@
 package com.terminalvelocitycabbage.engine.client.renderer.animation;
 
 import com.terminalvelocitycabbage.engine.util.Easing;
-import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 /**
- * Represents a portion of a transformation between two target transformations.
+ * Represents a portion of a transformation between two target transformations of a single component.
  */
 public class Keyframe {
 
+    Component component;
+    Vector3f startTransformation;
+    Vector3f endTransformation;
     Easing.Function easingFunction;
-    AnimationTransformation startTransformation;
-    AnimationTransformation endTransformation;
     float startTime;
     float endTime;
 
-    Matrix4f transformationMatrix;
-
-    public Keyframe(Easing.Function easingFunction, AnimationTransformation startTransformation, AnimationTransformation endTransformation, float startTime, float endTime) {
-        this.easingFunction = easingFunction;
+    public Keyframe(Component component, Vector3f startTransformation, Vector3f endTransformation, Easing.Function easingFunction, float startTime, float endTime) {
+        this.component = component;
         this.startTransformation = startTransformation;
         this.endTransformation = endTransformation;
+        this.easingFunction = easingFunction;
         this.startTime = startTime;
         this.endTime = endTime;
-        transformationMatrix = new Matrix4f();
     }
 
-    public Matrix4f getTransformationMatrix(float progress) {
-
-        transformationMatrix.identity();
-
-        transformationMatrix.scale(
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.scale().x) - (startTransformation.scale().x)),
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.scale().y) - (startTransformation.scale().y)),
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.scale().z) - (startTransformation.scale().z))
-        );
-        transformationMatrix.rotateXYZ(
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.rotation().x) - (startTransformation.rotation().x)),
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.rotation().y) - (startTransformation.rotation().y)),
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.rotation().z) - (startTransformation.rotation().z))
-        );
-        transformationMatrix.translate(
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.position().x) - (startTransformation.position().x)),
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.position().y) - (startTransformation.position().y)),
-                Easing.easeInOut(easingFunction, progress) * ((endTransformation.position().z) - (startTransformation.position().z))
-        );
-        return transformationMatrix;
+    public enum Component {
+        POSITION,
+        ROTATION,
+        SCALE
     }
-
 }
