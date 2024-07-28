@@ -1,7 +1,5 @@
 package com.terminalvelocitycabbage.engine.client.renderer.animation;
 
-import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
-import com.terminalvelocitycabbage.engine.util.tuples.Pair;
 import org.joml.Matrix4f;
 
 import java.util.HashMap;
@@ -11,79 +9,80 @@ import java.util.Map;
 public class Animation {
 
     long time; //The time that this animation has been playing
+    long currentTime;
     long startDelay;
     long animationLength;
     long loopDelay;
     long loopLength;
 
-    //Map of boneName, <keyframe starts, transformations>
-    private final Map<String, Pair<List<Float>, List<AnimationTransformation>>> transformations;
+    //Bone name, keyframe
+    private final Map<String, List<Keyframe>> keyframes;
 
-    public Animation(Map<String, Pair<List<Float>, List<AnimationTransformation>>> transformations, long time, long startDelay, long animationLength, long loopDelay) {
-        this.transformations = transformations;
+    public Animation(long time, long startDelay, long animationLength, long loopDelay, Map<String, List<Keyframe>> keyframes) {
         this.time = time;
         this.startDelay = startDelay;
         this.animationLength = animationLength;
         this.loopDelay = loopDelay;
         this.loopLength = animationLength + loopDelay;
+        this.keyframes = keyframes;
     }
 
     public void updateTime(long deltaTime) {
+
         time += deltaTime;
+        //Get the current position in the looping keyframe
+        currentTime = time - startDelay;
+        currentTime %= loopLength;
     }
 
     //Percentage through keyframe, the target transformation
-    //TODO also return in this the previous transforms
-    public Pair<Float, AnimationTransformation> getCurrentTransform(String boneName) {
+    public Keyframe getCurrentKeyframe(String boneName) {
 
-        //Get the current position in the looping keyframe
-        long currentTime = time - startDelay;
-        currentTime %= loopLength;
-
-        //Get the current keyframe based on this position
-        int currentFrameIndex = 0;
-
-        Pair<List<Float>, List<AnimationTransformation>> startsTransformsList = transformations.get(boneName);
-        List<Float> transformationStarts = startsTransformsList.getValue0();
-        List<AnimationTransformation> animationTransformations = startsTransformsList.getValue1();
-        for (int i = 0; i < transformationStarts.size(); i++) {
-            if (currentTime >= transformationStarts.get(i)) {
-                currentFrameIndex = i;
-            }
+        Keyframe currentKeyframe = keyframes.get(boneName).getFirst();
+        for (Keyframe keyframe : keyframes.get(boneName)) {
+            if (currentTime > keyframe.startTime) currentKeyframe = keyframe;
         }
 
-        //Get current percentage through this keyframe
-        float startTime = transformationStarts.get(currentFrameIndex);
-        float nextStartTime;
-        if (startsTransformsList.getValue0().size() > currentFrameIndex + 1) {
-            nextStartTime = startsTransformsList.getValue0().get(currentFrameIndex + 1);
-        } else { //If this is the last keyframe
-            nextStartTime = loopLength - startsTransformsList.getValue0().get(currentFrameIndex);
-        }
-        float percentComplete = currentTime / (nextStartTime - startTime);
-        var targetTransformation = animationTransformations.get(currentFrameIndex);
-
-        return new Pair<>(percentComplete, targetTransformation);
+        return currentKeyframe;
     }
 
-    public Map<String, Matrix4f> getCurrentTransformations(Model model) {
+    //Bone name, transformations
+    public Map<String, Matrix4f> getCurrentTransformations() {
 
-        //Get all the current target transformations
-        //TODO change this to a map with a triplet including the previous transforms
-        Map<String, Pair<Float, AnimationTransformation>> relevantTransforms = new HashMap<>();
-        for (String boneName : transformations.keySet()) {
-            relevantTransforms.put(boneName, getCurrentTransform(boneName));
+        Map<String, Matrix4f> currentTransformations = new HashMap<>();
+        Keyframe currentKeyframe;
+        float currentKeyframeProgress;
+        for (String boneName : keyframes.keySet()) {
+            currentKeyframe = getCurrentKeyframe(boneName);
+            currentKeyframeProgress = getCurrentKeyframeProgress(currentKeyframe);
+            currentTransformations.put(boneName, currentKeyframe.getTransformationMatrix(currentKeyframeProgress));
         }
 
-        //Interpolate these targets with the previous keyframes values and the progress between these two
-        Map<String, Matrix4f> transforms = new HashMap<>();
-        Matrix4f transformationMatrix = new Matrix4f();
-        for (Model.Part part : model.getParts()) {
-            //TODO interpolate current transforms by progress compared to previous transforms
-            //TODO get default transforms of model part and add current transforms
-            //TODO create matrix4f from this
-        }
+        return currentTransformations;
+    }
 
-        return transforms;
+    /**
+     * Return the value from 0 to 1 that defines the progress between KS and KE for this animation
+     *
+     * AS = animation start
+     * KS = keyframe start time
+     * CT = currentTime
+     * KE = keyframe end time
+     *     AS          KS   CT KE
+     *     |-----------|----x--|-----------...
+     *
+     * to make the math easier we should just subtract everything by KS
+     * KS = KS - KS (0)
+     * CT = CT - KS
+     * KE = KE - AS
+     *
+     * percentage is just CT / KE so
+     * (CT - KS) / (KE - AS) = percentage
+     *
+     * @param keyframe The keyframe we want the progress of
+     * @return the progress from 0 to 1 of this keyframe
+     */
+    public float getCurrentKeyframeProgress(Keyframe keyframe) {
+        return (currentTime - keyframe.startTime) / (keyframe.endTime - keyframe.startTime);
     }
 }
