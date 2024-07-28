@@ -348,6 +348,7 @@ public class BedrockModelData {
             int[] uv = ConfigUtils.numberListToIntArray(cube.get("uv"));
             float[] pivot = ConfigUtils.numberListToFloatArray(cube.get("pivot"));
             float[] rotation = ConfigUtils.numberListToFloatArray(cube.get("rotation"));
+            //TODO inflate
 
             return new BedrockCube(origin, size, uv, pivot, rotation);
         }

@@ -1,8 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
-import com.terminalvelocitycabbage.engine.debug.Log;
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -35,6 +33,10 @@ public class Model {
         return format;
     }
 
+    public List<Part> getParts() {
+        return parts;
+    }
+
     public static class Part {
 
         String name;
@@ -59,11 +61,6 @@ public class Model {
 
             this.pivotPoint = pivotPoint;
             this.rotation = rotation;
-        }
-
-        public void updateMeshTransforms(Matrix4f transformationMatrix) {
-            if (!dirty) return;
-            //Log.info();
         }
 
         public void render() {
