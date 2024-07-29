@@ -35,10 +35,54 @@ public class Mesh {
         this.indices = indices;
     }
 
+    public static Mesh of(List<Mesh> meshes) {
+
+        //Verify all meshes have the same vertex format before merging data
+        VertexFormat format1 = null;
+        //While we're at it track vertex and index counts for later use IF it makes it past this point
+        int vertexCount = 0;
+        int indicesCount = 0;
+        for (Mesh mesh : meshes) {
+            if (format1 == null) format1 = mesh.getFormat();
+            if (format1 != mesh.getFormat()) {
+                Log.crash("Tried to construct a mesh with mismatched formats");
+            }
+            vertexCount += mesh.getNumVertices();
+            indicesCount += mesh.getNumIndices();
+        }
+
+        //Combine all vertex data and index data
+        Vertex[] vertices = new Vertex[vertexCount];
+        int[] indices = new int[indicesCount];
+        int meshIndex = 0;
+        int vertexIndex = 0;
+        int indexOffset = 0;
+        for (Mesh mesh : meshes) {
+            for (int index : mesh.indices) {
+                indices[meshIndex] = index + indexOffset;
+                meshIndex++;
+            }
+            for (Vertex vertex : mesh.vertices) {
+                vertices[vertexIndex] = vertex;
+                vertexIndex++;
+            }
+            indexOffset += vertexIndex;
+        }
+
+        return new Mesh(format1, vertices, indices);
+    }
+
     /**
      * Initializes this mesh to be rendered. Only needs to be called once
      */
     public void init() {
+
+        //Just in case it makes it to this point (it shouldn't)
+        if (vertices.length == 0) {
+            Log.error("Tried to initialize an empty mesh.");
+            return;
+        }
+
         try (MemoryStack stack = MemoryStack.stackPush()) {
             vboIdList = new ArrayList<>();
 
@@ -86,6 +130,7 @@ public class Mesh {
      * Renders this mesh
      */
     public void render() {
+        if (vertices.length == 0) return;
         if (!isInitialized()) init();
         glBindVertexArray(getVaoId());
         glDrawElements(GL_TRIANGLES, getNumIndices(), GL_UNSIGNED_INT, 0);

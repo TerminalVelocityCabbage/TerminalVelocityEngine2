@@ -39,6 +39,8 @@ public class WindowThread extends Thread {
         glfwMakeContextCurrent(windowHandle);
         GL.createCapabilities();
 
+        glEnable(GL_DEPTH_TEST);
+
         //Turn on vsync
         //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
         glfwSwapInterval(1);

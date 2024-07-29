@@ -1,6 +1,6 @@
 package com.terminalvelocitycabbage.engine.registry;
 
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
+import com.terminalvelocitycabbage.engine.util.tuples.Pair;
 
 /**
  * Represents a result from a registration used for doing things with data as it's being registered

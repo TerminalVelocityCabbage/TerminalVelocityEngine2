@@ -2,6 +2,8 @@ package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 import java.util.Arrays;
 
@@ -27,6 +29,13 @@ public class Vertex {
     }
 
     /**
+     * @return This vertex with the updated position data
+     */
+    public Vertex setXYZPosition(Vector3f xyzPosition) {
+        return setXYZPosition(xyzPosition.x, xyzPosition.y, xyzPosition.z);
+    }
+
+    /**
      * @return This vertex with the updated texture coordinate data
      */
     public Vertex setUV(float u, float v) {
@@ -34,6 +43,13 @@ public class Vertex {
         data[offset] = u;
         data[offset + 1] = v;
         return this;
+    }
+
+    /**
+     * @return This vertex with the updated texture coordinate data
+     */
+    public Vertex setUV(Vector2f uv) {
+        return setUV(uv.x, uv.y);
     }
 
     /**
@@ -45,6 +61,13 @@ public class Vertex {
         data[offset + 1] = y;
         data[offset + 2] = z;
         return this;
+    }
+
+    /**
+     * @return This vertex with the updated normal data
+     */
+    public Vertex setXYZNormal(Vector3f xyzNormal) {
+        return setXYZNormal(xyzNormal.x, xyzNormal.y, xyzNormal.z);
     }
 
     /**

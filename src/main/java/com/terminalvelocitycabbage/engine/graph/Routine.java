@@ -11,7 +11,7 @@ import com.terminalvelocitycabbage.engine.server.ServerBase;
 import com.terminalvelocitycabbage.engine.util.EntrypointUtils;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.Toggle;
-import com.terminalvelocitycabbage.engine.util.touples.Quartet;
+import com.terminalvelocitycabbage.engine.util.tuples.Quartet;
 import com.terminalvelocitycabbage.templates.events.RoutineSystemExecutionEvent;
 
 import java.util.HashMap;
