@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.github.zafarkhaja.semver.Version;
+import com.terminalvelocitycabbage.engine.client.renderer.animation.Animation;
 import com.terminalvelocitycabbage.engine.client.renderer.animation.Keyframe;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
@@ -17,6 +18,7 @@ import java.util.*;
 public class BedrockAnimationData {
 
     Version formatVersion;
+    //Animation name, Animation data
     Map<String, AnimationData> animations;
 
     public BedrockAnimationData(Version formatVersion, Map<String, AnimationData> animations) {
@@ -31,48 +33,44 @@ public class BedrockAnimationData {
         }
     }
 
-//    public List<Animation> toAnimations() {
-//
-//        List<Animation> convertedAnimations = new ArrayList<>();
-//        Map<String, List<Keyframe>> keyframes;
-//        List<Keyframe> keyframeList = new ArrayList<>();
-//        for (Map.Entry<String, AnimationData> entry : animations.entrySet()) {
-//            var name = entry.getKey();
-//            var data = entry.getValue();
-//
-//            //Convert bedrock transformation data into keyframes
-//            keyframes = new HashMap<>();
-//            keyframeList.clear();
-//
-//            for (Map.Entry<String, List<Keyframe>> boneData : data.boneKeyframes.entrySet()) {
-//                keyframeList.add(new Keyframe(
-//                        null,
-//                        null,
-//                        null,
-//                        null
-//                ));
-//            }
-//            keyframes.put(name, keyframeList);
-//
-//            Animation animation = new Animation(
-//                    Math.round(data.startDelay * 1000f),
-//                    Math.round(data.animationLength * 1000f),
-//                    Math.round(data.loopDelay * 1000f),
-//                    keyframes
-//            );
-//
-//            convertedAnimations.add(animation);
-//        }
-//
-//        return convertedAnimations;
-//    }
+    public Map<String, Animation> toAnimations() {
+
+        Map<String, Animation> convertedAnimations = new HashMap<>();
+        Map<String, List<Keyframe>> keyframes;
+        for (Map.Entry<String, AnimationData> entry : animations.entrySet()) {
+            var animationName = entry.getKey();
+            var data = entry.getValue();
+
+            //Convert bedrock transformation data into keyframes
+            keyframes = new HashMap<>();
+
+            for (Map.Entry<String, List<Keyframe>> boneData : data.boneKeyframes.entrySet()) {
+
+                var boneName = boneData.getKey();
+                var boneKeyframes = boneData.getValue();
+
+                keyframes.put(boneName, boneKeyframes);
+            }
+
+            Animation animation = new Animation(
+                    Math.round(data.startDelay * 1000f),
+                    Math.round(data.animationLength * 1000f),
+                    Math.round(data.loopDelay * 1000f),
+                    keyframes
+            );
+
+            convertedAnimations.put(animationName, animation);
+        }
+
+        return convertedAnimations;
+    }
 
     public record AnimationData (
         boolean loop,
         float animationLength,
         float startDelay,
         float loopDelay,
-        //Bone name, positions, rotations, scale
+        //Bone name, keyframes
         Map<String, List<Keyframe>> boneKeyframes
     ) {
 
