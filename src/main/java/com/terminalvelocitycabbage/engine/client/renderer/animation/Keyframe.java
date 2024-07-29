@@ -24,6 +24,42 @@ public class Keyframe {
         this.endTime = endTime;
     }
 
+    public Component getComponent() {
+        return component;
+    }
+
+    public Vector3f getStartTransformation() {
+        return startTransformation;
+    }
+
+    public Vector3f getEndTransformation() {
+        return endTransformation;
+    }
+
+    public Easing.Function getEasingFunction() {
+        return easingFunction;
+    }
+
+    public float getStartTime() {
+        return startTime;
+    }
+
+    public float getEndTime() {
+        return endTime;
+    }
+
+    @Override
+    public String toString() {
+        return "Keyframe{" +
+                "component=" + component +
+                ", startTransformation=" + startTransformation +
+                ", endTransformation=" + endTransformation +
+                ", easingFunction=" + easingFunction +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
+    }
+
     public enum Component {
         POSITION,
         ROTATION,
