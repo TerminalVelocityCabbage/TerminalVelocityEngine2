@@ -43,12 +43,14 @@ public class Mesh {
         int vertexCount = 0;
         int indicesCount = 0;
         for (Mesh mesh : meshes) {
-            if (format1 == null) format1 = mesh.getFormat();
-            if (format1 != mesh.getFormat()) {
-                Log.crash("Tried to construct a mesh with mismatched formats");
+            if (format1 != null) {
+                if (format1 != mesh.getFormat()) {
+                    Log.crash("Tried to construct a mesh with mismatched formats: " + format1 + ", " + mesh.getFormat());
+                }
             }
             vertexCount += mesh.getNumVertices();
             indicesCount += mesh.getNumIndices();
+            format1 = mesh.getFormat();
         }
 
         //Combine all vertex data and index data
@@ -66,7 +68,7 @@ public class Mesh {
                 vertices[vertexIndex] = vertex;
                 vertexIndex++;
             }
-            indexOffset += vertexIndex;
+            indexOffset += mesh.getNumVertices();
         }
 
         return new Mesh(format1, vertices, indices);

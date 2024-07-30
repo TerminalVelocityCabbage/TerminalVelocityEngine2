@@ -71,6 +71,13 @@ public class VertexFormat {
         return attributes.contains(vertexAttribute);
     }
 
+    @Override
+    public String toString() {
+        return "VertexFormat{" +
+                "attributes=" + attributes +
+                '}';
+    }
+
     /**
      * A required utility for building a vertex format, constructs all the strides and internal data for you
      */
