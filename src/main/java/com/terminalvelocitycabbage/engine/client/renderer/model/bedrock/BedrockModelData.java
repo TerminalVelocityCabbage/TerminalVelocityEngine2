@@ -369,7 +369,7 @@ public class BedrockModelData {
 
     private record StagedModelPart(String name, String parentName, List<String> children, Mesh mesh, float[] bonePivot, float[] boneRotation, int boneIndex) {  }
 
-    public Model toModel() {
+    public Model toModel(boolean compileMesh) {
 
         //The information needed to create a model part extracted from all bones
         Map<String, StagedModelPart> partsStaging = new HashMap<>();
@@ -409,7 +409,19 @@ public class BedrockModelData {
             addChildren(partsStaging, newPart);
         }
 
-        return new Model(BEDROCK_VERTEX_FORMAT, parts, boneIndexMap);
+        if (compileMesh) {
+            List<Mesh> meshesToCompile = new ArrayList<>();
+            partsStaging.values().forEach((stagedModelPart) -> {
+                if (stagedModelPart.mesh().getFormat() != null) {
+                    meshesToCompile.add(stagedModelPart.mesh());
+                } else {
+                    Log.info("null format: " + stagedModelPart.name());
+                }
+            });
+            return new Model(BEDROCK_VERTEX_FORMAT, parts, boneIndexMap, Mesh.of(meshesToCompile));
+        } else {
+            return new Model(BEDROCK_VERTEX_FORMAT, parts, boneIndexMap);
+        }
     }
 
     private void addChildren(Map<String, StagedModelPart> boneMap, Model.Part part) {
