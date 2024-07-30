@@ -13,7 +13,6 @@ import com.terminalvelocitycabbage.engine.client.renderer.model.Vertex;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.util.ConfigUtils;
-import com.terminalvelocitycabbage.engine.util.tuples.Sextet;
 import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -27,6 +26,7 @@ public class BedrockModelData {
             .addElement(VertexAttribute.XYZ_POSITION)
             .addElement(VertexAttribute.XYZ_NORMAL)
             .addElement(VertexAttribute.UV)
+            .addElement(VertexAttribute.BONE_INDEX)
             .build();
 
     Version formatVersion;
@@ -91,7 +91,7 @@ public class BedrockModelData {
          *
          * @return A mesh represented from this cube
          */
-        public Mesh toMesh(int textureWidth, int textureHeight) {
+        public Mesh toMesh(int textureWidth, int textureHeight, int boneIndex) {
 
             //Vertex positions
             //TODO start all at the origin, rotate them, then move them to their size to apply rotations to vertex positions
@@ -162,30 +162,30 @@ public class BedrockModelData {
             Vector2f uv14 = new Vector2f(uv[0] + size[2] + size[0] + size[2] + size[0], uv[1] + size[2] + size[1]).div(textureWidth, textureHeight);
 
             //North Face
-            Vertex northTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(northNormal).setUV(uv6);
-            Vertex northTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(northNormal).setUV(uv5);
-            Vertex northBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(northNormal).setUV(uv12);
-            Vertex northBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(northNormal).setUV(uv11);
-            Vertex eastTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(eastNormal).setUV(uv5);
-            Vertex eastTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(eastNormal).setUV(uv4);
-            Vertex eastBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(eastNormal).setUV(uv11);
-            Vertex eastBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(eastNormal).setUV(uv10);
-            Vertex southTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(southNormal).setUV(uv9);
-            Vertex southTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(southNormal).setUV(uv8);
-            Vertex southBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(southNormal).setUV(uv14);
-            Vertex southBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(southNormal).setUV(uv13);
-            Vertex westTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(westNormal).setUV(uv8);
-            Vertex westTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(westNormal).setUV(uv6);
-            Vertex westBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(westNormal).setUV(uv13);
-            Vertex westBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(westNormal).setUV(uv12);
-            Vertex topTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(upNormal).setUV(uv2);
-            Vertex topTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(upNormal).setUV(uv1);
-            Vertex topBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(upNormal).setUV(uv6);
-            Vertex topBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(upNormal).setUV(uv5);
-            Vertex bottomTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(downNormal).setUV(uv7);
-            Vertex bottomTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(downNormal).setUV(uv6);
-            Vertex bottomBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(downNormal).setUV(uv3);
-            Vertex bottomBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(downNormal).setUV(uv2);
+            Vertex northTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(northNormal).setUV(uv6).setBoneIndex(boneIndex);
+            Vertex northTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(northNormal).setUV(uv5).setBoneIndex(boneIndex);
+            Vertex northBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(northNormal).setUV(uv12).setBoneIndex(boneIndex);
+            Vertex northBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(northNormal).setUV(uv11).setBoneIndex(boneIndex);
+            Vertex eastTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(eastNormal).setUV(uv5).setBoneIndex(boneIndex);
+            Vertex eastTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(eastNormal).setUV(uv4).setBoneIndex(boneIndex);
+            Vertex eastBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(eastNormal).setUV(uv11).setBoneIndex(boneIndex);
+            Vertex eastBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(eastNormal).setUV(uv10).setBoneIndex(boneIndex);
+            Vertex southTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(southNormal).setUV(uv9).setBoneIndex(boneIndex);
+            Vertex southTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(southNormal).setUV(uv8).setBoneIndex(boneIndex);
+            Vertex southBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(southNormal).setUV(uv14).setBoneIndex(boneIndex);
+            Vertex southBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(southNormal).setUV(uv13).setBoneIndex(boneIndex);
+            Vertex westTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(westNormal).setUV(uv8).setBoneIndex(boneIndex);
+            Vertex westTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(westNormal).setUV(uv6).setBoneIndex(boneIndex);
+            Vertex westBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(westNormal).setUV(uv13).setBoneIndex(boneIndex);
+            Vertex westBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(westNormal).setUV(uv12).setBoneIndex(boneIndex);
+            Vertex topTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swtPos).setXYZNormal(upNormal).setUV(uv2).setBoneIndex(boneIndex);
+            Vertex topTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(setPos).setXYZNormal(upNormal).setUV(uv1).setBoneIndex(boneIndex);
+            Vertex topBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwtPos).setXYZNormal(upNormal).setUV(uv6).setBoneIndex(boneIndex);
+            Vertex topBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(netPos).setXYZNormal(upNormal).setUV(uv5).setBoneIndex(boneIndex);
+            Vertex bottomTL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nebPos).setXYZNormal(downNormal).setUV(uv7).setBoneIndex(boneIndex);
+            Vertex bottomTR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(nwbPos).setXYZNormal(downNormal).setUV(uv6).setBoneIndex(boneIndex);
+            Vertex bottomBL = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(sebPos).setXYZNormal(downNormal).setUV(uv3).setBoneIndex(boneIndex);
+            Vertex bottomBR = new Vertex(BEDROCK_VERTEX_FORMAT).setXYZPosition(swbPos).setXYZNormal(downNormal).setUV(uv2).setBoneIndex(boneIndex);
 
             // 0 1 2 3
             // 4 5 6 7
@@ -367,36 +367,7 @@ public class BedrockModelData {
 
     }
 
-    private static class StagedModelPart extends Sextet<String, String, Mesh, List<String>, float[], float[]> {
-
-        public StagedModelPart(String name, String parentName, Mesh mesh, float[] bonePivot, float[] boneRotation) {
-            super(name, parentName, mesh, new ArrayList<>(), bonePivot, boneRotation);
-        }
-
-        public String getName() {
-            return getValue0();
-        }
-
-        public String getParentName() {
-            return getValue1();
-        }
-
-        public Mesh getMesh() {
-            return getValue2();
-        }
-
-        public List<String> getChildren() {
-            return getValue3();
-        }
-
-        public float[] getBonePivot() {
-            return getValue4();
-        }
-
-        public float[] getBoneRotation() {
-            return getValue5();
-        }
-    }
+    private record StagedModelPart(String name, String parentName, List<String> children, Mesh mesh, float[] bonePivot, float[] boneRotation, int boneIndex) {  }
 
     public Model toModel() {
 
@@ -404,20 +375,21 @@ public class BedrockModelData {
         Map<String, StagedModelPart> partsStaging = new HashMap<>();
 
         //Loop through all bones to get staging data for a model part
-        for (BedrockBone bone : bones) {
+        for (int i = 0; i < bones.length; i++) {
+            BedrockBone bone = bones[i];
             List<Mesh> meshes = new ArrayList<>();
             for (BedrockCube cube : bone.cubes) {
                 //Convert cubes to meshes
-                meshes.add(cube.toMesh(geometryDescription.textureWidth, geometryDescription.textureHeight));
+                meshes.add(cube.toMesh(geometryDescription.textureWidth, geometryDescription.textureHeight, i));
             }
-            partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, Mesh.of(meshes), bone.pivot, bone.rotation));
+            partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, new ArrayList<>(), Mesh.of(meshes), bone.pivot, bone.rotation, i));
         }
 
         //Assign children to all staged model parts
         List<StagedModelPart> roots = new ArrayList<>();
         for (StagedModelPart part : partsStaging.values()) {
-            if (!part.getParentName().equals("none")) {
-                partsStaging.get(part.getParentName()).getChildren().add(part.getName());
+            if (!part.parentName().equals("none")) {
+                partsStaging.get(part.parentName()).children().add(part.name());
             } else {
                 roots.add(part);
             }
@@ -428,9 +400,9 @@ public class BedrockModelData {
         for (StagedModelPart part : roots) {
             var partPivot = new Vector3f();
             var partRotation = new Quaternionf();
-            if (part.getBonePivot().length > 0) partPivot.add(part.getBonePivot()[0], part.getBonePivot()[1], part.getBonePivot()[2]);
-            if (part.getBoneRotation().length > 0) partRotation.rotateXYZ(part.getBoneRotation()[0], part.getBoneRotation()[1], part.getBoneRotation()[2]);
-            var newPart = new Model.Part(part.getName(), null, part.getMesh(), partPivot, partRotation);
+            if (part.bonePivot().length > 0) partPivot.add(part.bonePivot()[0], part.bonePivot()[1], part.bonePivot()[2]);
+            if (part.boneRotation().length > 0) partRotation.rotateXYZ(part.boneRotation()[0], part.boneRotation()[1], part.boneRotation()[2]);
+            var newPart = new Model.Part(part.name(), null, part.mesh(), partPivot, partRotation, part.boneIndex());
             parts.add(newPart);
             addChildren(partsStaging, newPart);
         }
@@ -439,14 +411,14 @@ public class BedrockModelData {
     }
 
     private void addChildren(Map<String, StagedModelPart> boneMap, Model.Part part) {
-        var childrenNames = boneMap.get(part.getName()).getChildren();
+        var childrenNames = boneMap.get(part.getName()).children();
         for (String childName : childrenNames) {
             var stagedPart = boneMap.get(childName);
             var partPivot = new Vector3f();
             var partRotation = new Quaternionf();
-            if (stagedPart.getBonePivot().length > 0) partPivot.add(stagedPart.getBonePivot()[0], stagedPart.getBonePivot()[1], stagedPart.getBonePivot()[2]);
-            if (stagedPart.getBoneRotation().length > 0) partRotation.rotateXYZ(stagedPart.getBoneRotation()[0], stagedPart.getBoneRotation()[1], stagedPart.getBoneRotation()[2]);
-            var childPart = new Model.Part(childName, part, stagedPart.getMesh(), partPivot, partRotation);
+            if (stagedPart.bonePivot().length > 0) partPivot.add(stagedPart.bonePivot()[0], stagedPart.bonePivot()[1], stagedPart.bonePivot()[2]);
+            if (stagedPart.boneRotation().length > 0) partRotation.rotateXYZ(stagedPart.boneRotation()[0], stagedPart.boneRotation()[1], stagedPart.boneRotation()[2]);
+            var childPart = new Model.Part(childName, part, stagedPart.mesh(), partPivot, partRotation, stagedPart.boneIndex());
             part.addChild(childPart);
             addChildren(boneMap, childPart);
         }

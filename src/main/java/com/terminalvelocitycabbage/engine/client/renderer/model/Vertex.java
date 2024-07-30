@@ -94,6 +94,16 @@ public class Vertex {
     }
 
     /**
+     * @param index The Index of the bone that this vertex should be transformed from
+     * @return This vertex with updated index data
+     */
+    public Vertex setBoneIndex(int index) {
+        var offset = format.getOffset(VertexAttribute.BONE_INDEX);
+        data[offset] = index;
+        return this;
+    }
+
+    /**
      * Gets sub-data from the vertex data by component
      * @param element The element for which the data is to be retrieved
      * @return a float array of data relating to the specified attribute

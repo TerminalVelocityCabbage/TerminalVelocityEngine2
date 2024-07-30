@@ -43,6 +43,7 @@ public class Model {
         Part parent;
         List<Part> children;
         Mesh mesh;
+        int boneIndex;
 
         boolean dirty;
 
@@ -51,16 +52,18 @@ public class Model {
         Quaternionf rotation;
         Vector3f scale;
 
-        public Part(String name, Part parent, Mesh mesh, Vector3f pivotPoint, Quaternionf rotation) {
+        public Part(String name, Part parent, Mesh mesh, Vector3f pivotPoint, Quaternionf rotation, int boneIndex) {
             this.name = name;
             this.parent = parent;
-            this.children = new ArrayList<Part>();
+            this.children = new ArrayList<>();
             this.mesh = mesh;
 
             this.dirty = true;
 
             this.pivotPoint = pivotPoint;
             this.rotation = rotation;
+
+            this.boneIndex = boneIndex;
         }
 
         public void render() {
