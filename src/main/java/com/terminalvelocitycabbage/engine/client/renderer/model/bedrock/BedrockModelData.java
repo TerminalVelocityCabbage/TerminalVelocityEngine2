@@ -375,6 +375,7 @@ public class BedrockModelData {
         Map<String, StagedModelPart> partsStaging = new HashMap<>();
 
         //Loop through all bones to get staging data for a model part
+        Map<String, Integer> boneIndexMap = new HashMap<>();
         for (int i = 0; i < bones.length; i++) {
             BedrockBone bone = bones[i];
             List<Mesh> meshes = new ArrayList<>();
@@ -383,6 +384,7 @@ public class BedrockModelData {
                 meshes.add(cube.toMesh(geometryDescription.textureWidth, geometryDescription.textureHeight, i));
             }
             partsStaging.put(bone.name, new StagedModelPart(bone.name, bone.parent, new ArrayList<>(), Mesh.of(meshes), bone.pivot, bone.rotation, i));
+            boneIndexMap.put(bone.name, i);
         }
 
         //Assign children to all staged model parts
@@ -407,7 +409,7 @@ public class BedrockModelData {
             addChildren(partsStaging, newPart);
         }
 
-        return new Model(BEDROCK_VERTEX_FORMAT, parts);
+        return new Model(BEDROCK_VERTEX_FORMAT, parts, boneIndexMap);
     }
 
     private void addChildren(Map<String, StagedModelPart> boneMap, Model.Part part) {

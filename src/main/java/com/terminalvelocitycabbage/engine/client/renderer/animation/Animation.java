@@ -23,16 +23,18 @@ public class Animation {
 
     //Bone name, keyframe
     private final Map<String, List<Keyframe>> keyframes;
+    private final Map<String, Integer> boneIndexMap;
 
     Matrix4f transformationMatrix;
 
-    public Animation(long startDelay, long animationLength, long loopDelay, Map<String, List<Keyframe>> keyframes) {
+    public Animation(long startDelay, long animationLength, long loopDelay, Map<String, List<Keyframe>> keyframes, Map<String, Integer> boneIndexMap) {
         this.time = 0;
         this.startDelay = startDelay;
         this.animationLength = animationLength;
         this.loopDelay = loopDelay;
         this.loopLength = animationLength + loopDelay;
         this.keyframes = keyframes;
+        this.boneIndexMap = boneIndexMap;
     }
 
     public void updateTime(long deltaTime) {

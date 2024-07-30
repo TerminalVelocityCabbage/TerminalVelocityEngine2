@@ -6,15 +6,18 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Model {
 
     VertexFormat format;
     List<Part> parts;
+    Map<String, Integer> boneIndexMap;
 
-    public Model(VertexFormat format, List<Part> parts) {
+    public Model(VertexFormat format, List<Part> parts, Map<String, Integer> boneIndexMap) {
         this.format = format;
         this.parts = parts;
+        this.boneIndexMap = boneIndexMap;
     }
 
     public void render() {
@@ -35,6 +38,10 @@ public class Model {
 
     public List<Part> getParts() {
         return parts;
+    }
+
+    public Map<String, Integer> getBoneIndexMap() {
+        return boneIndexMap;
     }
 
     public static class Part {
