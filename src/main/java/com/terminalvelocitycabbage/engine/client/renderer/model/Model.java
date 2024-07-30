@@ -13,16 +13,29 @@ public class Model {
     VertexFormat format;
     List<Part> parts;
     Map<String, Integer> boneIndexMap;
+    boolean compiledMesh;
+    Mesh mesh;
+
+    public Model(VertexFormat format, List<Part> parts, Map<String, Integer> boneIndexMap, Mesh mesh) {
+        this(format, parts, boneIndexMap);
+        this.mesh = mesh;
+        this.compiledMesh = true;
+    }
 
     public Model(VertexFormat format, List<Part> parts, Map<String, Integer> boneIndexMap) {
         this.format = format;
         this.parts = parts;
         this.boneIndexMap = boneIndexMap;
+        this.compiledMesh = false;
     }
 
     public void render() {
-        for (Part part : parts) {
-            part.render();
+        if (compiledMesh) {
+            mesh.render();
+        } else {
+            for (Part part : parts) {
+                part.render();
+            }
         }
     }
 
