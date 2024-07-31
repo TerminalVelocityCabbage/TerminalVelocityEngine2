@@ -10,39 +10,94 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.terminalvelocitycabbage.engine.client.renderer.animation.Keyframe.Component.*;
-
 public class Animation {
 
     long time; //The time that this animation has been playing
     long currentTime;
-    long startDelay;
-    long animationLength;
-    long loopDelay;
-    long loopLength;
+    final long startDelay;
+    final long animationLength;
+    final long loopDelay;
+    final long loopLength;
+
+    //Status
+    boolean isPlaying;
+    int playsRemaining; //-1 if indefinite
+    boolean startFromZero;
 
     //Bone name, keyframe
     private final Map<String, List<Keyframe>> keyframes;
-    private final Map<String, Integer> boneIndexMap;
 
-    Matrix4f transformationMatrix;
+    final Matrix4f transformationMatrix;
 
-    public Animation(long startDelay, long animationLength, long loopDelay, Map<String, List<Keyframe>> keyframes, Map<String, Integer> boneIndexMap) {
+    public Animation(long startDelay, long animationLength, long loopDelay, Map<String, List<Keyframe>> keyframes) {
         this.time = 0;
+        this.currentTime = 0;
         this.startDelay = startDelay;
         this.animationLength = animationLength;
         this.loopDelay = loopDelay;
         this.loopLength = animationLength + loopDelay;
+        this.isPlaying = false;
+        this.playsRemaining = 0;
+        this.startFromZero = false;
         this.keyframes = keyframes;
-        this.boneIndexMap = boneIndexMap;
+        this.transformationMatrix = new Matrix4f();
     }
 
-    public void updateTime(long deltaTime) {
+    public void update(long deltaTime) {
 
-        time += deltaTime;
         //Get the current position in the looping keyframe
-        currentTime = time - startDelay;
-        currentTime %= loopLength;
+        if (!isPlaying) {
+
+            time = startFromZero ? 0 : time + deltaTime;
+            currentTime = time - startDelay;
+
+            if (playsRemaining != -1 && currentTime > animationLength) {
+                playsRemaining = Math.max(playsRemaining - 1, 0);
+            }
+
+            if (playsRemaining == 0) {
+                currentTime = animationLength + startDelay;
+            } else {
+                currentTime %= loopLength;
+            }
+        }
+
+        startFromZero = false;
+    }
+
+    public void play() {
+        play(true);
+    }
+
+    public void play(boolean startOver) {
+        this.startFromZero = startOver;
+        isPlaying = true;
+        playsRemaining = 1;
+    }
+
+    public void repeat(int timesToRepeat) {
+        isPlaying = true;
+        playsRemaining = timesToRepeat;
+    }
+
+    public void loop() {
+        isPlaying = true;
+        playsRemaining = -1;
+    }
+
+    public void pause() {
+        isPlaying = false;
+    }
+
+    public void resume() {
+        isPlaying = true;
+    }
+
+    public void stop() {
+        isPlaying = false;
+        playsRemaining = 0;
+        time = 0;
+        currentTime = 0;
     }
 
     //Percentage through keyframe, the target transformation
@@ -58,10 +113,11 @@ public class Animation {
     }
 
     //Bone name, transformations
+    Map<String, Matrix4f> currentTransformations = new HashMap<>();
+    List<Pair<Float, Keyframe>> progressKeyframes = new ArrayList<>();
     public Map<String, Matrix4f> getCurrentTransformations() {
-
-        Map<String, Matrix4f> currentTransformations = new HashMap<>();
-        List<Pair<Float, Keyframe>> progressKeyframes = new ArrayList<>();
+        currentTransformations.clear();
+        progressKeyframes.clear();
         for (String boneName : keyframes.keySet()) {
             for (Keyframe keyframe : getCurrentKeyframes(boneName)) {
                 progressKeyframes.add(new Pair<>(getKeyframeProgress( keyframe), keyframe));
@@ -110,9 +166,9 @@ public class Animation {
             float progress = entry.getValue0();
             Keyframe keyframe = entry.getValue1();
             switch (keyframe.component) {
-                case POSITION -> interpolateComponent(position, progress, keyframe, POSITION);
-                case ROTATION -> interpolateComponent(position, progress, keyframe, ROTATION);
-                case SCALE -> interpolateComponent(position, progress, keyframe, SCALE);
+                case POSITION -> interpolateComponent(position, progress, keyframe);
+                case ROTATION -> interpolateComponent(rotation, progress, keyframe);
+                case SCALE -> interpolateComponent(scale, progress, keyframe);
             }
         }
 
@@ -124,12 +180,10 @@ public class Animation {
         return transformationMatrix;
     }
 
-    private void interpolateComponent(Vector3f transformation, float progress, Keyframe keyframe, Keyframe.Component component) {
-        //TODO set to start transformation if end is null or 0 instead of calculating all 9 components of below if there is no need for any of them
-        transformation.add(
-                Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.x() - keyframe.startTransformation.x()),
-                Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.y() - keyframe.startTransformation.y()),
-                Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.y() - keyframe.startTransformation.y())
-        );
+    private void interpolateComponent(Vector3f transformation, float progress, Keyframe keyframe) {
+        var xTransform = keyframe.endTransformation.x() == 0 ? keyframe.startTransformation.x() : Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.x() - keyframe.startTransformation.x());
+        var yTransform = keyframe.endTransformation.y() == 0 ? keyframe.startTransformation.y() : Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.y() - keyframe.startTransformation.y());
+        var zTransform = keyframe.endTransformation.z() == 0 ? keyframe.startTransformation.z() : Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.z() - keyframe.startTransformation.z());
+        transformation.add(xTransform, yTransform, zTransform);
     }
 }

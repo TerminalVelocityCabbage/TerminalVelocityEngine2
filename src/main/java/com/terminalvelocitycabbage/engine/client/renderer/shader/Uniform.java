@@ -4,6 +4,8 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 
+import java.util.Map;
+
 import static org.lwjgl.opengl.GL20.*;
 
 public class Uniform {
@@ -41,6 +43,18 @@ public class Uniform {
     public void setUniform(Matrix4f matrix4f) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, uniformName), false, matrix4f.get(stack.mallocFloat(16)));
+        }
+    }
+
+    public void setArrayUniform(Matrix4f matrix4f, int index) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, uniformName + "[" + index + "]"), false, matrix4f.get(stack.mallocFloat(16)));
+        }
+    }
+
+    public void setUniforms(Map<Integer, Matrix4f> boneTransformations) {
+        for (Map.Entry<Integer, Matrix4f> entry : boneTransformations.entrySet()) {
+            setArrayUniform(entry.getValue(), entry.getKey());
         }
     }
 

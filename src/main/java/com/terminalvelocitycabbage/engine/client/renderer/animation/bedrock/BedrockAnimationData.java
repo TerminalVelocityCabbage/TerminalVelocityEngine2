@@ -6,6 +6,7 @@ import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.github.zafarkhaja.semver.Version;
 import com.terminalvelocitycabbage.engine.client.renderer.animation.Animation;
+import com.terminalvelocitycabbage.engine.client.renderer.animation.AnimationController;
 import com.terminalvelocitycabbage.engine.client.renderer.animation.Keyframe;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.debug.Log;
@@ -34,7 +35,7 @@ public class BedrockAnimationData {
         }
     }
 
-    public Map<String, Animation> toAnimations(Model model) {
+    public AnimationController toAnimationController(Model model) {
 
         Map<String, Animation> convertedAnimations = new HashMap<>();
         Map<String, List<Keyframe>> keyframes;
@@ -57,14 +58,14 @@ public class BedrockAnimationData {
                     Math.round(data.startDelay * 1000f),
                     Math.round(data.animationLength * 1000f),
                     Math.round(data.loopDelay * 1000f),
-                    keyframes,
-                    model.getBoneIndexMap()
+                    keyframes
+
             );
 
             convertedAnimations.put(animationName, animation);
         }
 
-        return convertedAnimations;
+        return new AnimationController(convertedAnimations, model.getBoneIndexMap());
     }
 
     public record AnimationData (
