@@ -1,6 +1,9 @@
 package com.terminalvelocitycabbage.engine.client.renderer.animation;
 
+import com.terminalvelocitycabbage.engine.util.tuples.Triplet;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,17 +13,48 @@ public class AnimationController {
     //TODO replace string with identifier once animation registry exists
     Map<String, Animation> animations;
     private final Map<String, Integer> boneIndexMap;
-    Map<Integer, Matrix4f> boneTransformations;
+    Map<Integer, Triplet<Vector3f, Vector3f, Vector3f>> boneTransformations; //Pos, Rot, Scale
+    Map<Integer, Matrix4f> boneTransformationMatrices;
 
     public AnimationController(Map<String, Animation> animations, Map<String, Integer> boneIndexMap) {
         this.animations = animations;
         this.boneIndexMap = boneIndexMap;
         boneTransformations = new HashMap<>();
-        boneIndexMap.values().forEach(boneIndex -> boneTransformations.put(boneIndex, new Matrix4f()));
+        boneTransformationMatrices = new HashMap<>();
+        boneIndexMap.values().forEach(boneIndex -> boneTransformations.put(boneIndex, new Triplet<>(new Vector3f(), new Vector3f(), new Vector3f(1))));
+        boneIndexMap.values().forEach(boneIndex -> boneTransformationMatrices.put(boneIndex, new Matrix4f()));
     }
 
     public void update(long deltaTime) {
-        animations.values().forEach(animation -> animation.update(deltaTime));
+        //Reset all transformations from last frame
+        boneTransformations.values().forEach(vector3fVector3fVector3fTriplet -> {
+            vector3fVector3fVector3fTriplet.getValue0().zero();
+            vector3fVector3fVector3fTriplet.getValue1().zero();
+            vector3fVector3fVector3fTriplet.getValue2().set(1);
+        });
+        boneTransformationMatrices.values().forEach(Matrix4f::identity);
+
+        //Loop through all animations update them and get their contribution to the bone transformations
+        for (Animation animation : animations.values()) {
+            animation.update(deltaTime);
+            //Get this animation's transformations add them together
+            animation.getCurrentTransformations().forEach(
+                    (boneName, boneTransformation) -> {
+                        boneTransformations.get(boneIndexMap.get(boneName)).getValue0().add(boneTransformation.getValue0());
+                        boneTransformations.get(boneIndexMap.get(boneName)).getValue1().add(boneTransformation.getValue1());
+                        boneTransformations.get(boneIndexMap.get(boneName)).getValue2().mul(boneTransformation.getValue2());
+                    }
+            );
+        }
+        //Convert all of these updated and combined transformations into a single transformation matrix for each bone
+        for (int i = 0; i < boneTransformationMatrices.size(); i++) {
+            var boneTransformation = boneTransformations.get(i);
+            var eulerRotation = boneTransformation.getValue1();
+            var rotation = new Quaternionf().rotateXYZ(eulerRotation.x, eulerRotation.y, eulerRotation.z);
+            boneTransformationMatrices.get(i)
+                    .identity()
+                    .translationRotateScale(boneTransformation.getValue0(), rotation, boneTransformation.getValue2());
+        }
     }
 
     public Animation getAnimation(String animationName) {
@@ -32,15 +66,6 @@ public class AnimationController {
     }
 
     public Map<Integer, Matrix4f> getBoneTransformations() {
-        boneTransformations.values().forEach(Matrix4f::identity);
-        //Loop through all animations to get their contribution to the bone transformations
-        for (Animation animation : animations.values()) {
-            //Get this animation's transformation matrix and add it to the resultant transformation matrix to effectively combine these transformations
-            //TODO verify, likely a wrong assumption
-            animation.getCurrentTransformations().forEach(
-                    (boneName, boneTransformation) -> boneTransformations.get(boneIndexMap.get(boneName)).add(boneTransformation)
-            );
-        }
-        return boneTransformations;
+        return boneTransformationMatrices;
     }
 }

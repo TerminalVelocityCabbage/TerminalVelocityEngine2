@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.client.renderer.animation;
 
 import com.terminalvelocitycabbage.engine.util.Easing;
 import com.terminalvelocitycabbage.engine.util.tuples.Pair;
-import org.joml.Matrix4f;
+import com.terminalvelocitycabbage.engine.util.tuples.Triplet;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -27,8 +27,6 @@ public class Animation {
     //Bone name, keyframe
     private final Map<String, List<Keyframe>> keyframes;
 
-    final Matrix4f transformationMatrix;
-
     public Animation(long startDelay, long animationLength, long loopDelay, Map<String, List<Keyframe>> keyframes) {
         this.time = 0;
         this.currentTime = 0;
@@ -40,7 +38,6 @@ public class Animation {
         this.playsRemaining = 0;
         this.startFromZero = false;
         this.keyframes = keyframes;
-        this.transformationMatrix = new Matrix4f();
     }
 
     public void update(long deltaTime) {
@@ -113,16 +110,16 @@ public class Animation {
     }
 
     //Bone name, transformations
-    Map<String, Matrix4f> currentTransformations = new HashMap<>();
+    Map<String, Triplet<Vector3f, Vector3f, Vector3f>> currentTransformations = new HashMap<>();
     List<Pair<Float, Keyframe>> progressKeyframes = new ArrayList<>();
-    public Map<String, Matrix4f> getCurrentTransformations() {
+    public Map<String, Triplet<Vector3f, Vector3f, Vector3f>> getCurrentTransformations() {
         currentTransformations.clear();
         progressKeyframes.clear();
         for (String boneName : keyframes.keySet()) {
             for (Keyframe keyframe : getCurrentKeyframes(boneName)) {
-                progressKeyframes.add(new Pair<>(getKeyframeProgress( keyframe), keyframe));
+                progressKeyframes.add(new Pair<>(getKeyframeProgress(keyframe), keyframe));
             }
-            currentTransformations.put(boneName, getTransformationMatrices(progressKeyframes));
+            currentTransformations.put(boneName, getCurrentTransforms(progressKeyframes));
         }
 
         return currentTransformations;
@@ -149,18 +146,16 @@ public class Animation {
      * @param keyframe The keyframe we want the progress of
      * @return the progress from 0 to 1 of this keyframe
      */
-    public float getKeyframeProgress(Keyframe keyframe) {
+    float getKeyframeProgress(Keyframe keyframe) {
         return (currentTime - keyframe.startTime) / (keyframe.endTime - keyframe.startTime);
     }
 
-    public Matrix4f getTransformationMatrices(List<Pair<Float, Keyframe>> keyframes) {
-
-        transformationMatrix.identity();
+    Triplet<Vector3f, Vector3f, Vector3f> getCurrentTransforms(List<Pair<Float, Keyframe>> keyframes) {
 
         //combine all keyframe transformations into one
         Vector3f position = new Vector3f();
         Vector3f rotation = new Vector3f();
-        Vector3f scale = new Vector3f();
+        Vector3f scale = new Vector3f(1);
 
         for (Pair<Float, Keyframe> entry : keyframes) {
             float progress = entry.getValue0();
@@ -172,15 +167,10 @@ public class Animation {
             }
         }
 
-        //Transform the matrix
-        transformationMatrix.scale(scale);
-        transformationMatrix.rotateXYZ(rotation);
-        transformationMatrix.translate(position);
-
-        return transformationMatrix;
+        return new Triplet<>(position, rotation, scale);
     }
 
-    private void interpolateComponent(Vector3f transformation, float progress, Keyframe keyframe) {
+    void interpolateComponent(Vector3f transformation, float progress, Keyframe keyframe) {
         var xTransform = keyframe.endTransformation.x() == 0 ? keyframe.startTransformation.x() : Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.x() - keyframe.startTransformation.x());
         var yTransform = keyframe.endTransformation.y() == 0 ? keyframe.startTransformation.y() : Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.y() - keyframe.startTransformation.y());
         var zTransform = keyframe.endTransformation.z() == 0 ? keyframe.startTransformation.z() : Easing.easeInOut(keyframe.easingFunction, progress) * (keyframe.endTransformation.z() - keyframe.startTransformation.z());

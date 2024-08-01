@@ -53,6 +53,10 @@ public class Model {
         return parts;
     }
 
+    public Mesh getMesh() {
+        return mesh;
+    }
+
     public Map<String, Integer> getBoneIndexMap() {
         return boneIndexMap;
     }
