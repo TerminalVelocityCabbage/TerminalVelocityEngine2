@@ -4,6 +4,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.FloatBuffer;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.*;
@@ -34,7 +35,7 @@ public class Uniform {
      */
     //TODO add a lot more of these supported uniform types
     public void setUniform(int uniformValue) {
-        glUniform1i(glGetUniformLocation(shaderProgramId, uniformName), uniformValue);
+        glUniform1i(uniformLocation, uniformValue);
     }
 
     /**
@@ -42,19 +43,19 @@ public class Uniform {
      */
     public void setUniform(Matrix4f matrix4f) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, uniformName), false, matrix4f.get(stack.mallocFloat(16)));
-        }
-    }
-
-    public void setArrayUniform(Matrix4f matrix4f, int index) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, uniformName + "[" + index + "]"), false, matrix4f.get(stack.mallocFloat(16)));
+            glUniformMatrix4fv(uniformLocation, false, matrix4f.get(stack.mallocFloat(16)));
         }
     }
 
     public void setUniforms(Map<Integer, Matrix4f> boneTransformations) {
-        for (Map.Entry<Integer, Matrix4f> entry : boneTransformations.entrySet()) {
-            setArrayUniform(entry.getValue(), entry.getKey());
+        //TODO using memory stack here may result in an overflow of stack space, might need to change to not use this
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            int length = boneTransformations != null ? boneTransformations.size() : 0;
+            FloatBuffer fb = stack.mallocFloat(16 * length);
+            for (int i = 0; i < length; i++) {
+                boneTransformations.get(i).get(16 * i, fb);
+            }
+            glUniformMatrix4fv(uniformLocation, false, fb);
         }
     }
 

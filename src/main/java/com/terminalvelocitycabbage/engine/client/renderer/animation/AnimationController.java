@@ -50,7 +50,7 @@ public class AnimationController {
         for (int i = 0; i < boneTransformationMatrices.size(); i++) {
             var boneTransformation = boneTransformations.get(i);
             var eulerRotation = boneTransformation.getValue1();
-            var rotation = new Quaternionf().rotateXYZ(eulerRotation.x, eulerRotation.y, eulerRotation.z);
+            var rotation = new Quaternionf().rotateXYZ((float) Math.toRadians(eulerRotation.x), (float) Math.toRadians(eulerRotation.y), (float) Math.toRadians(eulerRotation.z));
             boneTransformationMatrices.get(i)
                     .identity()
                     .translationRotateScale(boneTransformation.getValue0(), rotation, boneTransformation.getValue2());

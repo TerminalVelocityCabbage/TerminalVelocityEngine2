@@ -43,7 +43,7 @@ public class Animation {
     public void update(long deltaTime) {
 
         //Get the current position in the looping keyframe
-        if (!isPlaying) {
+        if (isPlaying) {
 
             time = startFromZero ? 0 : time + deltaTime;
             currentTime = time - startDelay;
