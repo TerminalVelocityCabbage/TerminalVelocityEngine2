@@ -1,6 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer.animation;
 
-import com.terminalvelocitycabbage.engine.util.tuples.Triplet;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -11,26 +11,31 @@ import java.util.Map;
 public class AnimationController {
 
     //TODO replace string with identifier once animation registry exists
-    Map<String, Animation> animations;
-    private final Map<String, Integer> boneIndexMap;
-    Map<Integer, Triplet<Vector3f, Vector3f, Vector3f>> boneTransformations; //Pos, Rot, Scale
-    Map<Integer, Matrix4f> boneTransformationMatrices;
+    private final Map<String, Animation> animations;
+    private final Map<String, Model.Bone> bonesMap;
+    private final Map<Integer, Model.Bone> boneIndexMap;
+    private final Map<Integer, TransformationSnapshot> boneTransformations;
+    private final Map<Integer, Matrix4f> boneTransformationMatrices;
 
-    public AnimationController(Map<String, Animation> animations, Map<String, Integer> boneIndexMap) {
+    public AnimationController(Map<String, Animation> animations, Map<String, Model.Bone> bonesMap) {
         this.animations = animations;
-        this.boneIndexMap = boneIndexMap;
+        this.bonesMap = bonesMap;
+        boneIndexMap = new HashMap<>();
         boneTransformations = new HashMap<>();
         boneTransformationMatrices = new HashMap<>();
-        boneIndexMap.values().forEach(boneIndex -> boneTransformations.put(boneIndex, new Triplet<>(new Vector3f(), new Vector3f(), new Vector3f(1))));
-        boneIndexMap.values().forEach(boneIndex -> boneTransformationMatrices.put(boneIndex, new Matrix4f()));
+        bonesMap.values().forEach(bone -> {
+            boneIndexMap.put(bone.getBoneIndex(), bone);
+            boneTransformations.put(bone.getBoneIndex(), new TransformationSnapshot(new Vector3f(), new Vector3f(), new Vector3f(1)));
+            boneTransformationMatrices.put(bone.getBoneIndex(), new Matrix4f());
+        });
     }
 
-    public void update(long deltaTime) {
+    public void update(long deltaTime, Model model) {
         //Reset all transformations from last frame
-        boneTransformations.values().forEach(vector3fVector3fVector3fTriplet -> {
-            vector3fVector3fVector3fTriplet.getValue0().zero();
-            vector3fVector3fVector3fTriplet.getValue1().zero();
-            vector3fVector3fVector3fTriplet.getValue2().set(1);
+        boneTransformations.values().forEach(transformationSnapshot -> {
+            transformationSnapshot.position().zero();
+            transformationSnapshot.rotation().zero();
+            transformationSnapshot.scale().set(1);
         });
         boneTransformationMatrices.values().forEach(Matrix4f::identity);
 
@@ -40,20 +45,30 @@ public class AnimationController {
             //Get this animation's transformations add them together
             animation.getCurrentTransformations().forEach(
                     (boneName, boneTransformation) -> {
-                        boneTransformations.get(boneIndexMap.get(boneName)).getValue0().add(boneTransformation.getValue0());
-                        boneTransformations.get(boneIndexMap.get(boneName)).getValue1().add(boneTransformation.getValue1());
-                        boneTransformations.get(boneIndexMap.get(boneName)).getValue2().mul(boneTransformation.getValue2());
+                        var index = bonesMap.get(boneName).getBoneIndex();
+                        boneTransformations.get(index).position().add(boneTransformation.getValue0());
+                        boneTransformations.get(index).rotation().add(boneTransformation.getValue1());
+                        boneTransformations.get(index).scale().mul(boneTransformation.getValue2());
                     }
             );
         }
         //Convert all of these updated and combined transformations into a single transformation matrix for each bone
-        for (int i = 0; i < boneTransformationMatrices.size(); i++) {
-            var boneTransformation = boneTransformations.get(i);
-            var eulerRotation = boneTransformation.getValue1();
-            var rotation = new Quaternionf().rotateXYZ((float) Math.toRadians(eulerRotation.x), (float) Math.toRadians(eulerRotation.y), (float) Math.toRadians(eulerRotation.z));
-            boneTransformationMatrices.get(i)
+        for (Map.Entry<Integer, Model.Bone> entry : boneIndexMap.entrySet()) {
+
+            var index = entry.getKey();
+            var bone = entry.getValue();
+
+            var boneTransformation = boneTransformations.get(index);
+            var eulerRotation = boneTransformation.rotation();
+            var rotation = new Quaternionf().rotateXYZ(
+                    (float) Math.toRadians(eulerRotation.x),
+                    (float) Math.toRadians(eulerRotation.y),
+                    (float) Math.toRadians(eulerRotation.z)
+            );
+            boneTransformationMatrices.get(index)
                     .identity()
-                    .translationRotateScale(boneTransformation.getValue0(), rotation, boneTransformation.getValue2());
+                    .translationRotateScale(boneTransformation.position(), rotation, boneTransformation.scale())
+                    .translate(bone.getOffset());
         }
     }
 
