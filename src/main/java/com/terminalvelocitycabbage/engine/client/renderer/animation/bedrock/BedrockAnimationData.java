@@ -65,7 +65,7 @@ public class BedrockAnimationData {
             convertedAnimations.put(animationName, animation);
         }
 
-        return new AnimationController(convertedAnimations, model.getBoneIndexMap());
+        return new AnimationController(convertedAnimations, model.getBones());
     }
 
     public record AnimationData (
@@ -173,7 +173,7 @@ public class BedrockAnimationData {
                     previousKeyframeEndTransformation = previousKeyframe.getEndTransformation();
                     previousKeyframeEndTime = previousKeyframe.getEndTime();
                 }
-                var endTimeMillis = Float.parseFloat(endTimeSeconds) * 1000;
+                var endTimeMillis = Float.parseFloat(endTimeSeconds) * 1000f;
 
                 //Create the keyframes
                 if (keyframeConfigOrTransformation.toString().startsWith("[")) { //linear is simplified out in bbmodel
