@@ -45,10 +45,10 @@ public class AnimationController {
             //Get this animation's transformations add them together
             animation.getCurrentTransformations().forEach(
                     (boneName, boneTransformation) -> {
-                        var index = bonesMap.get(boneName).getBoneIndex();
-                        boneTransformations.get(index).position().add(boneTransformation.getValue0());
-                        boneTransformations.get(index).rotation().add(boneTransformation.getValue1());
-                        boneTransformations.get(index).scale().mul(boneTransformation.getValue2());
+                        var transformation = boneTransformations.get(bonesMap.get(boneName).getBoneIndex());
+                        transformation.position().add(boneTransformation.position());
+                        transformation.rotation().add(boneTransformation.rotation());
+                        transformation.scale().mul(boneTransformation.scale());
                     }
             );
         }
@@ -67,8 +67,8 @@ public class AnimationController {
             );
             boneTransformationMatrices.get(index)
                     .identity()
-                    .translationRotateScale(boneTransformation.position(), rotation, boneTransformation.scale())
-                    .translate(bone.getOffset());
+                    .translationRotateScale(boneTransformation.position(), rotation, boneTransformation.scale());
+                    //.translate(bone.getOffset());
         }
     }
 

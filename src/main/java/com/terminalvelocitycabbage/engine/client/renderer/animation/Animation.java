@@ -110,9 +110,9 @@ public class Animation {
     }
 
     //Bone name, transformations
-    Map<String, Triplet<Vector3f, Vector3f, Vector3f>> currentTransformations = new HashMap<>();
+    Map<String, TransformationSnapshot> currentTransformations = new HashMap<>();
     List<Pair<Float, Keyframe>> progressKeyframes = new ArrayList<>();
-    public Map<String, Triplet<Vector3f, Vector3f, Vector3f>> getCurrentTransformations() {
+    public Map<String, TransformationSnapshot> getCurrentTransformations() {
         currentTransformations.clear();
         progressKeyframes.clear();
         for (String boneName : keyframes.keySet()) {
@@ -150,7 +150,7 @@ public class Animation {
         return (currentTime - keyframe.startTime) / (keyframe.endTime - keyframe.startTime);
     }
 
-    Triplet<Vector3f, Vector3f, Vector3f> getCurrentTransforms(List<Pair<Float, Keyframe>> keyframes) {
+    TransformationSnapshot getCurrentTransforms(List<Pair<Float, Keyframe>> keyframes) {
 
         //combine all keyframe transformations into one
         Vector3f position = new Vector3f();
@@ -167,7 +167,7 @@ public class Animation {
             }
         }
 
-        return new Triplet<>(position, rotation, scale);
+        return new TransformationSnapshot(position, rotation, scale);
     }
 
     void interpolateComponent(Vector3f transformation, float progress, Keyframe keyframe) {
