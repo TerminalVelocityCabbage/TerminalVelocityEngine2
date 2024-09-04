@@ -1,7 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
-import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -54,7 +53,7 @@ public class Model {
 
         boolean dirty;
 
-        Vector3f offset;
+        Vector3f pivotPoint;
         Quaternionf rotation;
         Vector3f scale;
 
@@ -64,7 +63,7 @@ public class Model {
 
             this.dirty = true;
 
-            this.offset = pivotPoint;
+            this.pivotPoint = pivotPoint;
             this.rotation = rotation;
             this.scale = scale;
 
@@ -80,11 +79,11 @@ public class Model {
         }
 
         //TODO cache this offset so we don't query every frame, do this on model instantiation
-        public Vector3f getOffset() {
-            Vector3f retOffset = new Vector3f(offset);
+        public Vector3f getPivotPoint() {
+            Vector3f retOffset = new Vector3f(pivotPoint);
             var parent = model.getBone(parentName);
             if (parent != null) {
-                retOffset.add(parent.getOffset(), retOffset);
+                retOffset.add(parent.getPivotPoint(), retOffset);
             }
             return retOffset;
         }

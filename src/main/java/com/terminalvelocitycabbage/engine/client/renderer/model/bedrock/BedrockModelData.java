@@ -95,17 +95,28 @@ public class BedrockModelData {
          */
         public Mesh toMesh(int textureWidth, int textureHeight, int boneIndex) {
 
-            //Vertex positions
-            //TODO start all at the origin, rotate them, then move them to their size to apply rotations to vertex positions
-            Vector3f netPos = new Vector3f(origin[0] + size[0],  origin[1] + size[1],   origin[2] + 0f);
-            Vector3f nebPos = new Vector3f(origin[0] + size[0],  origin[1] + 0f,        origin[2] + 0f);
-            Vector3f nwtPos = new Vector3f(origin[0] + 0f,       origin[1] + size[1],   origin[2] + 0f);
-            Vector3f nwbPos = new Vector3f(origin[0] + 0f,       origin[1] + 0f,        origin[2] + 0f);
-            Vector3f setPos = new Vector3f(origin[0] + size[0],  origin[1] + size[1],   origin[2] + size[2]);
-            Vector3f sebPos = new Vector3f(origin[0] + size[0],  origin[1] + 0f,        origin[2] + size[2]);
-            Vector3f swtPos = new Vector3f(origin[0] + 0f,       origin[1] + size[1],   origin[2] + size[2]);
-            Vector3f swbPos = new Vector3f(origin[0] + 0f,       origin[1] + 0f,        origin[2] + size[2]);
+            //Initial cube sizes
+            //TODO inflate
+            Vector3f netPos = new Vector3f(size[0], size[1], 0f);
+            Vector3f nebPos = new Vector3f(size[0], 0f, 0f);
+            Vector3f nwtPos = new Vector3f(0f, size[1], 0f);
+            Vector3f nwbPos = new Vector3f(0f, 0f, 0f);
+            Vector3f setPos = new Vector3f(size[0], size[1], size[2]);
+            Vector3f sebPos = new Vector3f(size[0], 0f, size[2]);
+            Vector3f swtPos = new Vector3f(0f, size[1], size[2]);
+            Vector3f swbPos = new Vector3f(0f, 0f, size[2]);
 
+            //Initial cube position
+            netPos.add(origin[0], origin[1], origin[2]);
+            nebPos.add(origin[0], origin[1], origin[2]);
+            nwtPos.add(origin[0], origin[1], origin[2]);
+            nwbPos.add(origin[0], origin[1], origin[2]);
+            setPos.add(origin[0], origin[1], origin[2]);
+            sebPos.add(origin[0], origin[1], origin[2]);
+            swtPos.add(origin[0], origin[1], origin[2]);
+            swbPos.add(origin[0], origin[1], origin[2]);
+
+            //Initial Cube rotation
             if (rotation.length > 0 && pivot.length > 0) {
 
                 Quaternionf q = new Quaternionf();

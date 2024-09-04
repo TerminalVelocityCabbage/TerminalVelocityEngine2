@@ -67,7 +67,9 @@ public class AnimationController {
             );
             boneTransformationMatrices.get(index)
                     .identity()
-                    .translationRotateScale(boneTransformation.position(), rotation, boneTransformation.scale());
+                    .scale(boneTransformation.scale())
+                    .rotateAroundLocal(rotation, bone.getPivotPoint().x, bone.getPivotPoint().y, bone.getPivotPoint().z)
+                    .translate(boneTransformation.position());
                     //.translate(bone.getOffset());
         }
     }
