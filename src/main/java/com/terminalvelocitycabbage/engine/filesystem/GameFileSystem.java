@@ -32,7 +32,7 @@ public class GameFileSystem {
     final Registry<ResourceSource> sourceRegistry;
     //TODO replace the map with a resource type registry so we can remove ResourceType to allow mods to create more etc.
     final Registry<ResourceLocation> resourceLocationRegistry;
-    final Map<String, Map<String, Resource>> fileSystemContents; //TODO replace use of String for Identifier with Identifier so we can remove below
+    final Map<ResourceType, Map<String, Resource>> fileSystemContents; //TODO replace use of String for Identifier with Identifier so we can remove below
     final Map<ResourceType, List<Identifier>> resouceIdTypeMap; //TODO remove
 
     public GameFileSystem() {
@@ -80,7 +80,7 @@ public class GameFileSystem {
 
         //Init filesystem types
         for (ResourceType type: ResourceType.values()) {
-            fileSystemContents.put(type.getName(), new HashMap<>());
+            fileSystemContents.put(type, new HashMap<>());
         }
 
         //Compile filesystem
@@ -91,7 +91,7 @@ public class GameFileSystem {
             Resource resource = sourceRegistry.get(resourceLocation.resourceSourceIdentifier())
                     .getResource(resourceLocation.resourceIdentifier().getName(), resourceLocation.type());
             //Get the resource type and put this resource into it to be used later
-            fileSystemContents.get(resourceLocation.type().getName()).put(resourceLocation.resourceIdentifier().toString(), resource);
+            fileSystemContents.get(resourceLocation.type()).put(resourceLocation.resourceIdentifier().toString(), resource);
         }
     }
 
@@ -115,16 +115,16 @@ public class GameFileSystem {
      * @return A Resource from this file system which matches the request
      */
     public Resource getResource(ResourceType resourceType, Identifier identifier) {
-        return fileSystemContents.get(resourceType.getName()).get(identifier.toString());
+        return fileSystemContents.get(resourceType).get(identifier.toString());
     }
 
     /**
      * @param resourceType The type of resource you are retrieving
      * @return A collection of resources with that type
      */
-    public Collection<Resource> getResourcesOfType(ResourceType resourceType) {
-        if (!fileSystemContents.containsKey(resourceType)) Log.error("No resources of type " + resourceType.getName() + "exist on file system");
-        return fileSystemContents.get(resourceType).values();
+    public Map<String, Resource> getResourcesOfType(ResourceType resourceType) {
+        if (!fileSystemContents.containsKey(resourceType)) Log.error("No resources of type " + resourceType.getName() + " exist on file system");
+        return fileSystemContents.get(resourceType);
     }
 
     /**

@@ -13,7 +13,8 @@ public enum ResourceType {
     DEFAULT_CONFIG("default_config"),
     SOUND("sound"),
     FONT("font"),
-    GENERIC_FILE("file");
+    GENERIC_FILE("file"),
+    LOCALIZATION("localization");
 
     String name;
 
