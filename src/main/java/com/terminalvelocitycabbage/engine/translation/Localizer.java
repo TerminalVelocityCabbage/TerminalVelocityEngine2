@@ -8,11 +8,10 @@ import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
-import com.terminalvelocitycabbage.engine.filesystem.resources.types.URLResource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Localizer {
@@ -22,7 +21,7 @@ public class Localizer {
     Map<Language, Config> loadedConfigs;
 
     public Localizer() {
-        this(Language.ENGLISH);
+        this(Language.ENGLISH_UNITED_STATES);
     }
 
     public Localizer(Language language) {
@@ -54,15 +53,11 @@ public class Localizer {
 
     public void init() {
 
-        ClientBase.getInstance().getFileSystem().listResources();
-
         //Parse and cache configs from localization files if none have been loaded yet
         if (loadedConfigs.isEmpty()) {
             ConfigFormat<?> tomlFormat = TomlFormat.instance();
             ConfigParser<?> parser = tomlFormat.createParser();
             Map<String, Resource> localizationResources = ClientBase.getInstance().getFileSystem().getResourcesOfType(ResourceType.LOCALIZATION);
-            Log.info(localizationResources.size());
-            Log.info(Arrays.toString(localizationResources.keySet().toArray()));
             for (Map.Entry<String, Resource> e : localizationResources.entrySet()) {
                 Identifier resourceIdentifier = Identifier.of(e.getKey());
                 Resource resource = e.getValue();
@@ -78,7 +73,7 @@ public class Localizer {
         //Load translations for selected language from cached configs
         clearTranslations();
         Config config = loadedConfigs.get(language);
-        String[] fallbacks = config.get("meta.fallbacks");
+        List<String> fallbacks = config.get("meta.fallbacks");
         for (Identifier identifier : translations.keySet()) {
             String key = identifier.getName();
             String value = config.get(key);
@@ -86,6 +81,7 @@ public class Localizer {
             if (value == null) {
                 for (String fallback : fallbacks) {
                     Config fallbackConfig = loadedConfigs.get(Language.fromAbbreviation(fallback));
+                    if (fallbackConfig == null) Log.error("No fallback language found for language: " + fallback);
                     String fallbackValue = fallbackConfig.get(key);
                     if (fallbackValue != null) {
                         value = fallbackValue;
