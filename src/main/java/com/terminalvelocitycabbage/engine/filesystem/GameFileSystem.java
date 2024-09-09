@@ -101,7 +101,7 @@ public class GameFileSystem {
     public void listResources() {
         Log.info("Listing virtual filesystem resource identifiers:");
         fileSystemContents.forEach((resourceType, identifierResourceMap) -> {
-            Log.info("  " + resourceType + "s: (" + identifierResourceMap.size() + "):");
+            Log.info("  " + resourceType.getName() + "s: (" + identifierResourceMap.size() + "):");
             identifierResourceMap.forEach((identifier, resource) -> {
                 Log.info("    - " + identifier);
             });
