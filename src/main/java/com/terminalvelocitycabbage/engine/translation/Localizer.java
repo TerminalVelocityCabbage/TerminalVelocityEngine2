@@ -10,6 +10,7 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,10 @@ public class Localizer {
 
     public String localize(Identifier localizableTextKey) {
         return translations.get(localizableTextKey);
+    }
+
+    public String localize(Identifier localizableTextKey, Object... args) {
+        return MessageFormat.format(localize(localizableTextKey), args);
     }
 
     public Identifier registerTranslatableText(String namespace, String path) {
