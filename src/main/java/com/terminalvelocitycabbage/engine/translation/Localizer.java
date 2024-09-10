@@ -19,7 +19,7 @@ public class Localizer {
 
     Language language;
     Map<Identifier, String> translations;
-    Map<Language, Config> loadedConfigs;
+    Map<String, Map<Language, Config>> loadedConfigs;
 
     public Localizer() {
         this(Language.ENGLISH_UNITED_STATES);
@@ -68,7 +68,8 @@ public class Localizer {
                 Resource resource = e.getValue();
                 String resourceString = resource.asString();
                 String resourceName = resourceIdentifier.getName();
-                loadedConfigs.put(
+                loadedConfigs.putIfAbsent(resourceIdentifier.getNamespace(), new HashMap<>());
+                loadedConfigs.get(resourceIdentifier.getNamespace()).put(
                         Language.fromAbbreviation(resourceName.substring(0, resourceName.length() - 5)), //Trim the .toml part of the name
                         parser.parse(resourceString)
                 );
@@ -77,26 +78,28 @@ public class Localizer {
 
         //Load translations for selected language from cached configs
         clearTranslations();
-        Config config = loadedConfigs.get(language);
-        List<String> fallbacks = config.get("meta.fallbacks");
-        for (Identifier identifier : translations.keySet()) {
-            String key = identifier.getName();
-            String value = config.get(key);
-            //If the current localization file does not contain a key we can defer to its fallbacks in order as they are defined
+        for (Identifier entry : translations.keySet()) {
+            String translationNamespace = entry.getNamespace();
+            String translationKey = entry.getName();
+            Config config = loadedConfigs.get(translationNamespace).get(language);
+            String value = config == null ? entry.toString() : config.get(translationKey);
             if (value == null) {
+                List<String> fallbacks = config.get("meta.fallbacks");
                 for (String fallback : fallbacks) {
-                    Config fallbackConfig = loadedConfigs.get(Language.fromAbbreviation(fallback));
-                    if (fallbackConfig == null) Log.error("No fallback language found for language: " + fallback);
-                    String fallbackValue = fallbackConfig.get(key);
+                    Config fallbackConfig = loadedConfigs.get(translationNamespace).get(Language.fromAbbreviation(fallback));
+                    if (fallbackConfig == null) {
+                        Log.error("No fallback language found for language: " + fallback);
+                        continue;
+                    }
+                    String fallbackValue = fallbackConfig.get(translationKey);
                     if (fallbackValue != null) {
                         value = fallbackValue;
                         break; //We don't want to look at the next fallback if this one has a value for this localized key
                     }
                 }
-                //If we don't find a localization for this value in any of the fallbacks set it to something generic to make it obvious to the dev that it's missing
-                if (value == null) value = "unlocalized text " + identifier;
             }
-            translations.put(identifier, value);
+            if (value == null) value = entry.toString();
+            translations.put(entry, value);
         }
     }
 }

@@ -33,13 +33,13 @@ public class GameFileSystem {
     //TODO replace the map with a resource type registry so we can remove ResourceType to allow mods to create more etc.
     final Registry<ResourceLocation> resourceLocationRegistry;
     final Map<ResourceType, Map<String, Resource>> fileSystemContents; //TODO replace use of String for Identifier with Identifier so we can remove below
-    final Map<ResourceType, List<Identifier>> resouceIdTypeMap; //TODO remove
+    final Map<ResourceType, List<Identifier>> resourceIdTypeMap; //TODO remove
 
     public GameFileSystem() {
         this.sourceRegistry = new Registry<>();
         this.resourceLocationRegistry = new Registry<>();
         this.fileSystemContents = new HashMap<>();
-        this.resouceIdTypeMap = new HashMap<>();
+        this.resourceIdTypeMap = new HashMap<>();
     }
 
     /**
@@ -61,8 +61,8 @@ public class GameFileSystem {
     public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
         Identifier resourceIdentifier = new Identifier(sourceIdentifier.getNamespace(), fileName);
         var ret = resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, resourceIdentifier));
-        if (!resouceIdTypeMap.containsKey(resourceType)) resouceIdTypeMap.put(resourceType, new ArrayList<>());
-        resouceIdTypeMap.get(resourceType).add(resourceIdentifier);
+        resourceIdTypeMap.putIfAbsent(resourceType, new ArrayList<>());
+        resourceIdTypeMap.get(resourceType).add(resourceIdentifier);
         return ret;
     }
 
@@ -132,6 +132,6 @@ public class GameFileSystem {
      * @return A collection of resource identifiers with that type
      */
     public List<Identifier> getResourceIdentifiersOfType(ResourceType resourceType) {
-        return resouceIdTypeMap.get(resourceType);
+        return resourceIdTypeMap.get(resourceType);
     }
 }
