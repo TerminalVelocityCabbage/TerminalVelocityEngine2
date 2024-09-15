@@ -100,11 +100,11 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     @Override
     public void init() {
         preInit();
-        getFileSystem().init();
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
+        getFileSystem().init();
         windowManager.init();
     }
 

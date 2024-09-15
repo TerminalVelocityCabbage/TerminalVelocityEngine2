@@ -1,9 +1,10 @@
 package com.terminalvelocitycabbage.engine.filesystem.sources;
 
 import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
-import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.types.URLResource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -41,7 +42,12 @@ public class MainSource extends ResourceSource {
         String path = getResourceRootRegistry().get(root);
         String compiledPath = path + "/" + name;
 
-        return new URLResource(entrypoint.getClass().getClassLoader().getResource(compiledPath));
+        var resource = entrypoint.getClass().getClassLoader().getResource(compiledPath);
+        if (resource == null) {
+            Log.crash("Could not find file at requested path: " + compiledPath);
+        }
+
+        return new URLResource(resource);
     }
 
 }

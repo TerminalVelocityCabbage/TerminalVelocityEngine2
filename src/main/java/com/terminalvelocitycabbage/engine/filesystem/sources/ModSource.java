@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.filesystem.sources;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
@@ -45,6 +46,10 @@ public class ModSource extends ResourceSource {
         String compiledPath = path + "/" + name;
         JarFile jarFile = mod.getJarFile();
         JarEntry entry = jarFile.getJarEntry(compiledPath);
+
+        if (entry == null) {
+            Log.crash("Could not find jarfile entry at requested path: " + compiledPath);
+        }
 
         return new JarResource(jarFile, entry);
     }
