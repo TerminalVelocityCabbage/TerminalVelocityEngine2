@@ -38,8 +38,7 @@ public class MainSource extends ResourceSource {
     @Override
     public Resource getResource(String name, ResourceCategory resourceCategory) {
 
-        var root = namespace + ":" + resourceCategory.name();
-        String path = getResourceRootRegistry().get(root);
+        String path = getResourceRootRegistry().get(new Identifier(namespace, resourceCategory.name()));
         String compiledPath = path + "/" + name;
 
         var resource = entrypoint.getClass().getClassLoader().getResource(compiledPath);
