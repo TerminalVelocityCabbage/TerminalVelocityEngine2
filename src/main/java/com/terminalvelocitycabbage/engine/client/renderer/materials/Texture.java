@@ -3,7 +3,7 @@ package com.terminalvelocitycabbage.engine.client.renderer.materials;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.lwjgl.system.MemoryStack;
 
@@ -20,7 +20,7 @@ public class Texture {
     Identifier textureIdentifier;
 
     public Texture(Identifier textureIdentifier) {
-        this(textureIdentifier, ClientBase.getInstance().getFileSystem().getResource(ResourceType.TEXTURE, textureIdentifier));
+        this(textureIdentifier, ClientBase.getInstance().getFileSystem().getResource(ResourceCategory.TEXTURE, textureIdentifier));
     }
 
     public Texture(Identifier textureIdentifier, Resource textureResource) {

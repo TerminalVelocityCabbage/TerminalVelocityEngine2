@@ -32,12 +32,27 @@ public abstract class ResourceSource {
      * to the resource filesystem compiler
      * @param type The type of resource being retrieved
      */
-    public abstract void registerDefaultSourceRoot(ResourceType type);
+    public abstract void registerDefaultSourceRoot(ResourceCategory type);
 
     /**
      * @param path The path to the resource being gotten
-     * @param resourceType The type of resource being retrieved
+     * @param resourceCategory The type of resource being retrieved
      * @return A resource in this resource source to be loaded into the filesystem
      */
-    public abstract Resource getResource(String path, ResourceType resourceType);
+    public abstract Resource getResource(String path, ResourceCategory resourceCategory);
+
+    /**
+     * Registers all the default {@link ResourceCategory}s to this source root registry
+     */
+    public void registerDefaultSources() {
+        registerDefaultSourceRoot(ResourceCategory.MODEL);
+        registerDefaultSourceRoot(ResourceCategory.TEXTURE);
+        registerDefaultSourceRoot(ResourceCategory.ANIMATION);
+        registerDefaultSourceRoot(ResourceCategory.SHADER);
+        registerDefaultSourceRoot(ResourceCategory.DEFAULT_CONFIG);
+        registerDefaultSourceRoot(ResourceCategory.SOUND);
+        registerDefaultSourceRoot(ResourceCategory.FONT);
+        registerDefaultSourceRoot(ResourceCategory.GENERIC_FILE);
+        registerDefaultSourceRoot(ResourceCategory.LOCALIZATION);
+    }
 }

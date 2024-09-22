@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.client.renderer.shader;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.StringUtils;
 
@@ -39,14 +39,14 @@ public class Shader {
         Identifier importIdentifier = Identifier.of(Objects.requireNonNull(importName));
 
         //Try to get the resource for the shader trying to be included
-        var resource = ClientBase.getInstance().getFileSystem().getResource(ResourceType.SHADER, importIdentifier);
+        var resource = ClientBase.getInstance().getFileSystem().getResource(ResourceCategory.SHADER, importIdentifier);
 
         //Attempt to insert the included shader source in place of the requested.
         return source.replace("#include \"" + importName + "\";", resource.asString());
     }
 
     /**
-     * @return Create this shader based on it's configured attributes
+     * @return The shader id for this shader once created
      */
     public int create() {
 
@@ -55,13 +55,13 @@ public class Shader {
         if (shaderID == 0) Log.crash("Error creating shader of type: " + shaderType.name());
 
         //Get this shader from its resource
-        String shaderSource = ClientBase.getInstance().getFileSystem().getResource(ResourceType.SHADER, shaderSourceIdentifier).asString();
+        String shaderString = ClientBase.getInstance().getFileSystem().getResource(ResourceCategory.SHADER, shaderSourceIdentifier).asString();
         //Compile shader from include definitions
-        while (shaderSource.contains("#include")) {
-            shaderSource = parseInclusions(shaderSource);
+        while (shaderString.contains("#include")) {
+            shaderString = parseInclusions(shaderString);
         }
         //Attach these sources to the shader and compile it
-        glShaderSource(shaderID, shaderSource);
+        glShaderSource(shaderID, shaderString);
         glCompileShader(shaderID);
 
         //Make sure it compiled

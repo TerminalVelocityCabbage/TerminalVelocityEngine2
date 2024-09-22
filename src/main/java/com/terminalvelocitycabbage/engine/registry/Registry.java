@@ -8,7 +8,6 @@ public class Registry<T> {
 
     protected final LinkedHashMap<Identifier, T> registryContents; //The contents of this registry
     protected final T defaultItem; //The default item if an attempted retrieval finds no results
-    public static final String PATTERN = "[A-Za-z0-9_]+:[A-Za-z0-9_]+";
 
     /**
      * Creates a new registry with type T.
@@ -42,29 +41,27 @@ public class Registry<T> {
     }
 
     /**
+     * Replaces the specified identifier with a new value
+     * @param identifier The identifier of the object you want to replace
+     * @param newItem The object to replace it with
+     * @return A registry pair representing the new object and it's registry identifier
+     */
+    public RegistryPair<T> replace(Identifier identifier, T newItem) {
+        if (!registryContents.containsKey(identifier)) {
+            Log.warn("Cannot replace registry item with ID: " + identifier.toString() + " since it does not exist in this registry.");
+            return null;
+        }
+        registryContents.replace(identifier, newItem);
+        return new RegistryPair<>(identifier, newItem);
+    }
+
+    /**
      * Retrieves a specific resource by its identifier
      * @param identifier The identifier of the specific resource you wish to retrieve
      * @return The requested item or the default item if not found
      */
     public T get(Identifier identifier) {
-        return get(identifier.toString());
-    }
-
-    /**
-     * Retrieves a specific resource by its identifier in string format
-     * @param identifier The identifier of the specific resource you wish to retrieve
-     * @return The requested item or the default item if not found
-     */
-    public T get(String identifier) {
-
-        if (!identifier.matches(PATTERN)) Log.crash("Could not find registry item with identifier " + identifier, new RuntimeException("identifier does not match pattern " + PATTERN));
-
-        for (Map.Entry<Identifier, T> identifierTEntry : registryContents.entrySet()) {
-            if (identifierTEntry.getKey().equalsString(identifier)) return identifierTEntry.getValue();
-        }
-
-        Log.warn("Tried to get item which is not registered on this registry: " + identifier);
-        return defaultItem;
+        return registryContents.get(identifier);
     }
 
     public LinkedHashMap<Identifier, T> getRegistryContents() {

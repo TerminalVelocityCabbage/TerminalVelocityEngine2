@@ -4,7 +4,7 @@ import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.filesystem.resources.types.URLResource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -26,20 +26,19 @@ public class MainSource extends ResourceSource {
      * @param type The type of resource being retrieved
      */
     @Override
-    public void registerDefaultSourceRoot(ResourceType type) {
-        getResourceRootRegistry().register(new Identifier(namespace, type.getName()), "assets/" + namespace + "/" + type.getName() + "s");
+    public void registerDefaultSourceRoot(ResourceCategory type) {
+        getResourceRootRegistry().register(new Identifier(namespace, type.name()), "assets/" + namespace + "/" + type.name() + "s");
     }
 
     /**
      * @param name         The path to the resource being gotten
-     * @param resourceType The type of resource being retrieved
+     * @param resourceCategory The type of resource being retrieved
      * @return             A resource from this game client/server
      */
     @Override
-    public Resource getResource(String name, ResourceType resourceType) {
+    public Resource getResource(String name, ResourceCategory resourceCategory) {
 
-        var root = namespace + ":" + resourceType.getName();
-        String path = getResourceRootRegistry().get(root);
+        String path = getResourceRootRegistry().get(new Identifier(namespace, resourceCategory.name()));
         String compiledPath = path + "/" + name;
 
         var resource = entrypoint.getClass().getClassLoader().getResource(compiledPath);

@@ -7,8 +7,9 @@ import com.electronwill.nightconfig.toml.TomlFormat;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.registry.Registry;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -25,7 +26,7 @@ import java.util.Map;
 public class Localizer {
 
     Language language;
-    Map<Identifier, String> translations;
+    Registry<String> translations;
     Map<String, Map<Language, Config>> loadedConfigs;
 
     public Localizer() {
@@ -34,7 +35,7 @@ public class Localizer {
 
     public Localizer(Language language) {
         this.language = language;
-        this.translations = new HashMap<>();
+        this.translations = new Registry<>();
         this.loadedConfigs = new HashMap<>();
     }
 
@@ -59,18 +60,6 @@ public class Localizer {
     }
 
     /**
-     * Registers a translation key to this localizer to be compiled on init
-     * @param namespace The namespace of the translation (usually the entrypoint ID)
-     * @param localizableTextKey The key defined by the localization file for this text being registered
-     * @return The identifier created by this translatable text registry
-     */
-    public Identifier registerTranslatableText(String namespace, String localizableTextKey) {
-        Identifier identifier = new Identifier(namespace, localizableTextKey);
-        translations.put(identifier, null);
-        return identifier;
-    }
-
-    /**
      * Changes the current language to the specified language
      * @param newLanguage The language you wish to switch this localizer to
      */
@@ -80,9 +69,11 @@ public class Localizer {
     }
 
     private void clearTranslations() {
-        Map<Identifier, String> translations1 = new HashMap<>();
-        translations.forEach((identifier, s) -> translations1.put(identifier, null));
-        translations = translations1;
+        translations.getRegistryContents().keySet().forEach(identifier -> translations.replace(identifier, null));
+    }
+
+    public Registry<String> getTranslationRegistry() {
+        return translations;
     }
 
     /**
@@ -96,9 +87,9 @@ public class Localizer {
         if (loadedConfigs.isEmpty()) {
             ConfigFormat<?> tomlFormat = TomlFormat.instance();
             ConfigParser<?> parser = tomlFormat.createParser();
-            Map<String, Resource> localizationResources = ClientBase.getInstance().getFileSystem().getResourcesOfType(ResourceType.LOCALIZATION);
-            for (Map.Entry<String, Resource> e : localizationResources.entrySet()) {
-                Identifier resourceIdentifier = Identifier.of(e.getKey());
+            Map<Identifier, Resource> localizationResources = ClientBase.getInstance().getFileSystem().getResourcesOfType(ResourceCategory.LOCALIZATION);
+            for (Map.Entry<Identifier, Resource> e : localizationResources.entrySet()) {
+                Identifier resourceIdentifier = e.getKey();
                 Resource resource = e.getValue();
                 String resourceString = resource.asString();
                 String resourceName = resourceIdentifier.getName();
@@ -112,7 +103,7 @@ public class Localizer {
 
         //Load translations for selected language from cached configs
         clearTranslations();
-        for (Identifier entry : translations.keySet()) {
+        for (Identifier entry : translations.getRegistryContents().keySet()) {
             String translationNamespace = entry.getNamespace();
             String translationKey = entry.getName();
             Config config = loadedConfigs.get(translationNamespace).get(language);
@@ -133,7 +124,7 @@ public class Localizer {
                 }
             }
             if (value == null) value = entry.toString();
-            translations.put(entry, value);
+            translations.replace(entry, value);
         }
     }
 }

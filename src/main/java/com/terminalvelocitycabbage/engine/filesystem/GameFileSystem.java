@@ -4,7 +4,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceLocation;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.registry.RegistryPair;
@@ -30,40 +30,34 @@ import java.util.*;
 public class GameFileSystem {
 
     final Registry<ResourceSource> sourceRegistry;
-    //TODO replace the map with a resource type registry so we can remove ResourceType to allow mods to create more etc.
     final Registry<ResourceLocation> resourceLocationRegistry;
-    final Map<ResourceType, Map<String, Resource>> fileSystemContents; //TODO replace use of String for Identifier with Identifier so we can remove below
-    final Map<ResourceType, List<Identifier>> resourceIdTypeMap; //TODO remove
+    final Registry<ResourceCategory> resourceCategoryRegistry;
+    final Map<ResourceCategory, Map<Identifier, Resource>> fileSystemContents;
 
     public GameFileSystem() {
         this.sourceRegistry = new Registry<>();
         this.resourceLocationRegistry = new Registry<>();
+        this.resourceCategoryRegistry = new Registry<>();
         this.fileSystemContents = new HashMap<>();
-        this.resourceIdTypeMap = new HashMap<>();
-    }
-
-    /**
-     * Registers the provided source to this sourceRegistry with an identifier of "namespace:resource_source"
-     *
-     * @param sourceIdentifier the namespace of this source
-     * @param source the actual source to register
-     */
-    public RegistryPair<ResourceSource> registerResourceSource(Identifier sourceIdentifier, ResourceSource source) {
-        return getSourceRegistry().register(sourceIdentifier, source);
     }
 
     /**
      * Registers the provided resource to the registry of it's type
      * @param sourceIdentifier The identifier of the source this resource is retrieved from
-     * @param resourceType The type of resource you are registering
+     * @param resourceCategory The type of resource you are registering
      * @param fileName The file name that this resource can be found as
      */
-    public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceType resourceType, String fileName) {
+    public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceCategory resourceCategory, String fileName) {
         Identifier resourceIdentifier = new Identifier(sourceIdentifier.getNamespace(), fileName);
-        var ret = resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceType, resourceIdentifier));
-        resourceIdTypeMap.putIfAbsent(resourceType, new ArrayList<>());
-        resourceIdTypeMap.get(resourceType).add(resourceIdentifier);
+        var ret = resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceCategory, resourceIdentifier));
         return ret;
+    }
+
+    /**
+     * @return the location to register resource types
+     */
+    public Registry<ResourceCategory> getResourceCategoryRegistry() {
+        return resourceCategoryRegistry;
     }
 
     /**
@@ -79,7 +73,7 @@ public class GameFileSystem {
     public void init() {
 
         //Init filesystem types
-        for (ResourceType type: ResourceType.values()) {
+        for (ResourceCategory type: resourceCategoryRegistry.getRegistryContents().values()) {
             fileSystemContents.put(type, new HashMap<>());
         }
 
@@ -91,7 +85,7 @@ public class GameFileSystem {
             Resource resource = sourceRegistry.get(resourceLocation.resourceSourceIdentifier())
                     .getResource(resourceLocation.resourceIdentifier().getName(), resourceLocation.type());
             //Get the resource type and put this resource into it to be used later
-            fileSystemContents.get(resourceLocation.type()).put(resourceLocation.resourceIdentifier().toString(), resource);
+            fileSystemContents.get(resourceLocation.type()).put(resourceLocation.resourceIdentifier(), resource);
         }
     }
 
@@ -101,7 +95,7 @@ public class GameFileSystem {
     public void listResources() {
         Log.info("Listing virtual filesystem resource identifiers:");
         fileSystemContents.forEach((resourceType, identifierResourceMap) -> {
-            Log.info("  " + resourceType.getName() + "s: (" + identifierResourceMap.size() + "):");
+            Log.info("  " + resourceType.name() + "s: (" + identifierResourceMap.size() + "):");
             identifierResourceMap.forEach((identifier, resource) -> {
                 Log.info("    - " + identifier);
             });
@@ -109,29 +103,21 @@ public class GameFileSystem {
     }
 
     /**
-     * @param resourceType The type of resource you are retrieving see: {@link ResourceType}
+     * @param resourceCategory The type of resource you are retrieving see: {@link ResourceCategory}
      * @param identifier An identifier which identifies the resource you are trying to retrieve
      *                   Ex. testmod:trex
      * @return A Resource from this file system which matches the request
      */
-    public Resource getResource(ResourceType resourceType, Identifier identifier) {
-        return fileSystemContents.get(resourceType).get(identifier.toString());
+    public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
+        return fileSystemContents.get(resourceCategory).get(identifier);
     }
 
     /**
-     * @param resourceType The type of resource you are retrieving
+     * @param resourceCategory The type of resource you are retrieving
      * @return A collection of resources with that type
      */
-    public Map<String, Resource> getResourcesOfType(ResourceType resourceType) {
-        if (!fileSystemContents.containsKey(resourceType)) Log.error("No resources of type " + resourceType.getName() + " exist on file system");
-        return fileSystemContents.get(resourceType);
-    }
-
-    /**
-     * @param resourceType The type of resource you are retrieving
-     * @return A collection of resource identifiers with that type
-     */
-    public List<Identifier> getResourceIdentifiersOfType(ResourceType resourceType) {
-        return resourceIdTypeMap.get(resourceType);
+    public Map<Identifier, Resource> getResourcesOfType(ResourceCategory resourceCategory) {
+        if (!fileSystemContents.containsKey(resourceCategory)) Log.error("No resources of type " + resourceCategory.name() + " exist on file system");
+        return fileSystemContents.get(resourceCategory);
     }
 }
