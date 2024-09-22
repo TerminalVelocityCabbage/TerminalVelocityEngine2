@@ -4,21 +4,16 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
-import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.ecs.Manager;
-import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
-import com.terminalvelocitycabbage.engine.graph.Routine;
-import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.mod.ModLoader;
-import com.terminalvelocitycabbage.engine.networking.*;
+import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
+import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
+import com.terminalvelocitycabbage.engine.networking.Side;
+import com.terminalvelocitycabbage.engine.networking.SyncPacketRegistryPacket;
 import com.terminalvelocitycabbage.engine.registry.Registry;
-import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
-import com.terminalvelocitycabbage.engine.translation.Localizer;
-import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.templates.events.*;
 
@@ -35,52 +30,23 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     //Game loop stuff
     private final WindowManager windowManager;
     private final Registry<RenderGraph> renderGraphRegistry;
-    private final Registry<Routine> routineRegistry;
-    private final TickManager tickManager;
-    private final TickManager inputTickManager;
-    private final Manager manager;
-    private final Scheduler scheduler;
-    private long deltaTime; //Tick delta time not render time
-    private final MutableInstant tickClock;
 
     //Networking stuff
     private final Client client;
-    private final PacketRegistry packetRegistry;
-
-    //Scope Stuff
-    private final Registry<Mod> modRegistry;
-
-    //Resources Stuff
-    private final GameFileSystem fileSystem;
 
     //Input stuff
     private final InputHandler inputHandler;
     private final InputCallbackListener inputCallbackListener;
-
-    //Scene Stuff
-    private final Registry<Scene> sceneRegistry;
-
-    //Localizations
-    private final Localizer localizer;
+    private final TickManager inputTickManager;
 
     public ClientBase(String namespace, int ticksPerSecond) {
-        super(namespace);
+        super(namespace, ticksPerSecond);
         instance = this;
-        tickManager = new TickManager(ticksPerSecond);
         inputTickManager = new TickManager(200); //TODO verify if 200hz input polling is good
-        manager = new Manager();
-        scheduler = new Scheduler();
-        tickClock = MutableInstant.ofNow();
-        modRegistry = new Registry<>();
-        fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
         renderGraphRegistry = new Registry<>();
-        routineRegistry = new Registry<>();
-        packetRegistry = new PacketRegistry();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
-        sceneRegistry = new Registry<>();
-        localizer = new Localizer();
         client = new Client();
     }
 
@@ -123,12 +89,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
         eventDispatcher.dispatchEvent(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry()));
         localizer.init();
-        windowManager.init();
-    }
-
-    //TODO this automatically
-    public void modInit() {
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
+        windowManager.init();
     }
 
     public void connect(String address, int port) {
@@ -206,39 +168,14 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         }
     }
 
-    /**
-     * The code to be executed every tick
-     * This is mainly used for networking tasks, most things for clients should happen every frame
-     */
-    public void tick() {
-        getScheduler().tick();
-    }
-
     @Override
     public void destroy() {
         windowManager.destroy();
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
     }
 
-    public GameFileSystem getFileSystem() {
-        return fileSystem;
-    }
-
-    public Manager getManager() {
-        return manager;
-    }
-
-    public Scheduler getScheduler() {
-        return scheduler;
-    }
-
     public Registry<RenderGraph> getRenderGraphRegistry() {
         return renderGraphRegistry;
-    }
-
-    @Override
-    public PacketRegistry getPacketRegistry() {
-        return packetRegistry;
     }
 
     public WindowManager getWindowManager() {
@@ -251,13 +188,5 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public InputHandler getInputHandler() {
         return inputHandler;
-    }
-
-    public Registry<Scene> getSceneRegistry() {
-        return sceneRegistry;
-    }
-
-    public Localizer getLocalizer() {
-        return localizer;
     }
 }
