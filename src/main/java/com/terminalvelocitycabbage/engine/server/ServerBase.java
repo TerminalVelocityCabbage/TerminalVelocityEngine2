@@ -1,11 +1,9 @@
 package com.terminalvelocitycabbage.engine.server;
 
 import com.github.simplenet.Server;
-import com.terminalvelocitycabbage.engine.Entrypoint;
 import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.mod.ModLoader;
@@ -16,6 +14,7 @@ import com.terminalvelocitycabbage.engine.networking.Side;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import com.terminalvelocitycabbage.engine.util.TickManager;
+import com.terminalvelocitycabbage.templates.events.PacketRegistryEvent;
 import com.terminalvelocitycabbage.templates.events.ServerLifecycleEvent;
 
 import java.io.ByteArrayInputStream;
@@ -55,6 +54,7 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
         manager = new Manager();
         scheduler = new Scheduler();
         fileSystem = new GameFileSystem();
+        packetRegistry = new PacketRegistry();
     }
 
     /**
@@ -62,6 +62,7 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
      */
     public void start() {
         ModLoader.loadAndRegisterMods(this, Side.SERVER, modRegistry);
+        eventDispatcher.dispatchEvent(new PacketRegistryEvent(packetRegistry));
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));
         getInstance().init();
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server));
@@ -75,7 +76,6 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
     public void init() {
 
         server = new Server();
-        packetRegistry = new PacketRegistry();
 
         server.onConnect(client -> {
             //Read packets and dispatch events based on opcode
@@ -92,9 +92,7 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
                 });
             });
         });
-    }
 
-    public void modInit() {
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
     }
 
@@ -184,9 +182,5 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
 
     public GameFileSystem getFileSystem() {
         return fileSystem;
-    }
-
-    public EventDispatcher getEventDispatcher() {
-        return eventDispatcher;
     }
 }
