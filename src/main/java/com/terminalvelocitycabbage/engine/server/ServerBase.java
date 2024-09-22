@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine.server;
 
 import com.github.simplenet.Server;
 import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
@@ -21,7 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-public abstract class ServerBase extends Entrypoint implements NetworkedSide {
+public abstract class ServerBase extends MainEntrypoint implements NetworkedSide {
 
     //A singleton to represent the server for this program
     private static ServerBase instance;
@@ -39,7 +40,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     private PacketRegistry packetRegistry;
 
     //Scope Stuff
-    private EventDispatcher eventDispatcher;
     private Registry<Mod> modRegistry;
     private Manager manager;
     private Scheduler scheduler;
@@ -51,7 +51,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
         super(namespace);
         instance = this;
         tickManager = new TickManager(ticksPerSecond);
-        eventDispatcher = new EventDispatcher();
         modRegistry = new Registry<>(null);
         manager = new Manager();
         scheduler = new Scheduler();
@@ -62,7 +61,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
      * Starts this server program
      */
     public void start() {
-        ModLoader.loadAndRegisterMods(Side.SERVER, modRegistry);
+        ModLoader.loadAndRegisterMods(this, Side.SERVER, modRegistry);
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));
         getInstance().init();
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server));
@@ -74,7 +73,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     @Override
     public void init() {
-        preInit();
 
         server = new Server();
         packetRegistry = new PacketRegistry();
@@ -94,8 +92,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
                 });
             });
         });
-
-        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
     }
 
     public void modInit() {

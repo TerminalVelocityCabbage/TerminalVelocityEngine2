@@ -2,6 +2,8 @@ package com.terminalvelocitycabbage.engine.registry;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 
+import java.util.Objects;
+
 /**
  * A class which represents an identifier to a registered resource on the virtual filesystem
  */
@@ -53,10 +55,15 @@ public class Identifier {
 	}
 
 	@Override
+	public int hashCode() {
+		return Objects.hash(namespace, name);
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Identifier that = (Identifier) o;
-		return namespace.equals(that.namespace) && name.equals(that.name);
+		return getNamespace().equals(that.getNamespace()) && getName().equals(that.getName());
 	}
 }

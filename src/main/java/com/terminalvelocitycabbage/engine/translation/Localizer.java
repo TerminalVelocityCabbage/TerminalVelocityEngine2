@@ -7,10 +7,11 @@ import com.electronwill.nightconfig.toml.TomlFormat;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,9 +97,10 @@ public class Localizer {
         if (loadedConfigs.isEmpty()) {
             ConfigFormat<?> tomlFormat = TomlFormat.instance();
             ConfigParser<?> parser = tomlFormat.createParser();
-            Map<String, Resource> localizationResources = ClientBase.getInstance().getFileSystem().getResourcesOfType(ResourceType.LOCALIZATION);
-            for (Map.Entry<String, Resource> e : localizationResources.entrySet()) {
-                Identifier resourceIdentifier = Identifier.of(e.getKey());
+            Map<Identifier, Resource> localizationResources = ClientBase.getInstance().getFileSystem().getResourcesOfType(ResourceCategory.LOCALIZATION);
+            Log.info(Arrays.toString(localizationResources.keySet().toArray()));
+            for (Map.Entry<Identifier, Resource> e : localizationResources.entrySet()) {
+                Identifier resourceIdentifier = e.getKey();
                 Resource resource = e.getValue();
                 String resourceString = resource.asString();
                 String resourceName = resourceIdentifier.getName();

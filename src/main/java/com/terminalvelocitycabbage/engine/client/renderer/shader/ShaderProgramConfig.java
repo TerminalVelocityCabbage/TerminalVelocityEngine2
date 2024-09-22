@@ -1,6 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.renderer.shader;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 import java.util.*;
@@ -68,7 +70,7 @@ public class ShaderProgramConfig {
 
         /**
          * @param vertexFormat The vertex format that the vertex shader in this program will be using
-         * @return
+         * @return this builder
          */
         public Builder vertexFormat(VertexFormat vertexFormat) {
             this.vertexFormat = vertexFormat;

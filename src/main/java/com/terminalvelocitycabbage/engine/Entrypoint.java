@@ -43,8 +43,4 @@ public abstract class Entrypoint implements LoggerSource {
     public Identifier identifierOf(String name) {
         return new Identifier(getNamespace(), name);
     }
-
-    public void preInit() {
-
-    }
 }

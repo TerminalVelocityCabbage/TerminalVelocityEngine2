@@ -1,15 +1,17 @@
 package com.terminalvelocitycabbage.engine.client;
 
 import com.github.simplenet.Client;
-import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
+import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.*;
@@ -17,12 +19,14 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
+import com.terminalvelocitycabbage.templates.events.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Arrays;
 
-public abstract class ClientBase extends Entrypoint implements NetworkedSide {
+public abstract class ClientBase extends MainEntrypoint implements NetworkedSide {
 
     //A singleton to represent the client for this program
     private static ClientBase instance;
@@ -30,6 +34,7 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     //Game loop stuff
     private final WindowManager windowManager;
     private final Registry<RenderGraph> renderGraphRegistry;
+    private final Registry<Routine> routineRegistry;
     private final TickManager tickManager;
     private final TickManager inputTickManager;
     private final Manager manager;
@@ -42,7 +47,6 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
     private final PacketRegistry packetRegistry;
 
     //Scope Stuff
-    private final EventDispatcher eventDispatcher;
     private final Registry<Mod> modRegistry;
 
     //Resources Stuff
@@ -63,11 +67,11 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         manager = new Manager();
         scheduler = new Scheduler();
         tickClock = MutableInstant.ofNow();
-        eventDispatcher = new EventDispatcher();
         modRegistry = new Registry<>();
         fileSystem = new GameFileSystem();
         windowManager = new WindowManager();
         renderGraphRegistry = new Registry<>();
+        routineRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
@@ -83,15 +87,11 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
         return instance;
     }
 
-    public EventDispatcher getEventDispatcher() {
-        return eventDispatcher;
-    }
-
     /**
      * Starts this client program
      */
     public void start() {
-        ModLoader.loadAndRegisterMods(Side.CLIENT, modRegistry);
+        ModLoader.loadAndRegisterMods(this, Side.CLIENT, modRegistry);
         getInstance().init();
         getInstance().run();
         getInstance().destroy();
@@ -99,15 +99,27 @@ public abstract class ClientBase extends Entrypoint implements NetworkedSide {
 
     @Override
     public void init() {
-        preInit();
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
-        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
-        getFileSystem().init();
+        eventDispatcher.dispatchEvent(new ResourceCategoryRegistrationEvent(ResourceCategoryRegistrationEvent.EVENT, fileSystem.getResourceCategoryRegistry()));
+        eventDispatcher.dispatchEvent(new ResourceSourceRegistrationEvent(ResourceSourceRegistrationEvent.EVENT, fileSystem.getSourceRegistry()));
+        Log.info(Arrays.toString(fileSystem.getResourceCategoryRegistry().getRegistryContents().values().toArray()));
+        for (ResourceCategory category : fileSystem.getResourceCategoryRegistry().getRegistryContents().values()) {
+            eventDispatcher.dispatchEvent(new ResourceRegistrationEvent(fileSystem, category));
+        }
+        fileSystem.init();
+        eventDispatcher.dispatchEvent(new InputHandlerRegistrationEvent(inputHandler));
+        eventDispatcher.dispatchEvent(new EntityComponentRegistrationEvent(manager));
+        eventDispatcher.dispatchEvent(new EntitySystemRegistrationEvent(manager));
+        eventDispatcher.dispatchEvent(new EntityTemplateRegistrationEvent(manager));
+        eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry));
+        eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
+        eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
         windowManager.init();
     }
 
+    //TODO this automatically
     public void modInit() {
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
     }

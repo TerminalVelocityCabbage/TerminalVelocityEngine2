@@ -20,13 +20,6 @@ public class TextureCache {
     }
 
     /**
-     * @param textureId the id of this texture and it's resource
-     */
-    public void createTexture(Identifier textureId) {
-        textures.putIfAbsent(textureId, new Texture(textureId));
-    }
-
-    /**
      * @param textureId the id for the new texture
      * @param textureResource a resource pointing to the texture to create if not in the default location
      */
