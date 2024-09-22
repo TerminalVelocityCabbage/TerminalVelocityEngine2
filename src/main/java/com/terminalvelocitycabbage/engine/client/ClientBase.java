@@ -17,6 +17,7 @@ import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.*;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
+import com.terminalvelocitycabbage.engine.translation.Localizer;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.templates.events.*;
@@ -59,6 +60,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     //Scene Stuff
     private final Registry<Scene> sceneRegistry;
 
+    //Localizations
+    private final Localizer localizer;
+
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace);
         instance = this;
@@ -76,6 +80,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
         sceneRegistry = new Registry<>();
+        localizer = new Localizer();
         client = new Client();
     }
 
@@ -116,6 +121,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry));
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
+        eventDispatcher.dispatchEvent(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry()));
+        localizer.init();
         windowManager.init();
     }
 
@@ -248,5 +255,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public Registry<Scene> getSceneRegistry() {
         return sceneRegistry;
+    }
+
+    public Localizer getLocalizer() {
+        return localizer;
     }
 }
