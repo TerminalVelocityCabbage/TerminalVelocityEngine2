@@ -1,8 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer.shader;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
-import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 import java.util.*;

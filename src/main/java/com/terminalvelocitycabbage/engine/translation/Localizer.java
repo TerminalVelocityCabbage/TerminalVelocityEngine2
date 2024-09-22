@@ -12,7 +12,6 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +88,6 @@ public class Localizer {
             ConfigFormat<?> tomlFormat = TomlFormat.instance();
             ConfigParser<?> parser = tomlFormat.createParser();
             Map<Identifier, Resource> localizationResources = ClientBase.getInstance().getFileSystem().getResourcesOfType(ResourceCategory.LOCALIZATION);
-            Log.info(Arrays.toString(localizationResources.keySet().toArray()));
             for (Map.Entry<Identifier, Resource> e : localizationResources.entrySet()) {
                 Identifier resourceIdentifier = e.getKey();
                 Resource resource = e.getValue();
