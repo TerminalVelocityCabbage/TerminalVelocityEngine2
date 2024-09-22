@@ -17,7 +17,7 @@ This engine is in heavy development and there is no release cycle implemented. T
 - [ ] Fast and customizable Renderer
 - [ ] Easy to use User Interface ultitities
 - [ ] High fidelity sound system with environmental imapacts
-- [ ] Utilities for adding ingame translations
+- [x] Utilities for adding ingame translations
 - [ ] Easy to use Profiling Tools
 - [ ] Utilities for Particles
 - [ ] Blockbench Model/animations
