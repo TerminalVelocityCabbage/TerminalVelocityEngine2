@@ -34,7 +34,6 @@ public class PacketRegistry implements Serializable {
             return;
         }
         packetTypes.put(packet, packetTypes.size());
-        Log.info("Registered packet: " + packet.getName());
     }
 
     /**

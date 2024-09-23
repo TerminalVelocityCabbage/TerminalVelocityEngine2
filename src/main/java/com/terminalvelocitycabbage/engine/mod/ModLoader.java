@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.github.zafarkhaja.semver.Version;
+import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.types.JarResource;
 import com.terminalvelocitycabbage.engine.networking.Side;
@@ -30,7 +31,7 @@ public class ModLoader {
     //TODO replace this with a more clever way to detect circular dependencies larger than direct circ deps.
     public static final int MAX_SORT_ITERATIONS = 10000;
 
-    public static void loadAndRegisterMods(Side side, Registry<Mod> modRegistry) {
+    public static void loadAndRegisterMods(MainEntrypoint mainEntrypoint, Side side, Registry<Mod> modRegistry) {
 
         Path modsDir = Paths.get("mods");
         File modsRoot = new File(modsDir.toUri());
@@ -67,9 +68,8 @@ public class ModLoader {
                 continue;
             }
 
-
             //Create a new Mod instance from this information
-            Mod mod = new Mod(entrypoint, jarFile, modInfo);
+            Mod mod = new Mod(entrypoint, jarFile, modInfo, mainEntrypoint.getEventDispatcher());
 
             //Set the private fields of this mod's entrypoint to this mod with reflection
             setModEntrypointMod(mod.getEntrypoint(), mod);
@@ -98,14 +98,13 @@ public class ModLoader {
         List<Mod> sortedMods = sortModsByDependency(unsortedMods);
 
         //Register the mods to the mod registry
-        sortedMods.forEach(mod -> {
-            modRegistry.register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod);
-        });
+        sortedMods.forEach(mod -> modRegistry.register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod));
 
         //Set all mods dependencies field with reflection
-        sortedMods.forEach(mod -> {
-            setModDependencies(modRegistry, mod, mod.getEntrypoint(), unsortedMods);
-        });
+        sortedMods.forEach(mod -> setModDependencies(modRegistry, mod, mod.getEntrypoint(), unsortedMods));
+
+        //Register event listeners for each mod
+        sortedMods.forEach(mod -> mod.getEntrypoint().registerEventListeners());
     }
 
     /**

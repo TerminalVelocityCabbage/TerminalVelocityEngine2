@@ -17,7 +17,7 @@ This engine is in heavy development and there is no release cycle implemented. T
 - [ ] Fast and customizable Renderer
 - [ ] Easy to use User Interface ultitities
 - [ ] High fidelity sound system with environmental imapacts
-- [ ] Utilities for adding ingame translations
+- [x] Utilities for adding ingame translations
 - [ ] Easy to use Profiling Tools
 - [ ] Utilities for Particles
 - [ ] Blockbench Model/animations
@@ -28,6 +28,7 @@ This engine is in heavy development and there is no release cycle implemented. T
 - [ ] A High Visual Fidelity UE5 level Graphics
 
 ## Potential Future Goals:
-These are things that are not currently in scope, but onlt because we devs have no use for them in our game concepts, thus programming them into the engine would be a waste of our time. We are open to these being added as PRs and we will happily maintain them with the community's help, but will not be taking the initiative ourselves to implement them.
+These are things that are not currently in scope, but only because we devs have no use for them in our game concepts, thus programming them into the engine would be a waste of our time. We are open to these being added as PRs and we will happily maintain them with the community's help, but will not be taking the initiative ourselves to implement them.
 - [ ] Full skeletal animation system
 - [ ] Realistic Physics implementation (PhysX or Bullet i.e.)
+- [ ] Built in Scripting system (engine architecture is being built in such a way to make this easy, but not needed)

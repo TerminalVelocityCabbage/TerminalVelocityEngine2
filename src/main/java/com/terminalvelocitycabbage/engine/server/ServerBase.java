@@ -1,27 +1,20 @@
 package com.terminalvelocitycabbage.engine.server;
 
 import com.github.simplenet.Server;
-import com.terminalvelocitycabbage.engine.Entrypoint;
+import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.ecs.Manager;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
-import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
-import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
-import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.networking.SerializablePacket;
 import com.terminalvelocitycabbage.engine.networking.Side;
-import com.terminalvelocitycabbage.engine.registry.Registry;
-import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
-import com.terminalvelocitycabbage.engine.util.TickManager;
+import com.terminalvelocitycabbage.templates.events.PacketRegistryEvent;
 import com.terminalvelocitycabbage.templates.events.ServerLifecycleEvent;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-public abstract class ServerBase extends Entrypoint implements NetworkedSide {
+public abstract class ServerBase extends MainEntrypoint implements NetworkedSide {
 
     //A singleton to represent the server for this program
     private static ServerBase instance;
@@ -29,40 +22,22 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     //A boolean that controls whether this server's loop should stop
     private boolean shouldStop;
 
-    //Game loop stuff
-    private TickManager tickManager;
-
     //Networking stuff
     private Server server;
     private String address;
     private int port;
-    private PacketRegistry packetRegistry;
-
-    //Scope Stuff
-    private EventDispatcher eventDispatcher;
-    private Registry<Mod> modRegistry;
-    private Manager manager;
-    private Scheduler scheduler;
-
-    //Resources Stuff
-    private GameFileSystem fileSystem;
 
     public ServerBase(String namespace, int ticksPerSecond) {
-        super(namespace);
+        super(namespace, ticksPerSecond);
         instance = this;
-        tickManager = new TickManager(ticksPerSecond);
-        eventDispatcher = new EventDispatcher();
-        modRegistry = new Registry<>(null);
-        manager = new Manager();
-        scheduler = new Scheduler();
-        fileSystem = new GameFileSystem();
     }
 
     /**
      * Starts this server program
      */
     public void start() {
-        ModLoader.loadAndRegisterMods(Side.SERVER, modRegistry);
+        ModLoader.loadAndRegisterMods(this, Side.SERVER, modRegistry);
+        eventDispatcher.dispatchEvent(new PacketRegistryEvent(getPacketRegistry()));
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));
         getInstance().init();
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server));
@@ -74,10 +49,8 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     @Override
     public void init() {
-        preInit();
 
         server = new Server();
-        packetRegistry = new PacketRegistry();
 
         server.onConnect(client -> {
             //Read packets and dispatch events based on opcode
@@ -95,10 +68,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
             });
         });
 
-        modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().preInit());
-    }
-
-    public void modInit() {
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
     }
 
@@ -108,7 +77,7 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     private void run() {
 
         //There should be no more packets registered to this packet registry after the game has been initialized
-        packetRegistry.lock();
+        getPacketRegistry().lock();
 
         //Establish connection
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_BIND, server));
@@ -149,13 +118,6 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
     }
 
     /**
-     * The logic to be executed when this Server updates
-     */
-    public void tick() {
-        getScheduler().tick();
-    }
-
-    /**
      * Marks this server as ready to stop
      */
     public void stop() {
@@ -176,21 +138,5 @@ public abstract class ServerBase extends Entrypoint implements NetworkedSide {
 
     public int getPort() {
         return port;
-    }
-
-    public Manager getManager() {
-        return manager;
-    }
-
-    public Scheduler getScheduler() {
-        return scheduler;
-    }
-
-    public GameFileSystem getFileSystem() {
-        return fileSystem;
-    }
-
-    public EventDispatcher getEventDispatcher() {
-        return eventDispatcher;
     }
 }

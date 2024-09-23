@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class TVConfig {
             Files.createDirectories(Paths.get(configDir));
             fileConfig = FileConfig
                     .builder(configDir + "/" + resourceIdentifier.getName())
-                    .onFileNotFound(FileNotFoundAction.copyData(Objects.requireNonNull(fileSystem.getResource(ResourceType.DEFAULT_CONFIG, resourceIdentifier).openStream())))
+                    .onFileNotFound(FileNotFoundAction.copyData(Objects.requireNonNull(fileSystem.getResource(ResourceCategory.DEFAULT_CONFIG, resourceIdentifier).openStream())))
                     .build();
             fileConfig.load();
             fileConfig.save();

@@ -68,7 +68,7 @@ public class ShaderProgramConfig {
 
         /**
          * @param vertexFormat The vertex format that the vertex shader in this program will be using
-         * @return
+         * @return this builder
          */
         public Builder vertexFormat(VertexFormat vertexFormat) {
             this.vertexFormat = vertexFormat;

@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.filesystem.sources;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceType;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -16,12 +16,12 @@ public class SystemSource extends ResourceSource {
     }
 
     @Override
-    public void registerDefaultSourceRoot(ResourceType type) {
-        getResourceRootRegistry().register(new Identifier(namespace, type.getName()), "assets/" + namespace + "/" + type.getName() + "s");
+    public void registerDefaultSourceRoot(ResourceCategory type) {
+        getResourceRootRegistry().register(new Identifier(namespace, type.name()), "assets/" + namespace + "/" + type.name() + "s");
     }
 
     @Override
-    public Resource getResource(String path, ResourceType resourceType) {
+    public Resource getResource(String path, ResourceCategory resourceCategory) {
         Log.error("Not implemented yet");
         return null;
     }
