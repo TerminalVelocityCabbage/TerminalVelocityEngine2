@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.engine.util.touples;
+package com.terminalvelocitycabbage.engine.util.tuples;
 
 public class Unit<A> {
 

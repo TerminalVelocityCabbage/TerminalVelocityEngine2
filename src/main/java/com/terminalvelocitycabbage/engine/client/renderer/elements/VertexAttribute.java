@@ -6,7 +6,8 @@ public enum VertexAttribute {
     UV("uv", 2, false),
     XYZ_NORMAL("normal", 3, true),
     RGBA_COLOR("color_rgba", 4, false),
-    RGB_COLOR("color_rgb", 3, false);
+    RGB_COLOR("color_rgb", 3, false),
+    BONE_INDEX("bone_index", 1, false);
 
     private final String name;
     private final int components;

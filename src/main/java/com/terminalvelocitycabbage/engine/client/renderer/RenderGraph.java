@@ -10,7 +10,7 @@ import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.Toggle;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
+import com.terminalvelocitycabbage.engine.util.tuples.Pair;
 import com.terminalvelocitycabbage.templates.events.RenderGraphStageExecutionEvent;
 
 import javax.management.ReflectionException;

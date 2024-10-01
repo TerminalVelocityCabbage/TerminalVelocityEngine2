@@ -9,7 +9,7 @@ import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.Toggle;
-import com.terminalvelocitycabbage.engine.util.touples.Quartet;
+import com.terminalvelocitycabbage.engine.util.tuples.Quartet;
 import com.terminalvelocitycabbage.templates.events.RoutineSystemExecutionEvent;
 
 import java.util.HashMap;

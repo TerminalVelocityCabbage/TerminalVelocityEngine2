@@ -30,4 +30,31 @@ public class ArrayUtils {
         return compiledData;
     }
 
+    /**
+     * @param list the float list to be converted to an array
+     * @return an array made of the same values as the list
+     */
+    public static float[] floatArrayFromClassList(List<Float> list) {
+        float[] compiledData = new float[list.size()];
+        int currentPosition = 0;
+        for (Float element : list) {
+            compiledData[currentPosition] = element;
+            currentPosition++;
+        }
+        return compiledData;
+    }
+
+    /**
+     * @param list the float list to be converted to an array
+     * @return an array made of the same values as the list
+     */
+    public static int[] intArrayFromClassList(List<Integer> list) {
+        int[] compiledData = new int[list.size()];
+        int currentPosition = 0;
+        for (Integer element : list) {
+            compiledData[currentPosition] = element;
+            currentPosition++;
+        }
+        return compiledData;
+    }
 }
