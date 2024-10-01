@@ -6,7 +6,6 @@ import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
-import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.mod.ModLoader;
 import com.terminalvelocitycabbage.engine.networking.NetworkedSide;
@@ -20,7 +19,6 @@ import com.terminalvelocitycabbage.templates.events.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.Arrays;
 
 public abstract class ClientBase extends MainEntrypoint implements NetworkedSide {
 
@@ -63,9 +61,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
      */
     public void start() {
         ModLoader.loadAndRegisterMods(this, Side.CLIENT, modRegistry);
-        getInstance().init();
-        getInstance().run();
-        getInstance().destroy();
+        init();
+        run();
+        destroy();
     }
 
     @Override
@@ -75,7 +73,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         client.postDisconnect(this::onDisconnected);
         eventDispatcher.dispatchEvent(new ResourceCategoryRegistrationEvent(ResourceCategoryRegistrationEvent.EVENT, fileSystem.getResourceCategoryRegistry()));
         eventDispatcher.dispatchEvent(new ResourceSourceRegistrationEvent(ResourceSourceRegistrationEvent.EVENT, fileSystem.getSourceRegistry()));
-        Log.info(Arrays.toString(fileSystem.getResourceCategoryRegistry().getRegistryContents().values().toArray()));
         for (ResourceCategory category : fileSystem.getResourceCategoryRegistry().getRegistryContents().values()) {
             eventDispatcher.dispatchEvent(new ResourceRegistrationEvent(fileSystem, category));
         }

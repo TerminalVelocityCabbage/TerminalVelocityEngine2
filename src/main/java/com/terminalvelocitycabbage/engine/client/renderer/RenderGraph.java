@@ -82,7 +82,7 @@ public class RenderGraph {
             //Execute this graph node (whether it's a routine or a render node) if it's not paused
             if (enabled) {
                 switch (graphNode.getValue1()) {
-                    case Routine routine -> routine.update(ClientBase.getInstance().getManager()); //We assume that the server is not rendering anything
+                    case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher()); //We assume that the server is not rendering anything
                     case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, deltaTime);
                 }
             }

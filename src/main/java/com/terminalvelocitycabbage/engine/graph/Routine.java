@@ -1,14 +1,12 @@
 package com.terminalvelocitycabbage.engine.graph;
 
-import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.ComponentFilter;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
+import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.server.ServerBase;
-import com.terminalvelocitycabbage.engine.util.EntrypointUtils;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.Toggle;
 import com.terminalvelocitycabbage.engine.util.touples.Quartet;
@@ -44,20 +42,18 @@ public non-sealed class Routine implements GraphNode {
     /**
      * @param manager the ESC manager that this routine operates on, usually returned by the client or server entrypoint
      */
-    public void update(Manager manager) {
+    public void update(Manager manager, EventDispatcher eventDispatcher) {
         filteredSystems.forEach((id, quartet) -> {
             var enabled = quartet.getValue0().getStatus();
             //Publish this routine stage's pre update event so mods can inject their own systems
-            if (EntrypointUtils.isCurrentEntrypointClient()) ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(id), manager, enabled));
-            if (EntrypointUtils.isCurrentEntrypointServer()) ServerBase.getInstance().getEventDispatcher().dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(id), manager, enabled));
+            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(id), manager, enabled));
             //If this system is not paused update this system
             if (enabled) {
                 manager.getSystem(quartet.getValue2()).update(manager.getMatchingEntities(quartet.getValue3()), quartet.getValue1().getDeltaTime());
                 quartet.getValue1().now();
             }
             //Publish this routine stage's post update event so mods can inject their own systems
-            if (EntrypointUtils.isCurrentEntrypointClient()) ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(id), manager, enabled));
-            if (EntrypointUtils.isCurrentEntrypointServer()) ServerBase.getInstance().getEventDispatcher().dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(id), manager, enabled));
+            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(id), manager, enabled));
         });
     }
 

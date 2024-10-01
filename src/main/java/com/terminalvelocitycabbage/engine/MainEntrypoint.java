@@ -53,7 +53,7 @@ public abstract class MainEntrypoint extends Entrypoint {
         routineRegistry = new Registry<>();
         packetRegistry = new PacketRegistry();
         sceneRegistry = new Registry<>();
-        localizer = new Localizer();
+        localizer = new Localizer(getFileSystem());
     }
 
     /**

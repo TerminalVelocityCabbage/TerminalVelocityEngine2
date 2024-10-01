@@ -4,8 +4,8 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -28,15 +28,17 @@ public class Localizer {
     Language language;
     Registry<String> translations;
     Map<String, Map<Language, Config>> loadedConfigs;
+    GameFileSystem fileSystem;
 
-    public Localizer() {
-        this(Language.ENGLISH_UNITED_STATES);
+    public Localizer(GameFileSystem fileSystem) {
+        this(Language.ENGLISH_UNITED_STATES, fileSystem);
     }
 
-    public Localizer(Language language) {
+    public Localizer(Language language, GameFileSystem fileSystem) {
         this.language = language;
         this.translations = new Registry<>();
         this.loadedConfigs = new HashMap<>();
+        this.fileSystem = fileSystem;
     }
 
     /**
@@ -87,7 +89,7 @@ public class Localizer {
         if (loadedConfigs.isEmpty()) {
             ConfigFormat<?> tomlFormat = TomlFormat.instance();
             ConfigParser<?> parser = tomlFormat.createParser();
-            Map<Identifier, Resource> localizationResources = ClientBase.getInstance().getFileSystem().getResourcesOfType(ResourceCategory.LOCALIZATION);
+            Map<Identifier, Resource> localizationResources = fileSystem.getResourcesOfType(ResourceCategory.LOCALIZATION);
             for (Map.Entry<Identifier, Resource> e : localizationResources.entrySet()) {
                 Identifier resourceIdentifier = e.getKey();
                 Resource resource = e.getValue();
