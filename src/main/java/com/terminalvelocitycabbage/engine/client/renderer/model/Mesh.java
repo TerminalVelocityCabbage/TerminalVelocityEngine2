@@ -5,7 +5,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.util.ArrayUtils;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -35,50 +35,104 @@ public class Mesh {
         this.indices = indices;
     }
 
+    public static Mesh of(List<Mesh> meshes) {
+
+        //Verify all meshes have the same vertex format before merging data
+        VertexFormat format1 = null;
+        //While we're at it track vertex and index counts for later use IF it makes it past this point
+        int vertexCount = 0;
+        int indicesCount = 0;
+        for (Mesh mesh : meshes) {
+            if (format1 != null) {
+                if (format1 != mesh.getFormat()) {
+                    Log.crash("Tried to construct a mesh with mismatched formats: " + format1 + ", " + mesh.getFormat());
+                }
+            }
+            vertexCount += mesh.getNumVertices();
+            indicesCount += mesh.getNumIndices();
+            format1 = mesh.getFormat();
+        }
+
+        //Combine all vertex data and index data
+        Vertex[] vertices = new Vertex[vertexCount];
+        int[] indices = new int[indicesCount];
+        int meshIndex = 0;
+        int vertexIndex = 0;
+        int indexOffset = 0;
+        for (Mesh mesh : meshes) {
+            for (int index : mesh.indices) {
+                indices[meshIndex] = index + indexOffset;
+                meshIndex++;
+            }
+            for (Vertex vertex : mesh.vertices) {
+                vertices[vertexIndex] = vertex;
+                vertexIndex++;
+            }
+            indexOffset += mesh.getNumVertices();
+        }
+
+        return new Mesh(format1, vertices, indices);
+    }
+
     /**
      * Initializes this mesh to be rendered. Only needs to be called once
      */
     public void init() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            vboIdList = new ArrayList<>();
 
-            vaoId = glGenVertexArrays();
-            glBindVertexArray(vaoId);
+        //Just in case it makes it to this point (it shouldn't)
+        if (vertices.length == 0) {
+            Log.error("Tried to initialize an empty mesh.");
+            return;
+        }
 
-            int vboId;
+        vboIdList = new ArrayList<>();
 
-            //Create attribute vbos and upload the data from the mesh
-            int attributeIndex = 0;
-            //Loop through all the attributes for the format of this mesh
-            for (VertexAttribute attribute : format.getAttributes()) {
-                //Create a vbo for this attribute data
-                vboId = glGenBuffers();
-                vboIdList.add(vboId);
-                //Get the attribute data from this mesh
-                var attributeData = getDataOfType(attribute);
-                FloatBuffer attributeBuffer = stack.callocFloat(attributeData.length);
+        vaoId = glGenVertexArrays();
+        glBindVertexArray(vaoId);
+
+        int vboId;
+
+        //Create attribute vbos and upload the data from the mesh
+        int attributeIndex = 0;
+        //Loop through all the attributes for the format of this mesh
+        for (VertexAttribute attribute : format.getAttributes()) {
+            //Create a vbo for this attribute data
+            vboId = glGenBuffers();
+            vboIdList.add(vboId);
+            //Get the attribute data from this mesh
+            var attributeData = getDataOfType(attribute);
+            FloatBuffer attributeBuffer = MemoryUtil.memCallocFloat(attributeData.length);
+            try {
                 attributeBuffer.put(0, attributeData);
                 //Upload this data to OpenGL
                 glBindBuffer(GL_ARRAY_BUFFER, vboId);
                 glBufferData(GL_ARRAY_BUFFER, attributeBuffer, GL_STATIC_DRAW);
                 glEnableVertexAttribArray(attributeIndex);
                 glVertexAttribPointer(attributeIndex, attribute.getNumComponents(), GL_FLOAT, attribute.isNormalized(), 0, 0);
-                attributeIndex++;
+            } finally {
+                MemoryUtil.memFree(attributeBuffer);
             }
+            attributeIndex++;
+        }
 
-            //Create the index buffers for mesh rendering
-            vboId = glGenBuffers();
-            //Upload the data to the buffer and opengl
-            vboIdList.add(vboId);
-            IntBuffer indicesBuffer = stack.callocInt(indices.length);
+        //Create the index buffers for mesh rendering
+        vboId = glGenBuffers();
+        //Upload the data to the buffer and opengl
+        vboIdList.add(vboId);
+        IntBuffer indicesBuffer = MemoryUtil.memAllocInt(indices.length);
+        try {
             indicesBuffer.put(0, indices);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboId);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
-
-            //Bind all buffers
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
+        } finally {
+            MemoryUtil.memFree(indicesBuffer);
         }
+
+        //Bind all buffers
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        //Mark this mesh as initialized, so we don't have to do this twice
         initialized = true;
     }
 
@@ -86,6 +140,7 @@ public class Mesh {
      * Renders this mesh
      */
     public void render() {
+        if (vertices.length == 0) return;
         if (!isInitialized()) init();
         glBindVertexArray(getVaoId());
         glDrawElements(GL_TRIANGLES, getNumIndices(), GL_UNSIGNED_INT, 0);
