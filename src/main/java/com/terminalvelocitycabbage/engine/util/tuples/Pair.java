@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.engine.util.touples;
+package com.terminalvelocitycabbage.engine.util.tuples;
 
 public class Pair<A, B> extends Unit<A> {
 
@@ -7,6 +7,10 @@ public class Pair<A, B> extends Unit<A> {
     public Pair(A value0, B value1) {
         super(value0);
         this.value1 = value1;
+    }
+
+    public Pair(Unit<A> tuple, B value1) {
+        this(tuple.getValue0(), value1);
     }
 
     public B getValue1() {

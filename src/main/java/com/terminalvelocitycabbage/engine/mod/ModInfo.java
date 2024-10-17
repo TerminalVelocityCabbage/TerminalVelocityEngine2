@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.mod;
 
 import com.github.zafarkhaja.semver.Version;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
+import com.terminalvelocitycabbage.engine.util.tuples.Pair;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -27,6 +27,10 @@ public class TransformationComponent implements Component {
         return position;
     }
 
+    public TransformationComponent setPosition(Vector3f position) {
+        return setPosition(position.x, position.y, position.z);
+    }
+
     public TransformationComponent setPosition(float x, float y, float z) {
         this.position.set(x, y, z);
         dirty = true;
@@ -38,7 +42,7 @@ public class TransformationComponent implements Component {
     }
 
     public TransformationComponent rotate(float x, float y, float z) {
-        this.rotation.rotateYXZ((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
+        this.rotation.rotateXYZ((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
         dirty = true;
         return this;
     }
