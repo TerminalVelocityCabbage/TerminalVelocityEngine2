@@ -52,7 +52,10 @@ public class VertexFormat {
      * @return an int representing the offset of this attribute's data
      */
     public int getOffset(VertexAttribute attribute) {
-        if (!hasComponent(attribute)) Log.crash("The vertex format of this vertex does not include " + attribute.getName());
+        if (!hasComponent(attribute)) {
+            Log.warn("The vertex format of this vertex does not include " + attribute.getName());
+            return -1;
+        }
         return vertexAttributeOffsetMap.get(attribute);
     }
 
@@ -106,4 +109,10 @@ public class VertexFormat {
 
     }
 
+    @Override
+    public String toString() {
+        return "VertexFormat{" +
+                "attributes=" + attributes +
+                '}';
+    }
 }

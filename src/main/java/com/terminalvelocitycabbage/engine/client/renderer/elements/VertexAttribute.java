@@ -33,4 +33,13 @@ public enum VertexAttribute {
     public boolean isNormalized() {
         return normalized;
     }
+
+    @Override
+    public String toString() {
+        return "VertexAttribute{" +
+                "name='" + name + '\'' +
+                ", components=" + components +
+                ", normalized=" + normalized +
+                '}';
+    }
 }

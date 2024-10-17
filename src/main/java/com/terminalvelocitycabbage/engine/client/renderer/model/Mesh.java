@@ -7,6 +7,9 @@ import com.terminalvelocitycabbage.engine.util.ArrayUtils;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -77,12 +80,12 @@ public class Mesh {
     /**
      * Initializes this mesh to be rendered. Only needs to be called once
      */
-    public void init() {
+    public Mesh init() {
 
         //Just in case it makes it to this point (it shouldn't)
         if (vertices.length == 0) {
             Log.error("Tried to initialize an empty mesh.");
-            return;
+            return null;
         }
 
         vboIdList = new ArrayList<>();
@@ -134,6 +137,8 @@ public class Mesh {
 
         //Mark this mesh as initialized, so we don't have to do this twice
         initialized = true;
+
+        return this;
     }
 
     /**
@@ -156,6 +161,20 @@ public class Mesh {
             vertices.add(vertex.getSubData(element));
         }
         return ArrayUtils.combineFloatArrays(vertices);
+    }
+
+    public float[] getVertexData() {
+        List<Float> data = new ArrayList<>();
+        for (Vertex vertex : this.vertices) {
+            for (float value : vertex.getData()) {
+                data.add(value);
+            }
+        }
+        var floatData = new float[data.size()];
+        for (int i = 0; i < data.size(); i++) {
+            floatData[i] = data.get(i);
+        }
+        return floatData;
     }
 
     /**
@@ -199,5 +218,35 @@ public class Mesh {
      */
     public VertexFormat getFormat() {
         return format;
+    }
+
+
+    public void dumpAsObj() {
+        try (PrintStream stream = new PrintStream(new FileOutputStream("./dump.obj"))) {
+
+            int stride = this.format.getNumComponents();
+            float[] vertex = getVertexData();
+            int[] index = indices;
+
+            int pos = this.format.getOffset(VertexAttribute.XYZ_POSITION);
+            int uv = this.format.getOffset(VertexAttribute.UV);
+            int normal = this.format.getOffset(VertexAttribute.XYZ_NORMAL);
+
+            for (int i = 0; i < vertex.length; i += stride) {
+                stream.println("v " + vertex[i+pos] + " " + vertex[i+pos+1] + " " + vertex[i+pos+2]);
+                if(uv != -1) {
+                    stream.println("vt " + vertex[i+uv] + " " + vertex[i+uv+1]);
+                }
+                if(normal != -1) {
+                    stream.println("vn " + vertex[i+normal] + " " + vertex[i+normal+1] + " " + vertex[i+normal+2]);
+                }
+            }
+
+            for (int i = 0; i < index.length; i+=3) {
+                stream.println("f " + (index[i]+1) + " " + (index[i+1]+1) + " " + (index[i+2]+1));
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }

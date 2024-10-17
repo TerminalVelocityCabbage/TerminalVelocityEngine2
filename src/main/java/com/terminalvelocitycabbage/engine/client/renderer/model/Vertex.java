@@ -94,4 +94,12 @@ public class Vertex {
     public float[] getData() {
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "Vertex{" +
+                "format=" + format +
+                ", data=" + Arrays.toString(data) +
+                '}';
+    }
 }
