@@ -260,6 +260,12 @@ public class WindowManager {
         glfwFocusWindow(window);
     }
 
+    public void changeCursorVisibility(long window, boolean lockCursor, boolean hideCursor) {
+        if (lockCursor) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        if (hideCursor && !lockCursor) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        if (!lockCursor && !hideCursor) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
     /**
      * Closes the currently focused window
      */
