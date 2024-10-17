@@ -80,12 +80,12 @@ public class Mesh {
     /**
      * Initializes this mesh to be rendered. Only needs to be called once
      */
-    public Mesh init() {
+    public void init() {
 
         //Just in case it makes it to this point (it shouldn't)
         if (vertices.length == 0) {
             Log.error("Tried to initialize an empty mesh.");
-            return null;
+            return;
         }
 
         vboIdList = new ArrayList<>();
@@ -137,8 +137,6 @@ public class Mesh {
 
         //Mark this mesh as initialized, so we don't have to do this twice
         initialized = true;
-
-        return this;
     }
 
     /**

@@ -183,7 +183,7 @@ public class Manager {
      * @return a List of entities that match the filter provided
      */
     public Entity getFirstMatchingEntity(ComponentFilter filter) {
-        return filter.filter(activeEntities).get(0);
+        return filter.filter(activeEntities).getFirst();
     }
 
     /**

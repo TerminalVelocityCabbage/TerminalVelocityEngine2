@@ -60,14 +60,11 @@ public class TransformationComponent implements Component {
     }
 
     public Matrix4f getTransformationMatrix() {
+        if (dirty) updateTransformationMatrix();
         return transformationMatrix;
     }
 
     public void updateTransformationMatrix() {
         this.transformationMatrix.translationRotateScale(position, rotation, scale);
-    }
-
-    public boolean isDirty() {
-        return dirty;
     }
 }

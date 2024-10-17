@@ -12,6 +12,7 @@ public class Uniform {
     int uniformLocation;
     int shaderProgramId;
 
+    //TODO add type parameter for type validation later
     public Uniform(String uniformName) {
         this.uniformName = uniformName;
     }
