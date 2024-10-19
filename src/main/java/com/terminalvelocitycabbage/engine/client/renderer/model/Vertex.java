@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import org.joml.Vector3f;
 
 import java.util.Arrays;
 
@@ -55,6 +56,17 @@ public class Vertex {
         data[offset] = r;
         data[offset + 1] = g;
         data[offset + 2] = b;
+        return this;
+    }
+
+    /**
+     * @return This vertex with the updated color data
+     */
+    public Vertex setRGBColor(Vector3f color) {
+        var offset = format.getOffset(VertexAttribute.RGB_COLOR);
+        data[offset] = color.x;
+        data[offset + 1] = color.y;
+        data[offset + 2] = color.z;
         return this;
     }
 

@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.util.touples;
 
 public class Pair<A, B> extends Unit<A> {
 
-    private final B value1;
+    private B value1;
 
     public Pair(A value0, B value1) {
         super(value0);
@@ -11,6 +11,10 @@ public class Pair<A, B> extends Unit<A> {
 
     public B getValue1() {
         return value1;
+    }
+
+    public void setValue1(B value1) {
+        this.value1 = value1;
     }
 
     @Override
