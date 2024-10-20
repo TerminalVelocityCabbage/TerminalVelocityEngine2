@@ -65,7 +65,13 @@ public class Shader {
         glCompileShader(shaderID);
 
         //Make sure it compiled
-        if (glGetShaderi(shaderID, GL_COMPILE_STATUS) == GL_FALSE) Log.crash("Could not compile shader: " + glGetShaderInfoLog(shaderID));
+        if (glGetShaderi(shaderID, GL_COMPILE_STATUS) == GL_FALSE) {
+            String error = glGetShaderInfoLog(shaderID);
+            //Disabled beflow because it's pretty inconsistent with where it actually errors
+//            int lineNum = Integer.parseInt(error.split("\\(")[1].split("\\)")[0]) - 1;
+//            Log.crash("Could not compile shader: " + error + "\n Error on line " + lineNum + ": " + shaderString.split("\n")[lineNum]);
+            Log.crash("Could not compile shader: " + error);
+        }
 
         //Return it to be attached by the program
         return shaderID;

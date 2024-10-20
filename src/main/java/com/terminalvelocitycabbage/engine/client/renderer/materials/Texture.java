@@ -19,6 +19,9 @@ public class Texture {
     int textureID;
     Identifier textureIdentifier;
 
+    int width;
+    int height;
+
     public Texture(Identifier textureIdentifier) {
         this(textureIdentifier, ClientBase.getInstance().getFileSystem().getResource(ResourceCategory.TEXTURE, textureIdentifier));
     }
@@ -37,8 +40,8 @@ public class Texture {
 
             //Assign the attributes of this texture for verification
             assert imageBuffer != null;
-            var width = w.get(0);
-            var height = h.get(0);
+            width = w.get(0);
+            height = h.get(0);
             var components = comp.get(0);
 
             //Textures need to be in a size multiple of 2, so make sure this one is
@@ -94,4 +97,11 @@ public class Texture {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
 }
