@@ -1,5 +1,7 @@
 package com.terminalvelocitycabbage.engine.util;
 
+import org.joml.Vector3i;
+
 public class Flat3DArrayIndexWithLookup {
 
     private int arrayDimension;
@@ -26,12 +28,12 @@ public class Flat3DArrayIndexWithLookup {
         return x * (arrayDimension * arrayDimension) + y * arrayDimension + z;
     }
 
-    public int[] to3DCoordinates(int index) {
-        return new int[]{
+    public Vector3i to3DCoordinates(int index) {
+        return new Vector3i(
                 lookupTable[index * 3],
                 lookupTable[index * 3 + 1],
                 lookupTable[index * 3 + 2]
-        };
+        );
     }
 
 }

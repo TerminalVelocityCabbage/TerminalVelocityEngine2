@@ -54,5 +54,6 @@ public abstract class ResourceSource {
         registerDefaultSourceRoot(ResourceCategory.FONT);
         registerDefaultSourceRoot(ResourceCategory.GENERIC_FILE);
         registerDefaultSourceRoot(ResourceCategory.LOCALIZATION);
+        registerDefaultSourceRoot(ResourceCategory.PROPERTIES);
     }
 }

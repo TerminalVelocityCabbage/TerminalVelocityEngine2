@@ -17,6 +17,7 @@ public record ResourceCategory(String name) {
     public static final ResourceCategory FONT = new ResourceCategory("font");
     public static final ResourceCategory GENERIC_FILE = new ResourceCategory("file");
     public static final ResourceCategory LOCALIZATION = new ResourceCategory("localization");
+    public static final ResourceCategory PROPERTIES = new ResourceCategory("propertie");
 
     /**
      * @param registry the registry to register the default values to
@@ -32,6 +33,7 @@ public record ResourceCategory(String name) {
         registry.register(new Identifier(namespace, "font_category"), FONT);
         registry.register(new Identifier(namespace, "generic_file_category"), GENERIC_FILE);
         registry.register(new Identifier(namespace, "localization_category"), LOCALIZATION);
+        registry.register(new Identifier(namespace, "properties_category"), PROPERTIES);
     }
 
 }
