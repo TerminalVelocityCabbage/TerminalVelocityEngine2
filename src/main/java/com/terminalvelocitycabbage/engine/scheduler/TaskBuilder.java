@@ -97,6 +97,19 @@ public class TaskBuilder {
      * @return this TaskBuilder
      */
     public TaskBuilder then(Task task) {
+        return then(task, null);
+    }
+
+    /**
+     * Allows you to specify another task to be executed after this task, data can be passed between tasks by using the
+     * TaskContext on a task accessible by the tasks' consumer. see {@link TaskContext} for more information.
+     * @param task the task which will be scheduled after this task
+     * @param pool the pool this subsequent task will belong to
+     * @return this TaskBuilder
+     */
+    public TaskBuilder then(Task task, Identifier pool) {
+        if (task == null) return this;
+        task.setPool(pool);
         subsequentTasks.add(task);
         return this;
     }

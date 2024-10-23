@@ -11,6 +11,7 @@ public final class Task {
     private final StampedLock lock = new StampedLock();
     private boolean initialized;
     private final Identifier identifier;
+    private Identifier pool;
     private final Consumer<TaskContext> consumer;
     private volatile boolean remove;
     private final boolean repeat;
@@ -26,6 +27,7 @@ public final class Task {
 
     public Task(Identifier identifier, Consumer<TaskContext> consumer, boolean repeat, long repeatInterval, boolean delay, long delayInMillis, boolean async, List<Task> subsequentTasks) {
         this.identifier = identifier;
+        this.pool = null;
         this.consumer = consumer;
         this.remove = false;
         this.repeat = repeat;
@@ -158,5 +160,13 @@ public final class Task {
 
     public StampedLock getLock() {
         return lock;
+    }
+
+    void setPool(Identifier pool) {
+        this.pool = pool;
+    }
+
+    public Identifier pool() {
+        return pool;
     }
 }

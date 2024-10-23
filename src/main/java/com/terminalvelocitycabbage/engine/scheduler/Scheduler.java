@@ -2,10 +2,9 @@ package com.terminalvelocitycabbage.engine.scheduler;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class Scheduler {
@@ -17,17 +16,67 @@ public class Scheduler {
     private final List<Task> taskList;
     //The list of tasks that need to be removed, empty expect turing task processing
     private final List<Task> toRemove;
+    //A map of all pools, and a pair representing the max number of tasks in this pool and the current number of tasks in that pool
+    private final Map<Identifier, Pair<Integer, Integer>> poolCounts;
 
     public Scheduler() {
         taskList = new ArrayList<>();
         toRemove = new ArrayList<>();
         taskQueue = new ArrayList<>();
+        poolCounts = new HashMap<>();
+    }
+
+    /**
+     * Creates a pool with a limited number of tasks
+     *
+     * @param poolName The name of this pool represented by an identifier
+     * @param maxTasks The maximum number of tasks that can be scheduled in this pool
+     */
+    public void createPool(Identifier poolName, int maxTasks) {
+        poolCounts.put(poolName, new Pair<>(maxTasks, 0));
+    }
+
+    /**
+     * @param poolName The name of this pool represented by an identifier
+     * @return the number of tasks in this pool
+     */
+    public int numTasksInPool(Identifier poolName) {
+        return poolCounts.get(poolName).getValue1();
+    }
+
+    /**
+     * @param poolName The name of this pool represented by an identifier
+     * @return the number of tasks allowed in this pool
+     */
+    public int poolMaxTasks(Identifier poolName) {
+        return poolCounts.get(poolName).getValue0();
+    }
+
+    /**
+     * @param poolName The name of this pool represented by an identifier
+     * @return whether this pool has room
+     */
+    public boolean poolHasRoom(Identifier poolName) {
+        var pool = poolCounts.get(poolName);
+        return pool.getValue1() < pool.getValue0();
+    }
+
+    public void incrementPool(Identifier poolName) {
+        var pool = poolCounts.get(poolName);
+        var currentVal = pool.getValue1();
+        pool.setValue1(currentVal + 1);
+    }
+
+    public void decrementPool(Identifier poolName) {
+        var pool = poolCounts.get(poolName);
+        var currentVal = pool.getValue1();
+        pool.setValue1(currentVal - 1);
     }
 
     /**
      * To be called every game tick, processes all the task queues and processes all tasks.
      */
-    public void tick() {
+    public void update() {
 
         //Add tasks scheduled for execution last tick and reset the queue for this tick
         taskList.addAll(taskQueue);
@@ -38,9 +87,10 @@ public class Scheduler {
             long l = task.getLock().readLock();
             if (task.isSlatedToBeRemoved()) {
                 if (task.hasSubsequentTasks()) {
-                    task.subsequentTasks().forEach((task1) -> scheduleTask(task1, task.context().returnValue()));
+                    task.subsequentTasks().forEach((task1) -> scheduleTask(task1, task1.pool(), task.context().returnValue(), true));
                 }
                 toRemove.add(task);
+                if (task.pool() != null) decrementPool(task.pool());
             }
             task.getLock().unlockRead(l);
         });
@@ -87,11 +137,19 @@ public class Scheduler {
      * @param task the task to be added to the scheduler
      */
     public void scheduleTask(Task task) {
-        if (getTask(task.identifier()).isPresent()) {
-            Log.error("Tried to schedule task of same identifier: " + task.identifier().toString());
-            return;
-        }
-        taskQueue.add(task.init());
+        scheduleTask(task, null, null);
+    }
+
+    /**
+     * Schedules a given task for execution upon this scheduler's tick method being called if the conditions
+     * for execution are met by the executor
+     *
+     * @param task the task to be added to the scheduler
+     * @param poolName what pool this task belongs to
+     * @return if this task was successfully scheduled
+     */
+    public boolean scheduleTask(Task task, Identifier poolName) {
+        return scheduleTask(task, poolName, null);
     }
 
     /**
@@ -101,13 +159,53 @@ public class Scheduler {
      * @param task the task to be added to the scheduler
      * @param previousReturn the return value of the previous run task
      */
-    //TODO Replace adding a reference of the task object with scheduling a class that extends task to disallow adding the same task twice (it will error if this happens, but re-using a task should be allowed)
     private void scheduleTask(Task task, Object previousReturn) {
+        scheduleTask(task, null, previousReturn);
+    }
+
+    /**
+     * Schedules a given task for execution upon this scheduler's tick method being called if the conditions
+     * for execution are met by the executor
+     *
+     * @param task the task to be added to the scheduler
+     * @param poolName what pool this task belongs to
+     * @param previousReturn the return value of the previous run task
+     * @return whether this task was successfully scheduled or not
+     */
+    private boolean scheduleTask(Task task, Identifier poolName, Object previousReturn) {
+        return scheduleTask(task, poolName, previousReturn, false);
+    }
+
+    /**
+     * Schedules a given task for execution upon this scheduler's tick method being called if the conditions
+     * for execution are met by the executor
+     *
+     * @param task the task to be added to the scheduler
+     * @param poolName what pool this task belongs to
+     * @param previousReturn the return value of the previous run task
+     * @param ignoreFullPools whether to add this task to the queue when the specified pool is full or not
+     * @return whether this task was successfully scheduled or not
+     */
+    private boolean scheduleTask(Task task, Identifier poolName, Object previousReturn, boolean ignoreFullPools) {
         if (getTask(task.identifier()).isPresent()) {
             Log.error("Tried to schedule task of same identifier: " + task.identifier().toString());
-            return;
+            return false;
         }
-        taskQueue.add(task.init(previousReturn));
+
+        if (poolName != null) {
+            if (!poolHasRoom(poolName) && !ignoreFullPools) return false;
+            task.setPool(poolName);
+            incrementPool(poolName);
+        }
+
+        //TODO replace adding the task to a list with a map of identifiers to tasks so that task templates can be used and not overwritten by tasks using the same object
+        if (previousReturn == null) {
+            taskQueue.add(task.init());
+        } else {
+            taskQueue.add(task.init(previousReturn));
+        }
+
+        return true;
     }
 
     /**

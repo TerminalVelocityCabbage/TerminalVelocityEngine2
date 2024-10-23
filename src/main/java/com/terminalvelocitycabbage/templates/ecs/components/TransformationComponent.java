@@ -4,6 +4,7 @@ import com.terminalvelocitycabbage.engine.ecs.Component;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
 public class TransformationComponent implements Component {
 
@@ -29,6 +30,12 @@ public class TransformationComponent implements Component {
 
     public TransformationComponent setPosition(float x, float y, float z) {
         this.position.set(x, y, z);
+        dirty = true;
+        return this;
+    }
+
+    public TransformationComponent setPosition(Vector3i position) {
+        this.position.set(position.x, position.y, position.z);
         dirty = true;
         return this;
     }

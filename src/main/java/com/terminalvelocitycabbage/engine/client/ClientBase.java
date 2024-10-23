@@ -163,6 +163,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         while (tickManager.hasTick()) {
             tick();
         }
+        //update the scheduler
+        scheduler.update();
     }
 
     @Override
