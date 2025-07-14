@@ -35,23 +35,4 @@ public class EntityComponentRegistrationEvent extends Event {
     public <T extends Component> void registerComponent(Class<T> componentType, int initialPoolSize) {
         manager.registerComponent(componentType, initialPoolSize);
     }
-
-    /**
-     * Adds a component to the componentTypeSet
-     * @param componentType the class of the component you wish to add to the pool
-     * @param <T> The type of the component, must extend {@link Component}
-     */
-    public <T extends Component> void registerComponent(Class<T> componentType, String... componentTags) {
-        registerComponent(componentType, 0, componentTags);
-    }
-
-    /**
-     * Adds a component to the componentTypeSet
-     * @param componentType the class of the component you wish to add to the pool
-     * @param initialPoolSize The number of empty component to fill this pool with
-     * @param <T> The type of the component, must extend {@link Component}
-     */
-    public <T extends Component> void registerComponent(Class<T> componentType, int initialPoolSize, String... componentTags) {
-        manager.registerComponent(componentType, initialPoolSize, componentTags);
-    }
 }

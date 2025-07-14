@@ -19,6 +19,8 @@ public class Entity implements Poolable {
     private UUID uniqueID;
     //The container of components that defined this entity
     private Map<Class<? extends Component>, Component> components;
+    //Whether this entity is persistent or not
+    boolean persistent;
 
     /**
      * Creates a new entity object, this should not be instantiated on its own but should rather be created with
@@ -26,7 +28,6 @@ public class Entity implements Poolable {
      */
     protected Entity() {
         components = new HashMap<>();
-        uniqueID = UUID.randomUUID();
     }
 
     protected Entity(Manager manager) {
@@ -45,7 +46,7 @@ public class Entity implements Poolable {
         if (containsComponent(componentClass)) {
             Log.warn("Tried to add component " + componentClass.getName() + " to entity with id " + getID() + " which already contains it");
         }
-        components.put(componentClass, manager.obtainComponent(componentClass));
+        components.put(componentClass, manager.obtainComponent(componentClass, this));
         return getComponent(componentClass);
     }
 
@@ -56,17 +57,13 @@ public class Entity implements Poolable {
     }
 
     private void addConfiguredComponent(Component component) {
-        Class<? extends Component> componentClass = component.getClass();
-        if (containsComponent(componentClass)) {
-            Log.warn("Tried to add component " + componentClass.getName() + " to entity with id " + getID() + " which already contains it");
-        }
-        Component obtained = manager.obtainComponent(componentClass);
         try {
+            Class<? extends Component> componentClass = component.getClass();
+            Component obtained = addComponent(componentClass);
             FieldMapper.copy(component, obtained);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        components.put(componentClass, obtained);
     }
 
     /**
@@ -95,28 +92,6 @@ public class Entity implements Poolable {
     }
 
     /**
-     * @param tag the tage you want to get components for
-     * @return a list of component classes that extend the specified class
-     */
-    public List<Class<? extends Component>> getComponentTypesWithTag(String tag) {
-        var taggedComponents = manager.getComponentTypesOf(tag);
-        List<Class<? extends Component>> returnList = new ArrayList<>(components.keySet());
-        returnList.retainAll(taggedComponents);
-        return returnList;
-    }
-
-    /**
-     * @param tag the tage you want to get components for
-     * @return a list of components that extend the specified class
-     */
-    public List<? extends Component> getComponentsWithTag(String tag) {
-        var taggedComponents = manager.getComponentTypesOf(tag);
-        List<Class<? extends Component>> classList = new ArrayList<>(components.keySet());
-        classList.retainAll(taggedComponents);
-        return classList.stream().map(clazz -> components.get(clazz)).toList();
-    }
-
-    /**
      * Tests whether a component exists on this entity
      *
      * @param componentClass The class of the component you want to know if this entity possesses
@@ -136,6 +111,7 @@ public class Entity implements Poolable {
     public <T extends Component> void removeComponent(Class<T> componentClass) {
         getComponent(componentClass).setDefaults();
         manager.componentPool.free(getComponent(componentClass));
+        manager.activeComponents.get(componentClass).remove(this);
         components.remove(componentClass);
     }
 
@@ -145,7 +121,12 @@ public class Entity implements Poolable {
     public void removeAllComponents() {
         //if (manager != null)
         manager.componentPool.free(components);
+        components.forEach((aClass, component) -> manager.activeComponents.get(aClass).remove(this));
         components.clear();
+    }
+
+    public void setID(UUID uniqueID) {
+        this.uniqueID = uniqueID;
     }
 
     /**
@@ -160,6 +141,20 @@ public class Entity implements Poolable {
      */
     public boolean isEmpty() {
         return components.size() == 0;
+    }
+
+    /**
+     * @return If this entity is persistent
+     */
+    public boolean isPersistent() {
+        return persistent;
+    }
+
+    /**
+     * @param persistent whether this entity should be persistent between scene swapping
+     */
+    public void setPersistent(boolean persistent) {
+        this.persistent = persistent;
     }
 
     /**

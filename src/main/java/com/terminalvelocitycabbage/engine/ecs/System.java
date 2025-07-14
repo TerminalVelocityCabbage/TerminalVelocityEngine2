@@ -12,8 +12,8 @@ public abstract class System {
     protected System() { }
 
     /**
-     * @param entities The list of entities that were passed to this system filtered by the Repeater's filter
+     * @param manager The ECS manager
      * @param deltaTime
      */
-    public abstract void update(List<Entity> entities, float deltaTime);
+    public abstract void update(Manager manager, float deltaTime);
 }

@@ -6,7 +6,6 @@ import com.terminalvelocitycabbage.engine.pools.ReflectionPool;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 
 import javax.management.ReflectionException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -15,22 +14,22 @@ import java.util.*;
  */
 public class Manager {
 
-    //The list of created components that can be added to any entity
-    Set<Component> componentTypeSet;
     //The pool of free components
     MultiPool componentPool;
+    //a map of all components and their entities
+    Map<Class<? extends Component>, List<Entity>> activeComponents;
 
     //The pool of free entities
     ReflectionPool<Entity> entityPool;
     //The list of active entities
-    List<Entity> activeEntities;
+    Map<UUID, Entity> activeEntities;
 
     //The list of systems that runs on this manager
     Map<Class<? extends System>, System> systems;
 
     public Manager() {
-        componentTypeSet = new HashSet<>();
-        activeEntities = new ArrayList<>();
+        activeEntities = new HashMap<>();
+        activeComponents = new HashMap<>();
         systems = new HashMap<>();
 
         componentPool = new MultiPool();
@@ -53,12 +52,8 @@ public class Manager {
      * @param <T> The type of the component, must extend {@link Component}
      */
     public <T extends Component> void registerComponent(Class<T> componentType, int initialPoolSize) {
-        try {
-            componentTypeSet.add(componentType.getDeclaredConstructor().newInstance());
-            componentPool.getPool(componentType, true, initialPoolSize);
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            Log.crash("Could not Create Component", new RuntimeException(e));
-        }
+        componentPool.getPool(componentType, true, initialPoolSize);
+        activeComponents.put(componentType, new ArrayList<>());
     }
 
     /**
@@ -67,9 +62,11 @@ public class Manager {
      * @param <T> any component which extends {@link Component}
      * @return a component object from the componentTypeSet of the type requested.
      */
-    public <T extends Component> T obtainComponent(Class<T> type) {
+    public <T extends Component> T obtainComponent(Class<T> type, Entity obtainer) {
         if (!componentPool.hasType(type)) Log.crash("Could not retrieve pool of type " + type.getName() + " has this pool been added?", new RuntimeException("No pool exists of type " + type.getName()));
-        return componentPool.obtain(type);
+        var component = componentPool.obtain(type);
+        activeComponents.get(type).add(obtainer);
+        return component;
     }
 
     /**
@@ -80,7 +77,8 @@ public class Manager {
     public Entity createEntity() {
         Entity entity = entityPool.obtain();
         entity.setManager(this);
-        activeEntities.add(entity);
+        entity.setID(UUID.randomUUID());
+        activeEntities.put(entity.getID(), entity);
         return entity;
     }
 
@@ -93,7 +91,8 @@ public class Manager {
         Entity entity = entityPool.obtain();
         entity.setManager(this);
         entity.copyFrom(template);
-        activeEntities.add(entity);
+        entity.setID(UUID.randomUUID());
+        activeEntities.put(entity.getID(), entity);
         return entity;
     }
 
@@ -103,44 +102,62 @@ public class Manager {
      */
     public void freeEntity(Entity entity) {
         entity.removeAllComponents();
-        activeEntities.remove(entity);
+        activeEntities.remove(entity.getID());
         entityPool.free(entity);
     }
 
     /**
      * @return the list of active entities on this manager
      */
-    public List<Entity> getEntities() {
-        return activeEntities;
+    public Collection<Entity> getEntities() {
+        return activeEntities.values();
     }
 
     /**
-     * Gets all entities that match the provided filter
-     * @param filter the filter for which you want to get matching entities
-     * @return a List of entities that match the filter provided
+     * @param componentTypes a list of component types which an entity returned must have
+     * @return the set of entities which match this selection
      */
-    //TODO implement some sort of cache for common returned lists of entities by component filter and update those lists with the master list for future use
-    public List<Entity> getMatchingEntities(ComponentFilter filter) {
-        if (filter == null) return Collections.emptyList();
-        return filter.filter(activeEntities);
+    @SafeVarargs
+    public final Set<Entity> getEntitiesWith(Class<? extends Component>... componentTypes) {
+
+        for (Class<? extends Component> componentType : componentTypes) {
+            if (!componentPool.hasType(componentType)) Log.crash("No component of type found: " + componentType);
+        }
+
+        List<Set<Entity>> entitySets = new ArrayList<>();
+
+        for (Class<? extends Component> componentType : componentTypes) {
+            List<Entity> entities = activeComponents.get(componentType);
+            if (entities == null) {
+                return Collections.emptySet();
+            }
+            entitySets.add(new HashSet<>(entities));
+        }
+
+        // Sort the sets by their size (smallest first for faster intersection)
+        entitySets.sort(Comparator.comparingInt(Set::size));
+
+        Iterator<Set<Entity>> iterator = entitySets.iterator();
+        if (!iterator.hasNext()) return Collections.emptySet();
+
+        Set<Entity> common = new HashSet<>(iterator.next());
+        while (iterator.hasNext()) {
+            common.retainAll(iterator.next());
+            if (common.isEmpty()) {
+                return Collections.emptySet();
+            }
+        }
+
+        return common;
     }
 
     /**
-     * Gets all entities that match the provided filter
-     * @param filter the filter for which you want to get matching entities
-     * @return a List of entities that match the filter provided
+     * @param componentTypes a list of component types which the entity returned must have
+     * @return the entity which matches this selection
      */
-    public Entity getFirstMatchingEntity(ComponentFilter filter) {
-        return filter.filter(activeEntities).getFirst();
-    }
-
-    /**
-     * @param componentClass the class of the entity you want to retrieve
-     * @param <T> and class that extends component
-     * @return the first matching component to the class you requested
-     */
-    public <T extends Component> T getComponentOfFirstMatchingEntity(Class<T> componentClass) {
-        return getFirstMatchingEntity(ComponentFilter.builder().oneOf(componentClass).build()).getComponent(componentClass);
+    @SafeVarargs
+    public final Entity getFirstEntityWith(Class<? extends Component>... componentTypes) {
+        return getEntitiesWith(componentTypes).iterator().next();
     }
 
     /**
@@ -149,12 +166,8 @@ public class Manager {
      * @param id the UUID of this entity (you can use UUID.fromString() to get this if you only have a string)
      * @return the entity requested or null
      */
-    //TODO add cache for entities often retrieved by UUID, I expect that some entities like windows may be gotten this way often and not via a filter
     public Entity getEntityWithID(UUID id) {
-        for (Entity entity : activeEntities) {
-            if (entity.getID().equals(id)) return entity;
-        }
-        return null;
+        return activeEntities.get(id);
     }
 
     /**
@@ -180,5 +193,14 @@ public class Manager {
      */
     public System getSystem(Class<? extends System> systemClass) {
         return systems.get(systemClass);
+    }
+
+    /**
+     * Frees all entities which should not be persistent between scenes
+     */
+    public void freeNonPersistentEntities() {
+        activeEntities.forEach((uuid, entity) -> {
+            if(!entity.isPersistent()) freeEntity(entity);
+        });
     }
 }

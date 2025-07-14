@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.ecs;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class ComponentFilter {
 
@@ -37,7 +38,7 @@ public class ComponentFilter {
      * @param unsortedEntities the list of unsorted entities that you want to filter with the provided ComponentFilter
      * @return a filtered list of entities that match the provided filter
      */
-    public List<Entity> filter(List<Entity> unsortedEntities) {
+    public List<Entity> filter(Set<Entity> unsortedEntities) {
 
         List<Entity> sortedEntities;
 
