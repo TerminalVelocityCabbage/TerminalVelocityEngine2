@@ -27,6 +27,9 @@ public class Manager {
     //The list of systems that runs on this manager
     Map<Class<? extends System>, System> systems;
 
+    //A cache of recent queries to the manager
+    Map<String, Set<Entity>> entityQueryCache;
+
     public Manager() {
         activeEntities = new HashMap<>();
         activeComponents = new HashMap<>();
@@ -34,6 +37,8 @@ public class Manager {
 
         componentPool = new MultiPool();
         entityPool = new ReflectionPool<>(Entity.class, 0);
+
+        entityQueryCache = new HashMap<>();
     }
 
     /**
@@ -113,6 +118,29 @@ public class Manager {
         return activeEntities.values();
     }
 
+    @SafeVarargs
+    private String generateKeyFromComponentQuery(Class<? extends Component>... componentTypes) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < componentTypes.length; i++) {
+            sb.append(componentTypes[i].getName());
+            if (i < componentTypes.length - 1) {
+                sb.append(",");
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * @param componentType The type of component that was modified on an entity and which will require a new cache generated
+     */
+    protected void invalidateQueryCacheForComponents(Class<? extends Component> componentType) {
+        List<String> keysToRemove = new ArrayList<>();
+        entityQueryCache.keySet().forEach(key -> {
+            if (key.contains(componentType.getName())) keysToRemove.add(key);
+        });
+        keysToRemove.forEach(key -> entityQueryCache.remove(key));
+    }
+
     /**
      * @param componentTypes a list of component types which an entity returned must have
      * @return the set of entities which match this selection
@@ -120,9 +148,14 @@ public class Manager {
     @SafeVarargs
     public final Set<Entity> getEntitiesWith(Class<? extends Component>... componentTypes) {
 
+        //Early exit for unregistered components
         for (Class<? extends Component> componentType : componentTypes) {
             if (!componentPool.hasType(componentType)) Log.crash("No component of type found: " + componentType);
         }
+
+        //check the cache if this query has been made before and is the same as before
+        var queryKey = generateKeyFromComponentQuery(componentTypes);
+        if (entityQueryCache.containsKey(queryKey)) return entityQueryCache.get(queryKey);
 
         List<Set<Entity>> entitySets = new ArrayList<>();
 
@@ -147,6 +180,9 @@ public class Manager {
                 return Collections.emptySet();
             }
         }
+
+        //Cache this query until it is invalidated
+        entityQueryCache.put(queryKey, common);
 
         return common;
     }

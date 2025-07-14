@@ -47,6 +47,7 @@ public class Entity implements Poolable {
             Log.warn("Tried to add component " + componentClass.getName() + " to entity with id " + getID() + " which already contains it");
         }
         components.put(componentClass, manager.obtainComponent(componentClass, this));
+        manager.invalidateQueryCacheForComponents(componentClass);
         return getComponent(componentClass);
     }
 
@@ -113,6 +114,7 @@ public class Entity implements Poolable {
         manager.componentPool.free(getComponent(componentClass));
         manager.activeComponents.get(componentClass).remove(this);
         components.remove(componentClass);
+        manager.invalidateQueryCacheForComponents(componentClass);
     }
 
     /**
@@ -121,7 +123,10 @@ public class Entity implements Poolable {
     public void removeAllComponents() {
         //if (manager != null)
         manager.componentPool.free(components);
-        components.forEach((aClass, component) -> manager.activeComponents.get(aClass).remove(this));
+        components.forEach((aClass, component) -> {
+            manager.activeComponents.get(aClass).remove(this);
+            manager.invalidateQueryCacheForComponents(aClass);
+        });
         components.clear();
     }
 
