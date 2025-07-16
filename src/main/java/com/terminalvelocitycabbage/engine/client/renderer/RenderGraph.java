@@ -27,11 +27,15 @@ public class RenderGraph {
     private final RenderPath renderPath;
     private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
 
-    private RenderGraph(RenderPath.Builder renderPathBuilder) {
+    public RenderGraph(RenderPath.Config renderPathBuilder) {
         this.initialized = false;
-        RenderPath renderPath1 = renderPathBuilder.build(this);
-        this.renderPath = renderPath1;
-        this.graphNodes = renderPath1.getNodes();
+        this.graphNodes = new HashMap<>();
+        this.renderPath = renderPathBuilder.build(this);
+        for (Pair<Toggle, ? extends GraphNode> togglePair : graphNodes.values()) {
+            if (togglePair.getValue1() instanceof NodeRoute route) {
+                route.init(this);
+            }
+        }
     }
 
     public void init(GLCapabilities capabilities) {
@@ -91,13 +95,6 @@ public class RenderGraph {
 
     }
 
-    /**
-     * @return a new instance of {@link RenderPath.Builder} for use in configuring a new Render Graph.
-     */
-    public static RenderPath.Builder builder() {
-        return new RenderPath.Builder();
-    }
-
     public static class RenderPath {
 
         private final RenderGraph renderGraph;
@@ -107,6 +104,10 @@ public class RenderGraph {
             this.renderGraph = graph;
             this.graphNodes = graphNodes;
             graph.addNodes(graphNodes);
+        }
+
+        public static Config builder() {
+            return new Config();
         }
 
         /**
@@ -131,23 +132,19 @@ public class RenderGraph {
             });
         }
 
-        public Map<Identifier, Pair<Toggle, ? extends GraphNode>> getNodes() {
-            return graphNodes;
-        }
-
-        public static class Builder {
+        public static class Config {
 
             private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
 
-            private Builder() {
+            private Config() {
                 graphNodes = new HashMap<>();
             }
 
-            public Builder addRoutineNode(Identifier identifier, Routine routine) {
+            public Config addRoutineNode(Identifier identifier, Routine routine) {
                 return addRoutineNode(identifier, routine, true);
             }
 
-            public Builder addRoutineNode(Identifier identifier, Routine routine, boolean automaticallyEnable) {
+            public Config addRoutineNode(Identifier identifier, Routine routine, boolean automaticallyEnable) {
                 graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), routine));
                 return this;
             }
@@ -158,7 +155,7 @@ public class RenderGraph {
              * @param graphNode the node to be added to this graph
              * @return this Builder (for easy changing of methods)
              */
-            public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> graphNode, ShaderProgramConfig config) {
+            public Config addRenderNode(Identifier identifier, Class<? extends RenderNode> graphNode, ShaderProgramConfig config) {
                 return addRenderNode(identifier, graphNode, config, true);
             }
 
@@ -170,7 +167,7 @@ public class RenderGraph {
              * @param automaticallyEnable a boolean to represent if this node should be enabled or paused on initialization
              * @return this Builder (for easy changing of methods)
              */
-            public Builder addRenderNode(Identifier identifier, Class<? extends RenderNode> renderNode, ShaderProgramConfig config, boolean automaticallyEnable) {
+            public Config addRenderNode(Identifier identifier, Class<? extends RenderNode> renderNode, ShaderProgramConfig config, boolean automaticallyEnable) {
                 try {
                     graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), ClassUtils.createInstance(renderNode, config)));
                 } catch (ReflectionException e) {
@@ -187,7 +184,7 @@ public class RenderGraph {
              * @param backupNode The node progressed to if the predicate is false
              * @return this Builder (for easy changing of methods)
              */
-            public Builder route(Identifier identifier, Predicate<GLCapabilities> capabilitiesPredicate, RenderPath defaultNode, RenderPath backupNode) {
+            public Config route(Identifier identifier, Predicate<GLCapabilities> capabilitiesPredicate, Config defaultNode, Config backupNode) {
                 graphNodes.put(identifier, new Pair<>(new Toggle(true), new NodeRoute(capabilitiesPredicate, defaultNode, backupNode)));
                 return this;
             }
