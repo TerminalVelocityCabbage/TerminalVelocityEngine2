@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.client.window;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -37,7 +38,7 @@ public class WindowThread extends Thread {
     public void run() {
         //make this thread use this context for this new window
         glfwMakeContextCurrent(windowHandle);
-        GL.createCapabilities();
+        GLCapabilities capabilities = GL.createCapabilities();
 
         glEnable(GL_DEPTH_TEST);
 
@@ -47,7 +48,7 @@ public class WindowThread extends Thread {
 
         //Initialize the RenderGraph & scene
         properties.init();
-        ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).init();
+        ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).init(capabilities);
 
         //swap the image in this window with the new one
         long deltaTime;
