@@ -17,14 +17,19 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import javax.management.ReflectionException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
 public class RenderGraph {
 
+    //If this RenderGraph is currently in use
     private boolean initialized;
+    //The GL Capabilities of the render device
     private GLCapabilities capabilities;
+    //The root path for this render graph
     private final RenderPath renderPath;
+    //A list of all graph nodes on the root path or child paths
     private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
 
     public RenderGraph(RenderPath.Config renderPathBuilder) {
@@ -38,6 +43,10 @@ public class RenderGraph {
         }
     }
 
+    /**
+     * initializes this RenderGraph for use. This is called automatically when the window is shown
+     * @param capabilities the gl capabilities of this device
+     */
     public void init(GLCapabilities capabilities) {
         initialized = true;
         this.capabilities = capabilities;
@@ -76,19 +85,14 @@ public class RenderGraph {
         return graphNodes.get(nodeIdentifier).getValue0().getStatus();
     }
 
+    /**
+     * Calls the render method on the root render path which passes it on down the line depending on the conditional routes
+     * @param windowProperties The current snapshot of the calling window's properties
+     * @param deltaTime The time passed since the last frame was started
+     */
     public void render(WindowProperties windowProperties, long deltaTime) {
-
         if (!initialized) Log.error("Tried to render before render graph was initialized");
-
         renderPath.render(windowProperties, deltaTime);
-    }
-
-    private void addNodes(Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes1) {
-        graphNodes.putAll(graphNodes1);
-    }
-
-    public GLCapabilities getCapabilities() {
-        return capabilities;
     }
 
     public void cleanup() {
@@ -103,17 +107,17 @@ public class RenderGraph {
         private RenderPath(RenderGraph graph, Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes) {
             this.renderGraph = graph;
             this.graphNodes = graphNodes;
-            graph.addNodes(graphNodes);
+            graph.graphNodes.putAll(graphNodes);
         }
 
+        /**
+         * @return A new {@link RenderPath.Config} builder which allows you to define the nodes and routes for this path
+         */
         public static Config builder() {
             return new Config();
         }
 
-        /**
-         * @param windowProperties The current snapshot of the calling window's properties
-         * @param deltaTime The time passed since the last frame was started
-         */
+        //Renders this path
         public void render(WindowProperties windowProperties, long deltaTime) {
             graphNodes.forEach((identifier, graphNode) -> {
                 boolean enabled = renderGraph.nodeEnabled(identifier);
@@ -137,13 +141,24 @@ public class RenderGraph {
             private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
 
             private Config() {
-                graphNodes = new HashMap<>();
+                graphNodes = new LinkedHashMap<>();
             }
 
+            /**
+             * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
+             * @param routine the routine to be executed at this stage in the graph
+             * @return this Builder (for easy changing of methods)
+             */
             public Config addRoutineNode(Identifier identifier, Routine routine) {
                 return addRoutineNode(identifier, routine, true);
             }
 
+            /**
+             * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
+             * @param routine the routine to be executed at this stage in the graph
+             * @param automaticallyEnable a boolean to represent if this node should be enabled or paused on initialization
+             * @return this Builder (for easy changing of methods)
+             */
             public Config addRoutineNode(Identifier identifier, Routine routine, boolean automaticallyEnable) {
                 graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), routine));
                 return this;

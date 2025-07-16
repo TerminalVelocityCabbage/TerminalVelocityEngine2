@@ -51,6 +51,10 @@ public non-sealed class NodeRoute implements GraphNode {
         return backupNode;
     }
 
+    /**
+     * Initializes this route for use in a render graph
+     * @param renderGraph The render graph that this route belongs to
+     */
     public void init(RenderGraph renderGraph) {
         mainNode = mainNodeConfig.build(renderGraph);
         backupNode = backupNodeConfig.build(renderGraph);
