@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.engine.pools;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +9,11 @@ import java.util.Map;
 public class MultiPool {
 
     //The list of pools mapped by type
-    private final Map<Class, TypePool> pools = new HashMap<>();
+    private final Map<Class, TypePool> pools;
+
+    public MultiPool() {
+        pools = new HashMap<>();
+    }
 
     /**
      * @param type The type of object that this pool stores
@@ -83,13 +86,6 @@ public class MultiPool {
     public void free(Poolable object) {
         TypePool pool = pools.get(object.getClass());
         pool.free(object);
-    }
-
-    /**
-     * @param objects the objects you with to free from one or many of the pools in pools
-     */
-    public void free(Object... objects) {
-        Arrays.stream(objects).toList().forEach(this::free);
     }
 
     /**

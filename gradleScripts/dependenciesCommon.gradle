@@ -4,6 +4,7 @@ ext {
     jansiVersion = "2.1.0"
     nightConfigVersion = "3.8.0"
     jsemverVersion = "0.10.2"
+    junitVersion = "5.11.0"
 }
 
 dependencies {
@@ -12,4 +13,5 @@ dependencies {
     api "org.joml:joml:${jomlVersion}"
     api "com.electronwill.night-config:toml:${nightConfigVersion}"
     api "com.github.zafarkhaja:java-semver:${jsemverVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
 }

@@ -41,7 +41,7 @@ public class ClassUtils {
 		}
 	}
 
-	public static Constructor getConstructor(Class clazz) throws ReflectionException {
+	public static <T> Constructor<T> getConstructor(Class<T> clazz) throws ReflectionException {
 		try {
 			return clazz.getConstructor();
 		} catch (NoSuchMethodException e) {
@@ -49,7 +49,7 @@ public class ClassUtils {
 		}
 	}
 
-	public static Constructor getDeclaredConstructor(Class clazz) throws ReflectionException {
+	public static <T> Constructor<T> getDeclaredConstructor(Class<T> clazz) throws ReflectionException {
 		try {
 			return clazz.getDeclaredConstructor();
 		} catch (NoSuchMethodException e) {
@@ -57,12 +57,12 @@ public class ClassUtils {
 		}
 	}
 
-	public static Constructor findConstructor(Class clazz) {
+	public static <T> Constructor<T> findConstructor(Class<T> clazz) {
 		try {
 			return getConstructor(clazz);
 		} catch (ReflectionException e) {
 			try {
-				Constructor constructor = getDeclaredConstructor(clazz);
+				Constructor<T> constructor = getDeclaredConstructor(clazz);
 				constructor.setAccessible(true);
 				return constructor;
 			} catch (ReflectionException ex) {
@@ -88,13 +88,13 @@ public class ClassUtils {
 		}
 	}
 
-	public static Set<Class> getClassesFromJarFile(File jarFile) throws IOException, ClassNotFoundException {
+	public static Set<Class<?>> getClassesFromJarFile(File jarFile) throws IOException, ClassNotFoundException {
 		Set<String> classNames = getClassNamesFromJarFile(jarFile);
-		Set<Class> classes = new HashSet<>(classNames.size());
+		Set<Class<?>> classes = new HashSet<>(classNames.size());
 		try (URLClassLoader cl = URLClassLoader.newInstance(
 				new URL[] { new URL("jar:file:" + jarFile + "!/") })) {
 			for (String name : classNames) {
-				Class clazz = cl.loadClass(name); // Load the class by its name
+				Class<?> clazz = cl.loadClass(name); // Load the class by its name
 				classes.add(clazz);
 			}
 		}

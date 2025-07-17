@@ -33,8 +33,7 @@ public abstract class TypePool<T extends Poolable> {
      * @param initialCapacity The number of objects wanted to be initialized in the freeObjects array
      */
     public TypePool(int initialCapacity) {
-        this.freeObjects = new ArrayList<>();
-        maxObjects = Integer.MAX_VALUE;
+        this(initialCapacity, Integer.MAX_VALUE);
     }
 
     /**
@@ -75,7 +74,7 @@ public abstract class TypePool<T extends Poolable> {
      * @return a free object from freeObjects in this pool
      */
     public T obtain() {
-        if (freeObjects.size() == 0) return createObject();
+        if (freeObjects.isEmpty()) return createObject();
         return freeObjects.remove(freeObjects.size() - 1);
     }
 

@@ -157,6 +157,7 @@ public class Manager {
         var queryKey = generateKeyFromComponentQuery(componentTypes);
         if (entityQueryCache.containsKey(queryKey)) return entityQueryCache.get(queryKey);
 
+        //Collect all sets of entities based on the requested components
         List<Set<Entity>> entitySets = new ArrayList<>();
 
         for (Class<? extends Component> componentType : componentTypes) {
@@ -219,7 +220,7 @@ public class Manager {
             systems.put(systemClass, system);
             return system;
         } catch (ReflectionException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getCause());
         }
     }
 

@@ -122,7 +122,7 @@ public class Entity implements Poolable {
      */
     public void removeAllComponents() {
         //if (manager != null)
-        manager.componentPool.free(components);
+        components.forEach((aClass, component) -> manager.componentPool.free(component));
         components.forEach((aClass, component) -> {
             manager.activeComponents.get(aClass).remove(this);
             manager.invalidateQueryCacheForComponents(aClass);

@@ -6,7 +6,7 @@ import java.lang.reflect.Constructor;
 
 public class ReflectionPool<T extends Poolable> extends TypePool<T> {
 
-    Constructor constructor;
+    Constructor<T> constructor;
 
     public ReflectionPool(Class<T> type, int initialCapacity, int maxCapacity) {
         super(initialCapacity, maxCapacity);
@@ -14,13 +14,11 @@ public class ReflectionPool<T extends Poolable> extends TypePool<T> {
     }
 
     public ReflectionPool(Class<T> type, int initialCapacity) {
-        super(initialCapacity);
-        setConstructorOrError(type);
+        this(type, initialCapacity, 0);
     }
 
     public ReflectionPool(Class<T> type) {
-        super();
-        setConstructorOrError(type);
+        this(type, 0);
     }
 
     /**
@@ -39,7 +37,7 @@ public class ReflectionPool<T extends Poolable> extends TypePool<T> {
     @Override
     protected T createObject() {
         try {
-            T object = (T) constructor.newInstance((Object[])null);
+            T object = constructor.newInstance((Object[])null);
             object.setDefaults();
             return object;
         } catch (Exception e) {
