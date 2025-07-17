@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.test.ecs;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.ecs.ComponentFilter;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
@@ -215,5 +216,58 @@ public class ECSTests {
         assertTrue(entity2.containsComponent(PositionComponent.class));
         assertTrue(entity2.containsComponent(VelocityComponent.class));
         assertNotEquals(entity1.getComponent(PositionComponent.class), entity2.getComponent(PositionComponent.class));
+    }
+
+    @Test
+    void relationshipAddQuery() {
+        manager.registerRelationshipType("hates");
+        var entity1 = manager.createEntity();
+        var entity2 = manager.createEntity();
+        manager.addRelationship(entity1, "hates", entity2);
+        var entitiesThatHateEntity2 = manager.getAllEntitiesThat("hates", entity2);
+        assertEquals(entitiesThatHateEntity2.stream().findFirst().get(), entity1);
+        var entitiesThatEntity1Hates = manager.getAllEntitiesThat(entity1, "hates");
+        assertEquals(entitiesThatEntity1Hates.stream().findFirst().get(), entity2);
+    }
+
+    @Test
+    void freeEntityClearsRelationships() {
+        manager.registerRelationshipType("hates");
+        var entity1 = manager.createEntity();
+        var entity2 = manager.createEntity();
+        manager.addRelationship(entity1, "hates", entity2);
+        assertEquals(1, manager.getEntityRelationships().get("hates").size());
+        assertEquals(1, manager.getInverseEntityRelationships().get("hates").size());
+        manager.freeEntity(entity2);
+        assertEquals(0, manager.getEntityRelationships().get("hates").get(entity1).size());
+        assertNull(manager.getInverseEntityRelationships().get("hates").get(entity1));
+    }
+
+    @Test
+    void removeRelationship() {
+        manager.registerRelationshipType("hates");
+        var entity1 = manager.createEntity();
+        var entity2 = manager.createEntity();
+        manager.addRelationship(entity1, "hates", entity2);
+        assertEquals(1, manager.getAllEntitiesThat(entity1, "hates").size());
+        manager.removeRelationship(entity1, "hates", entity2);
+        assertEquals(0, manager.getAllEntitiesThat(entity1, "hates").size());
+    }
+
+    @Test
+    void emptyRelationshipQuery() {
+        manager.registerRelationshipType("hates");
+        var entity1 = manager.createEntity();
+        assertEquals(0, manager.getAllEntitiesThat(entity1, "hates").size());
+    }
+
+    @Test
+    void hasRelationship() {
+        manager.registerRelationshipType("hates");
+        var entity1 = manager.createEntity();
+        var entity2 = manager.createEntity();
+        manager.addRelationship(entity1, "hates", entity2);
+        assertTrue(manager.entityHasRelationship(entity1, "hates", entity2));
+        assertFalse(manager.entityHasRelationship(entity2, "hates", entity1));
     }
 }
