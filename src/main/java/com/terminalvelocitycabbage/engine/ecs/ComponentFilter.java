@@ -126,7 +126,8 @@ public class ComponentFilter {
          * @param requiredComponents the components that you want exactly one of to match
          * @return the current builder
          */
-        public Builder onlyOneOf(Class<? extends Component>... requiredComponents) {
+        @SafeVarargs
+        public final Builder onlyOneOf(Class<? extends Component>... requiredComponents) {
             return this.onlyOneOf(Set.of(requiredComponents));
         }
 
@@ -137,7 +138,7 @@ public class ComponentFilter {
          * @param requiredComponents the components that you want exactly one of to match
          * @return the current builder
          */
-        public Builder onlyOneOf(Set<Class<? extends Component>> requiredComponents) {
+        public final Builder onlyOneOf(Set<Class<? extends Component>> requiredComponents) {
             this.requiredOnlyOneOfComponents.add(requiredComponents);
             return this;
         }
@@ -149,7 +150,8 @@ public class ComponentFilter {
          * @param requiredComponents the components you want at least one of to match
          * @return the current builder
          */
-        public Builder anyOf(Class<? extends Component>... requiredComponents) {
+        @SafeVarargs
+        public final Builder anyOf(Class<? extends Component>... requiredComponents) {
             return this.anyOf(Set.of(requiredComponents));
         }
 
@@ -160,7 +162,7 @@ public class ComponentFilter {
          * @param requiredComponents the components you want at least one of to match
          * @return the current builder
          */
-        private Builder anyOf(Set<Class<? extends Component>> requiredComponents) {
+        private final Builder anyOf(Set<Class<? extends Component>> requiredComponents) {
             this.requiredAnyOfComponents.add(requiredComponents);
             return this;
         }
@@ -172,7 +174,8 @@ public class ComponentFilter {
          * @param requiredComponents the components that must all exist to match
          * @return the current builder
          */
-        public Builder allOf(Class<? extends Component>... requiredComponents) {
+        @SafeVarargs
+        public final Builder allOf(Class<? extends Component>... requiredComponents) {
             this.requiredAllOfComponents.addAll(Set.of(requiredComponents));
             return this;
         }
@@ -184,7 +187,8 @@ public class ComponentFilter {
          * @param excludedComponents the components you want none of to match
          * @return the current builder
          */
-        public Builder excludes(Class<? extends Component>... excludedComponents) {
+        @SafeVarargs
+        public final Builder excludes(Class<? extends Component>... excludedComponents) {
             this.excludedComponents.addAll(Set.of(excludedComponents));
             return this;
         }
@@ -194,7 +198,7 @@ public class ComponentFilter {
          *
          * @return a new ComponentFilter instance based on this builder's match requirements
          */
-        public ComponentFilter build() {
+        public final ComponentFilter build() {
             return new ComponentFilter(
                     excludedComponents,
                     requiredAllOfComponents,

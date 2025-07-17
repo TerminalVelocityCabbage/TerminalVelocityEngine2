@@ -78,14 +78,14 @@ public class ECSTests {
     }
 
     @Test
-    void testCreateRemoveEntity() {
+    void createRemoveEntity() {
         var entity = manager.createEntity();
         manager.freeEntity(entity);
         assertFalse(manager.getEntities().contains(entity));
     }
 
     @Test
-    void testAddComponent() {
+    void addComponent() {
         manager.registerComponent(PositionComponent.class);
         var entity = manager.createEntity();
         entity.addComponent(PositionComponent.class);
@@ -93,7 +93,7 @@ public class ECSTests {
     }
 
     @Test
-    void testRemoveComponent() {
+    void removeComponent() {
         manager.registerComponent(PositionComponent.class);
         var entity = manager.createEntity();
         entity.addComponent(PositionComponent.class);
@@ -102,7 +102,7 @@ public class ECSTests {
     }
 
     @Test
-    void testGetEntitiesSingle() {
+    void getEntitiesSingle() {
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         var entity1 = manager.createEntity();
@@ -115,7 +115,7 @@ public class ECSTests {
     }
 
     @Test
-    void testGetEntitiesMulti() {
+    void getEntitiesMulti() {
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         var entity1 = manager.createEntity();
@@ -128,7 +128,7 @@ public class ECSTests {
     }
 
     @Test
-    void testGetEntitiesFiltered() {
+    void getEntitiesFiltered() {
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         manager.registerComponent(BadComponent.class);
@@ -185,5 +185,35 @@ public class ECSTests {
         var id1 = manager.createEntity().getID();
         var id2 = manager.createEntity().getID();
         assertNotEquals(id1, id2);
+    }
+
+    @Test
+    void testFreePersistentEntities() {
+        manager.registerComponent(PositionComponent.class);
+        var entity1 = manager.createEntity();
+        entity1.addComponent(PositionComponent.class);
+        var entity2 = manager.createEntity();
+        entity2.addComponent(PositionComponent.class);
+        entity2.setPersistent(true);
+        assertEquals(2, manager.getEntities().size());
+        manager.freeNonPersistentEntities();
+        assertEquals(1, manager.getEntities().size());
+        manager.freeEntity(entity2);
+        assertEquals(0, manager.getEntities().size());
+    }
+
+    @Test
+    void createEntitiesFromTemplate() {
+        manager.registerComponent(PositionComponent.class);
+        manager.registerComponent(VelocityComponent.class);
+        var entity1 = manager.createEntity();
+        entity1.addComponent(PositionComponent.class);
+        entity1.getComponent(PositionComponent.class).setPosition(new Vector3f(0, 1, 0));
+        entity1.addComponent(VelocityComponent.class);
+        var entity2 = manager.createEntity(entity1);
+        assertNotEquals(entity1, entity2);
+        assertTrue(entity2.containsComponent(PositionComponent.class));
+        assertTrue(entity2.containsComponent(VelocityComponent.class));
+        assertNotEquals(entity1.getComponent(PositionComponent.class), entity2.getComponent(PositionComponent.class));
     }
 }

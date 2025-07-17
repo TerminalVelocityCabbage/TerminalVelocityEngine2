@@ -190,7 +190,7 @@ public class Manager {
 
     /**
      * @param componentTypes a list of component types which the entity returned must have
-     * @return the entity which matches this selection
+     * @return an entity which matches this selection
      */
     @SafeVarargs
     public final Entity getFirstEntityWith(Class<? extends Component>... componentTypes) {
@@ -236,8 +236,10 @@ public class Manager {
      * Frees all entities which should not be persistent between scenes
      */
     public void freeNonPersistentEntities() {
-        activeEntities.forEach((uuid, entity) -> {
-            if(!entity.isPersistent()) freeEntity(entity);
-        });
+        Set<Entity> entitiesToFree = new HashSet<>();
+        for (Entity entity : activeEntities.values()) {
+            if (!entity.isPersistent()) entitiesToFree.add(entity);
+        }
+        entitiesToFree.forEach(this::freeEntity);
     }
 }
