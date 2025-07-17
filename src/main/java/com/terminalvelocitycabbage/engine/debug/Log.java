@@ -6,18 +6,25 @@ import com.terminalvelocitycabbage.engine.server.ServerBase;
 public class Log {
 
 	static LoggerSource source;
+	static boolean warnedUser = false;
 
 	private static boolean testAndFallback(String toPrint) {
 		boolean cont = true;
 		var clientBase = ClientBase.getInstance();
 		var serverBase = ServerBase.getInstance();
 		if (clientBase == null && serverBase == null) {
-			System.out.println("[Logger] Printing with system out instead of with logger since sided entrypoint instance is null");
+			if (!warnedUser) {
+				System.out.println("[Logger] Printing with system out instead of with logger since sided entrypoint instance is null");
+				warnedUser = true;
+			}
 			cont = false;
 		}
 		source = clientBase == null ? serverBase : clientBase;
 		if (cont && source.getLogger() == null) {
-			System.out.println("[Logger] Printing with system out instead of with logger since logger instance is null");
+			if (!warnedUser) {
+				System.out.println("[Logger] Printing with system out instead of with logger since sided entrypoint instance is null");
+				warnedUser = true;
+			}
 			cont = false;
 		}
 		if (!cont) {
