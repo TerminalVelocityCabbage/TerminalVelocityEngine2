@@ -5,6 +5,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgram;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
+import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 
 /**
  * A node for an {@link RenderGraph}, specifically for executing code that draws to the screen.
@@ -24,9 +25,10 @@ public abstract non-sealed class RenderNode implements GraphNode {
      *
      * @param scene The scene that this stage is rendering
      * @param properties The properties of the currently rendered to window
+     * @param renderConfig This render graphs render config
      * @param deltaTime The time since the last render operation
      */
-    public void executeRenderStage(Scene scene, WindowProperties properties, long deltaTime) {
+    public void executeRenderStage(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
 
         //Wipe the current shader program for re-compilation
         if (recompileShaders) {
@@ -40,7 +42,7 @@ public abstract non-sealed class RenderNode implements GraphNode {
             recompileShaders = false;
         }
 
-        execute(scene, properties, deltaTime);
+        execute(scene, properties, renderConfig, deltaTime);
     }
 
     /**
@@ -48,9 +50,10 @@ public abstract non-sealed class RenderNode implements GraphNode {
      *
      * @param scene The scene that this stage is rendering
      * @param properties The properties of the currently rendered to window
+     * @param renderConfig This render graphs render config
      * @param deltaTime The time since the last render operation
      */
-    public abstract void execute(Scene scene, WindowProperties properties, long deltaTime);
+    public abstract void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime);
 
     /**
      * Marks the shaders of this node to be recompiled at the start of the next render stage

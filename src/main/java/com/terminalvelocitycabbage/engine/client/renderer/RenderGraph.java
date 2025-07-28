@@ -10,6 +10,7 @@ import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
+import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 import com.terminalvelocitycabbage.engine.util.Toggle;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
 import com.terminalvelocitycabbage.templates.events.RenderGraphStageExecutionEvent;
@@ -31,9 +32,12 @@ public class RenderGraph {
     private final RenderPath renderPath;
     //A list of all graph nodes on the root path or child paths
     private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
+    //A map of configurable values for use in this render graph
+    private final HeterogeneousMap renderConfig;
 
     public RenderGraph(RenderPath.Config renderPathBuilder) {
         this.initialized = false;
+        this.renderConfig = new HeterogeneousMap();
         this.graphNodes = new HashMap<>();
         this.renderPath = renderPathBuilder.build(this);
         for (Pair<Toggle, ? extends GraphNode> togglePair : graphNodes.values()) {
@@ -99,6 +103,10 @@ public class RenderGraph {
 
     }
 
+    public HeterogeneousMap getRenderConfig() {
+        return renderConfig;
+    }
+
     public static class RenderPath {
 
         private final RenderGraph renderGraph;
@@ -127,7 +135,7 @@ public class RenderGraph {
                 if (enabled && graphNode != null) {
                     switch (graphNode.getValue1()) {
                         case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher()); //We assume that the server is not rendering anything
-                        case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, deltaTime);
+                        case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, renderGraph.getRenderConfig(), deltaTime);
                         case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities).render(windowProperties, deltaTime);
                     }
                 }
@@ -139,9 +147,11 @@ public class RenderGraph {
         public static class Config {
 
             private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
+            private final HeterogeneousMap renderConfig;
 
             private Config() {
                 graphNodes = new LinkedHashMap<>();
+                renderConfig = new HeterogeneousMap();
             }
 
             /**
@@ -208,9 +218,20 @@ public class RenderGraph {
              * @return A new {@link RenderGraph} instance generated from this builder.
              */
             public RenderPath build(RenderGraph renderGraph) {
+                renderGraph.getRenderConfig().addAll(renderConfig);
                 return new RenderPath(renderGraph, graphNodes);
             }
 
+            /**
+             * @param configKey The {@link HeterogeneousMap.Key} key of ths associated config value for this graph
+             * @param configValue The value associated with this config value
+             * @param <T> The type of this config value
+             * @return this Builder (for easy chaining of methods)
+             */
+            public <T> Config configure(HeterogeneousMap.Key<T> configKey, T configValue) {
+                renderConfig.set(configKey, configValue);
+                return this;
+            }
         }
     }
 
