@@ -7,9 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This is a temporary cache that stores all textures that a game uses until we migrate to using a texture array so
+ * This is a cache that stores all textures that a game uses until we migrate to using a texture array so
  * all textures are at the ready
  */
+//TODO add atlases to this cache and some utility methods to get UV from model and transform it into either basic texture uvs or atlas uvs
 public class TextureCache {
 
     //The list of textures that this cache holds
