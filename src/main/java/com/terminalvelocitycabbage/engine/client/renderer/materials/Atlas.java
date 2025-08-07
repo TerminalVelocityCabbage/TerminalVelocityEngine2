@@ -7,10 +7,10 @@ import com.terminalvelocitycabbage.engine.util.MathUtils;
 import com.terminalvelocitycabbage.engine.util.touples.Triplet;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import org.lwjgl.system.MemoryUtil;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.nio.ByteBuffer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Atlas extends SingleTexture {
@@ -23,29 +23,100 @@ public class Atlas extends SingleTexture {
         //Early exit for empty resources
         if (textureResources.isEmpty()) Log.crash("Cannot create atlas with no textures");
 
-        //Generate texture data from resources for each texture and validate it is compatible with the texture atlas
-        Map<Identifier, Data> unsortedTextureData = new HashMap<>();
-        textureResources.forEach((textureIdentifier, textureResource) -> {
-            //Get this texture's data
-            var textureData = Data.fromResource(textureIdentifier, textureResource);
-            //Verify all textures are square and power of 2
-            if (textureData.width() != textureData.height()) Log.crash("Texture " + textureIdentifier + " is not square, cannot create atlas");
-            if (!MathUtils.isPowerOfTwo(textureData.width())) Log.crash("Texture " + textureIdentifier + " is not a power of 2, cannot create atlas");
-            //Add it to the list of textures to be added to this atlas
-            unsortedTextureData.put(textureIdentifier, textureData);
-        });
+        //Generates all texture data into temporary data objects for use later
+        Map<Identifier, Data> sortedTextureData = loadTextureData(textureResources);
+        //Determines the size of the atlas from the texture data
+        Vector2i atlasDimensions = getAtlasDimension(sortedTextureData);
 
-        //Sort Texture data by texture size, so it's simpler to insert it into the atlas
-        Map<Identifier, Data> sortedTextureData = unsortedTextureData.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByValue())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (oldValue, newValue) -> oldValue,
-                        LinkedHashMap::new
-                ));
+        //Start generating the atlas
+        Map<Identifier, Vector2i> texturePositionsInAtlas = getTexturePositionsInAtlas(sortedTextureData, atlasDimensions.x, atlasDimensions.y);
+        ByteBuffer atlasImageBuffer = MemoryUtil.memAlloc(atlasDimensions.x * atlasDimensions.y * 4);
+        for (Map.Entry<Identifier, Vector2i> identifierVector2iEntry : texturePositionsInAtlas.entrySet()) {
+            var textureIdentifier = identifierVector2iEntry.getKey();
+            var texturePositionInAtlas = identifierVector2iEntry.getValue();
+            var textureData = sortedTextureData.get(textureIdentifier);
+            insertSubImage(atlasImageBuffer, atlasDimensions, textureData, texturePositionInAtlas);
+            textureData.free();
+        }
 
+        //Set this Atlas' info
+        this.width = atlasDimensions.x;
+        this.height = atlasDimensions.y;
+        generateOpenGLTexture(atlasDimensions.x, atlasDimensions.y, 4, atlasImageBuffer);
+
+        //Cleanup
+        MemoryUtil.memFree(atlasImageBuffer);
+    }
+
+    /**
+     * Inserts a subImage into the atlas using fast memCopy.
+     */
+    private static void insertSubImage(ByteBuffer atlas, Vector2i atlasDimensions, Data subImage, Vector2i dest) {
+
+        long atlasBaseAddr = MemoryUtil.memAddress(atlas);
+        long subImageBaseAddr = MemoryUtil.memAddress(subImage.imageBuffer());
+
+        for (int row = 0; row < subImage.height(); row++) {
+            int destRow = dest.y() + row;
+            if (destRow >= atlasDimensions.y() || dest.x() + subImage.width() > atlasDimensions.x()) continue;
+
+            long destOffset = ((long) destRow * atlasDimensions.x() + dest.x()) * 4;
+            long srcOffset = ((long) row * subImage.width()) * 4;
+
+            MemoryUtil.memCopy(
+                    subImageBaseAddr + srcOffset,
+                    atlasBaseAddr + destOffset,
+                    subImage.width() * 4
+            );
+        }
+    }
+
+    private static Map<Identifier, Vector2i> getTexturePositionsInAtlas(Map<Identifier, Data> dataMap, int atlasWidth, int atlasHeight) {
+
+        int currentX = 0;
+        int currentY = 0;
+
+        boolean[][] used = new boolean[atlasHeight][atlasWidth];
+        Map<Identifier, Vector2i> texturePositionsInAtlas = new HashMap<>();
+
+        List<Identifier> reverseKeys = new ArrayList<>(dataMap.keySet());
+        Collections.reverse(reverseKeys);
+        for (Identifier textureIdentifier : reverseKeys) {
+            var data = dataMap.get(textureIdentifier);
+
+            if (data.width() + currentX > atlasWidth) {
+                currentY += data.height();
+                for (int i = 0; i < atlasWidth; i++) {
+                    if (!used[i][currentY]) {
+                        currentX = i;
+                        break;
+                    }
+                }
+            }
+            if (data.width() + currentX <= atlasWidth) {
+                texturePositionsInAtlas.put(textureIdentifier, new Vector2i(currentX, currentY));
+                markUsed(used, currentX, currentY, data.width());
+                currentX += data.width();
+            }
+        }
+
+        if (dataMap.size() != texturePositionsInAtlas.size()) Log.crash("Failed to pack all textures into atlas, not all textures were added");
+
+        return texturePositionsInAtlas;
+    }
+
+    /**
+     * Marks a square block of size as used starting at (x, y)
+     */
+    private static void markUsed(boolean[][] used, int x, int y, int size) {
+        for (int dy = 0; dy < size; dy++) {
+            for (int dx = 0; dx < size; dx++) {
+                used[y + dy][x + dx] = true;
+            }
+        }
+    }
+
+    private static Vector2i getAtlasDimension(Map<Identifier, Data> sortedTextureData) {
         /*
         To generate a tightly packed atlas, we need to know how big it needs to be first, To do this, we will figure out
         how many of the smallest texture there are and divide that by 4 and round up. We will do this for each power of
@@ -78,10 +149,37 @@ public class Atlas extends SingleTexture {
 
         //Determine size of atlas
         Vector2i maxTextureSizeAtlasDimensions = MathUtils.findMostSquareDimensions(numMaxSizeTextures);
-        Vector2i atlasDimensions = new Vector2i(maxTextureSizeAtlasDimensions.x * maxSize, maxTextureSizeAtlasDimensions.y * maxSize);
+        return new Vector2i(maxTextureSizeAtlasDimensions.x * maxSize, maxTextureSizeAtlasDimensions.y * maxSize);
+    }
 
-        //TODO Generate Atlas here
+    /**
+     * @param textureResources The texture resources that this atlas is going to be comprised of
+     * @return A list of these resource identifiers and the loaded associated data in order of smallest to largest sizes
+     */
+    private static Map<Identifier, Data> loadTextureData(Map<Identifier, Resource> textureResources) {
+        //Generate texture data from resources for each texture and validate it is compatible with the texture atlas
+        Map<Identifier, Data> unsortedTextureData = new HashMap<>();
+        textureResources.forEach((textureIdentifier, textureResource) -> {
+            //Get this texture's data
+            var textureData = Data.fromResource(textureIdentifier, textureResource);
+            //Verify all textures are square and power of 2
+            if (textureData.width() != textureData.height()) Log.crash("Texture " + textureIdentifier + " is not square, cannot create atlas");
+            if (!MathUtils.isPowerOfTwo(textureData.width())) Log.crash("Texture " + textureIdentifier + " is not a power of 2, cannot create atlas");
+            //Add it to the list of textures to be added to this atlas
+            unsortedTextureData.put(textureIdentifier, textureData);
+        });
 
+        //Sort Texture data by texture size, so it's simpler to insert it into the atlas
+        Map<Identifier, Data> sortedTextureData = unsortedTextureData.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (oldValue, newValue) -> oldValue,
+                        LinkedHashMap::new
+                ));
+        return sortedTextureData;
     }
 
     @Override
