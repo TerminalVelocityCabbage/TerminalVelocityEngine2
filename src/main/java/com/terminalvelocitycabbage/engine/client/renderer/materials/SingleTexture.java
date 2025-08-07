@@ -78,14 +78,14 @@ public abstract class SingleTexture {
     /**
      * Binds this texture for rendering
      */
-    void bind() {
+    public void bind() {
         glBindTexture(GL_TEXTURE_2D, getTextureID());
     }
 
     /**
      * deletes this texture from opengl when we're done with it
      */
-    void cleanup() {
+    public void cleanup() {
         glDeleteTextures(getTextureID());
     }
 

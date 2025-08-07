@@ -3,12 +3,14 @@ package com.terminalvelocitycabbage.engine.client.renderer.materials;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.util.ImageUtils;
 import com.terminalvelocitycabbage.engine.util.MathUtils;
 import com.terminalvelocitycabbage.engine.util.touples.Triplet;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +24,16 @@ public class Atlas extends SingleTexture {
 
         //Early exit for empty resources
         if (textureResources.isEmpty()) Log.crash("Cannot create atlas with no textures");
+
+        //Early exit for single texture atlases
+        if (textureResources.size() == 1) {
+            Log.warn("Only one texture in atlas, using that texture directly instead of creating an atlas for it");
+            var entry = textureResources.entrySet().iterator().next();
+            var textureData = Data.fromResource(entry.getKey(), entry.getValue());
+            generateOpenGLTexture(textureData.width(), textureData.height(), textureData.components(), textureData.imageBuffer());
+            textureData.free();
+            return;
+        }
 
         //Generates all texture data into temporary data objects for use later
         Map<Identifier, Data> sortedTextureData = loadTextureData(textureResources);
@@ -43,6 +55,9 @@ public class Atlas extends SingleTexture {
         this.width = atlasDimensions.x;
         this.height = atlasDimensions.y;
         generateOpenGLTexture(atlasDimensions.x, atlasDimensions.y, 4, atlasImageBuffer);
+
+        //Test
+        ImageUtils.saveRGBAtoPNG(atlasImageBuffer, atlasDimensions.x, atlasDimensions.y, new File("atlas.png"));
 
         //Cleanup
         MemoryUtil.memFree(atlasImageBuffer);
@@ -126,6 +141,7 @@ public class Atlas extends SingleTexture {
 
         //Get min texture size in this atlas
         int minSize = sortedTextureData.values().iterator().next().width();
+        Log.info(minSize);
         int maxSize = 0;
         //Get max texture size in this atlas
         for (Data data : sortedTextureData.values()) {
@@ -139,7 +155,9 @@ public class Atlas extends SingleTexture {
         }
 
         //Count each single texture size being added to this map
-        sortedTextureData.values().forEach(data -> sizeCounts.put(data.width(), sizeCounts.get(data.width()) + 1));
+        for (Data data : sortedTextureData.values()) {
+            sizeCounts.put(data.width(), sizeCounts.get(data.width()) + 1);
+        }
 
         //Get the number of max-sized textures that this atlas needs
         int numMaxSizeTextures = 0;
