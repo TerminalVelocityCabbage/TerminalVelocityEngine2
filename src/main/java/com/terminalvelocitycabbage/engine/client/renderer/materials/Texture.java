@@ -55,7 +55,7 @@ public abstract class Texture {
         }
     }
 
-    int generateOpenGLTexture(int width, int height, int components, ByteBuffer imageBuffer) {
+    void generateOpenGLTexture(int width, int height, int components, ByteBuffer imageBuffer) {
         //get the location that this texture will be bound to
         int textureID = glGenTextures();
 
@@ -72,7 +72,7 @@ public abstract class Texture {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        return textureID;
+        this.textureID = textureID;
     }
 
     /**
