@@ -3,7 +3,11 @@ package com.terminalvelocitycabbage.engine.ecs;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.pools.MultiPool;
 import com.terminalvelocitycabbage.engine.pools.ReflectionPool;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.registry.Registry;
+import com.terminalvelocitycabbage.engine.registry.RegistryPair;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
+import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
 import javax.management.ReflectionException;
 import java.util.*;
@@ -23,6 +27,8 @@ public class Manager {
     ReflectionPool<Entity> entityPool;
     //The list of active entities
     Map<UUID, Entity> activeEntities;
+    //The list of entity Templates
+    Registry<Pair<Entity, EntityTemplateCreationCallback>> entityTemplates;
 
     //The list of systems that runs on this manager
     Map<Class<? extends System>, System> systems;
@@ -35,6 +41,8 @@ public class Manager {
     Map<String, Map<Entity, Set<Entity>>> inverseEntityRelationships;
 
     public Manager() {
+        entityTemplates = new Registry<>();
+
         activeEntities = new HashMap<>();
         activeComponents = new HashMap<>();
         systems = new HashMap<>();
@@ -82,6 +90,24 @@ public class Manager {
     }
 
     /**
+     * Creates a template entity without adding it to the active entities, so you can create entities from this template
+     * @param identifier The identifier of the entity template for use in creating future entities
+     * @param callback A callback that gives you access to the entity to add components or whatever else this template needs
+     * @return A registry pair of this entity and it's identifier
+     */
+    public RegistryPair<Pair<Entity, EntityTemplateCreationCallback>> createEntityTemplate(Identifier identifier, EntityTemplateCreationCallback callback) {
+        return entityTemplates.register(identifier, new Pair<>(new Entity(this), callback));
+    }
+
+    /**
+     * @param identifier The entity template identifier
+     * @return The entity with this template
+     */
+    private Pair<Entity, EntityTemplateCreationCallback> getTemplateEntity(Identifier identifier) {
+        return entityTemplates.get(identifier);
+    }
+
+    /**
      * creates a new entity and adds it to the active entities list for modification later
      *
      * @return the newly created entity
@@ -99,12 +125,23 @@ public class Manager {
      *
      * @return the newly created entity
      */
-    public Entity createEntity(Entity template) {
+    public Entity duplicateEntity(Entity template) {
         Entity entity = entityPool.obtain();
         entity.setManager(this);
         entity.copyFrom(template);
         entity.setID(UUID.randomUUID());
         activeEntities.put(entity.getID(), entity);
+        return entity;
+    }
+
+    /**
+     * creates a new entity and adds it to the active entities list for modification later
+     *
+     * @return the newly created entity
+     */
+    public Entity createEntityFromTemplate(Identifier template) {
+        var entity = createEntity();
+        getTemplateEntity(template).getValue1().copyComponents(entity);
         return entity;
     }
 
@@ -346,5 +383,9 @@ public class Manager {
      */
     public Map<String, Map<Entity, Set<Entity>>> getInverseEntityRelationships() {
         return Collections.unmodifiableMap(inverseEntityRelationships);
+    }
+
+    public interface EntityTemplateCreationCallback {
+        void copyComponents(Entity entity);
     }
 }

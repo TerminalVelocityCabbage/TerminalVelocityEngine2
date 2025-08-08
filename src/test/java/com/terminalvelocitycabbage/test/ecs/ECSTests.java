@@ -1,10 +1,10 @@
 package com.terminalvelocitycabbage.test.ecs;
 
-import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.ecs.ComponentFilter;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,11 +43,11 @@ public class ECSTests {
             position = new Vector3f();
         }
 
-        public Vector3f getPosition() {
+        public Vector3f getVelocity() {
             return position;
         }
 
-        public void setPosition(Vector3f position) {
+        public void setVelocity(Vector3f position) {
             this.position = position;
         }
     }
@@ -204,14 +204,37 @@ public class ECSTests {
     }
 
     @Test
-    void createEntitiesFromTemplate() {
+    void createEntityFromTemplate() {
+        manager.registerComponent(PositionComponent.class);
+        manager.registerComponent(VelocityComponent.class);
+        var templateIdentifier = new Identifier("test", "template");
+        var entityTemplate = manager.createEntityTemplate(templateIdentifier, entity -> {
+            entity.addComponent(PositionComponent.class);
+            entity.getComponent(PositionComponent.class).setPosition(new Vector3f(0, 1, 0));
+            entity.addComponent(VelocityComponent.class);
+        });
+        var entity1 = manager.createEntityFromTemplate(templateIdentifier);
+        var entity2 = manager.createEntityFromTemplate(templateIdentifier);
+        assertNotEquals(entity1, entity2);
+        assertTrue(entity1.containsComponent(PositionComponent.class));
+        assertTrue(entity1.containsComponent(VelocityComponent.class));
+        assertTrue(entity2.containsComponent(PositionComponent.class));
+        assertTrue(entity2.containsComponent(VelocityComponent.class));
+        assertNotEquals(entity1.getComponent(PositionComponent.class), entity2.getComponent(PositionComponent.class));
+        assertNotEquals(entity1.getComponent(PositionComponent.class), entity2.getComponent(PositionComponent.class));
+        assertEquals(entity1.getComponent(PositionComponent.class).getPosition(), entity2.getComponent(PositionComponent.class).getPosition());
+        assertEquals(entity1.getComponent(VelocityComponent.class).getVelocity(), entity2.getComponent(VelocityComponent.class).getVelocity());
+    }
+
+    @Test
+    void createEntityFromAnotherEntity() {
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         var entity1 = manager.createEntity();
         entity1.addComponent(PositionComponent.class);
         entity1.getComponent(PositionComponent.class).setPosition(new Vector3f(0, 1, 0));
         entity1.addComponent(VelocityComponent.class);
-        var entity2 = manager.createEntity(entity1);
+        var entity2 = manager.duplicateEntity(entity1);
         assertNotEquals(entity1, entity2);
         assertTrue(entity2.containsComponent(PositionComponent.class));
         assertTrue(entity2.containsComponent(VelocityComponent.class));

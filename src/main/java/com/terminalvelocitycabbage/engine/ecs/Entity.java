@@ -4,7 +4,9 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.pools.Poolable;
 import com.terminalvelocitycabbage.engine.util.FieldMapper;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * An entity is meant to be a container for components, provided is a Collection for your components
@@ -169,5 +171,15 @@ public class Entity implements Poolable {
     @Override
     public void setDefaults() {
         uniqueID = UUID.randomUUID();
+    }
+
+    @Override
+    public String toString() {
+        return "Entity{" +
+                "manager=" + manager +
+                ", uniqueID=" + uniqueID +
+                ", components=" + components +
+                ", persistent=" + persistent +
+                '}';
     }
 }
