@@ -13,7 +13,7 @@ public class SingleTexture extends Texture {
 
     public SingleTexture(Identifier textureIdentifier, Resource textureResource) {
         var textureData = Data.fromResource(textureIdentifier, textureResource);
-        generateOpenGLTexture(textureData.width(), textureData.height(), textureData.components(), textureData.imageBuffer());
+        generateOpenGLTexture(textureData);
         textureData.free();
     }
 }

@@ -30,6 +30,12 @@ public abstract class Scene {
     public abstract void init();
 
     /**
+     * An opportunity for the player to create a texture cache for the textures needed in this scene
+     * @return A texture cache for this scene
+     */
+    public abstract TextureCache createTextureCache();
+
+    /**
      * This method is called when this scene is replaced with another scene or when the game closes (if this is the
      * active scene when this takes place)
      */

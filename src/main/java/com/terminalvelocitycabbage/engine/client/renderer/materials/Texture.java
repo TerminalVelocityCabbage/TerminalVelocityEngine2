@@ -55,6 +55,10 @@ public abstract class Texture {
         }
     }
 
+    void generateOpenGLTexture(Data data) {
+        generateOpenGLTexture(data.width(), data.height(), data.components(), data.imageBuffer());
+    }
+
     void generateOpenGLTexture(int width, int height, int components, ByteBuffer imageBuffer) {
         //get the location that this texture will be bound to
         int textureID = glGenTextures();

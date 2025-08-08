@@ -3,13 +3,11 @@ package com.terminalvelocitycabbage.engine.client.renderer.materials;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.util.ImageUtils;
 import com.terminalvelocitycabbage.engine.util.MathUtils;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.lwjgl.system.MemoryUtil;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,8 +36,11 @@ public class Atlas extends Texture {
         //Determines the size of the atlas from the texture data
         Vector2i atlasDimensions = getAtlasDimension(sortedTextureData);
 
+        //Storage for individual texture info in this atlas
+        this.atlas = new HashMap<>();
+
         //Start generating the atlas
-        Map<Identifier, Vector2i> texturePositionsInAtlas = getTexturePositionsInAtlas(sortedTextureData, atlasDimensions.x, atlasDimensions.y);
+        Map<Identifier, Vector2i> texturePositionsInAtlas = getTexturePositionsInAtlas(sortedTextureData, atlasDimensions.x, atlasDimensions.y, this.atlas);
         ByteBuffer atlasImageBuffer = MemoryUtil.memAlloc(atlasDimensions.x * atlasDimensions.y * 4);
         for (Map.Entry<Identifier, Vector2i> identifierVector2iEntry : texturePositionsInAtlas.entrySet()) {
             var textureIdentifier = identifierVector2iEntry.getKey();
@@ -85,12 +86,13 @@ public class Atlas extends Texture {
     }
 
     /**
-     * @param dataMap The map of individual textures to pack into this atlas
-     * @param atlasWidth The width of the atlas
+     * @param dataMap     The map of individual textures to pack into this atlas
+     * @param atlasWidth  The width of the atlas
      * @param atlasHeight The height of the atlas
+     * @param atlas
      * @return A map of individual textures and their positions in this atlas
      */
-    private static Map<Identifier, Vector2i> getTexturePositionsInAtlas(Map<Identifier, Data> dataMap, int atlasWidth, int atlasHeight) {
+    private static Map<Identifier, Vector2i> getTexturePositionsInAtlas(Map<Identifier, Data> dataMap, int atlasWidth, int atlasHeight, Map<Identifier, AtlasTexture> atlas) {
 
         int currentX = 0;
         int currentY = 0;
@@ -123,6 +125,8 @@ public class Atlas extends Texture {
             if (data.width() + currentX <= atlasWidth) {
                 //Mark this texture's position here
                 texturePositionsInAtlas.put(textureIdentifier, new Vector2i(currentX, currentY));
+                //Put this texture into the atlas info map
+                atlas.put(textureIdentifier, new AtlasTexture(currentX, currentY, data.width()));
                 //Mark the pixels that this texture used as used so we don't overwrite these pixels later
                 markUsed(used, currentX, currentY, data.width());
                 //Move the current position over in this row
@@ -241,13 +245,13 @@ public class Atlas extends Texture {
         return atlas.get(textureIdentifier);
     }
 
-    public Vector2f getTextureUVFromModelUV(Identifier textureIdentifier, int u, int v) {
+    public Vector2f getTextureUVFromModelUV(Identifier textureIdentifier, Vector2f modelUV) {
 
         var atlasTexture = atlas.get(textureIdentifier);
 
         return new Vector2f(
-                MathUtils.linearInterpolate(atlasTexture.x(), 0, atlasTexture.x() + atlasTexture.size(), 1, u),
-                MathUtils.linearInterpolate(atlasTexture.y(), 0, atlasTexture.y() + atlasTexture.size(), 1, v)
+                MathUtils.linearInterpolate(atlasTexture.x(), 0, atlasTexture.x() + atlasTexture.size(), 1, modelUV.x()),
+                MathUtils.linearInterpolate(atlasTexture.y(), 0, atlasTexture.y() + atlasTexture.size(), 1, modelUV.y())
         );
     }
 
