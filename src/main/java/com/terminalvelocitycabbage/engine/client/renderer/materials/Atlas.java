@@ -40,6 +40,8 @@ public class Atlas extends SingleTexture {
         //Determines the size of the atlas from the texture data
         Vector2i atlasDimensions = getAtlasDimension(sortedTextureData);
 
+        Log.info("Atlas Dimensions: " + atlasDimensions.x + "px x " + atlasDimensions.y + "px");
+
         //Start generating the atlas
         Map<Identifier, Vector2i> texturePositionsInAtlas = getTexturePositionsInAtlas(sortedTextureData, atlasDimensions.x, atlasDimensions.y);
         ByteBuffer atlasImageBuffer = MemoryUtil.memAlloc(atlasDimensions.x * atlasDimensions.y * 4);
@@ -91,17 +93,19 @@ public class Atlas extends SingleTexture {
         int currentX = 0;
         int currentY = 0;
 
-        boolean[][] used = new boolean[atlasHeight][atlasWidth];
+        boolean[][] used = new boolean[atlasWidth][atlasHeight];
         Map<Identifier, Vector2i> texturePositionsInAtlas = new HashMap<>();
 
         List<Identifier> reverseKeys = new ArrayList<>(dataMap.keySet());
         Collections.reverse(reverseKeys);
+        int lastHeight = dataMap.get(reverseKeys.getFirst()).height();
         for (Identifier textureIdentifier : reverseKeys) {
             var data = dataMap.get(textureIdentifier);
 
-            if (data.width() + currentX > atlasWidth) {
-                currentY += data.height();
+            if (currentX >= atlasWidth) {
+                currentY += lastHeight;
                 for (int i = 0; i < atlasWidth; i++) {
+                    Log.info(i + " " + currentY);
                     if (!used[i][currentY]) {
                         currentX = i;
                         break;
@@ -112,8 +116,12 @@ public class Atlas extends SingleTexture {
                 texturePositionsInAtlas.put(textureIdentifier, new Vector2i(currentX, currentY));
                 markUsed(used, currentX, currentY, data.width());
                 currentX += data.width();
+                Log.info("current x updated to: " + currentX);
             }
+            lastHeight = data.height();
         }
+
+        Log.info("Atlas Positions: " + texturePositionsInAtlas.toString());
 
         if (dataMap.size() != texturePositionsInAtlas.size()) Log.crash("Failed to pack all textures into atlas, not all textures were added");
 
@@ -124,9 +132,9 @@ public class Atlas extends SingleTexture {
      * Marks a square block of size as used starting at (x, y)
      */
     private static void markUsed(boolean[][] used, int x, int y, int size) {
-        for (int dy = 0; dy < size; dy++) {
-            for (int dx = 0; dx < size; dx++) {
-                used[y + dy][x + dx] = true;
+        for (int dx = 0; dx < size; dx++) {
+            for (int dy = 0; dy < size; dy++) {
+                used[x + dx][y + dy] = true;
             }
         }
     }
@@ -141,16 +149,17 @@ public class Atlas extends SingleTexture {
 
         //Get min texture size in this atlas
         int minSize = sortedTextureData.values().iterator().next().width();
-        Log.info(minSize);
+        Log.info("Min: " + minSize);
         int maxSize = 0;
         //Get max texture size in this atlas
         for (Data data : sortedTextureData.values()) {
             maxSize = data.width();
         }
+        Log.info("Max: " + maxSize);
 
         //Generate a Map of all sizes between the min and max for counting
         Map<Integer, Integer> sizeCounts = new LinkedHashMap<>();
-        for (int i = minSize; i < maxSize; i*=2) {
+        for (int i = minSize; i <= maxSize; i*=2) {
             sizeCounts.put(i, 0);
         }
 
@@ -159,14 +168,24 @@ public class Atlas extends SingleTexture {
             sizeCounts.put(data.width(), sizeCounts.get(data.width()) + 1);
         }
 
+        Log.info("Size Counts: " + sizeCounts.toString());
+
         //Get the number of max-sized textures that this atlas needs
         int numMaxSizeTextures = 0;
         for (Map.Entry<Integer, Integer> entry : sizeCounts.entrySet()) {
-            numMaxSizeTextures = Math.ceilDiv(entry.getValue() + numMaxSizeTextures, 4);
+            if (entry.getKey() == maxSize) {
+                numMaxSizeTextures += entry.getValue();
+            } else {
+                numMaxSizeTextures += Math.ceilDiv(entry.getValue(), 4);
+            }
         }
+
+        Log.info("Number of max-sized textures: " + numMaxSizeTextures);
 
         //Determine size of atlas
         Vector2i maxTextureSizeAtlasDimensions = MathUtils.findMostSquareDimensions(numMaxSizeTextures);
+
+        Log.info("Max Texture Size Atlas Dimensions: " + maxTextureSizeAtlasDimensions.x + "px x " + maxTextureSizeAtlasDimensions.y + "px");
         return new Vector2i(maxTextureSizeAtlasDimensions.x * maxSize, maxTextureSizeAtlasDimensions.y * maxSize);
     }
 
