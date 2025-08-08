@@ -31,4 +31,8 @@ public class MeshCache {
     public Mesh getMesh(Identifier modelIdentifier) {
         return modelMeshMap.get(modelIdentifier);
     }
+
+    public void cleanup() {
+        modelMeshMap.values().forEach(Mesh::cleanup);
+    }
 }
