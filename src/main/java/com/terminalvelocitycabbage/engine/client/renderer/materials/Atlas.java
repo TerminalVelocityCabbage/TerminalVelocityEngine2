@@ -250,8 +250,8 @@ public class Atlas extends Texture {
         var atlasTexture = atlas.get(textureIdentifier);
 
         return new Vector2f(
-                MathUtils.linearInterpolate(atlasTexture.x(), 0, atlasTexture.x() + atlasTexture.size(), 1, modelUV.x()),
-                MathUtils.linearInterpolate(atlasTexture.y(), 0, atlasTexture.y() + atlasTexture.size(), 1, modelUV.y())
+                MathUtils.lerp(atlasTexture.x(), atlasTexture.x() + atlasTexture.size(), modelUV.x()) / getWidth(),
+                MathUtils.lerp(atlasTexture.y(), atlasTexture.y() + atlasTexture.size(), modelUV.y()) / getHeight()
         );
     }
 

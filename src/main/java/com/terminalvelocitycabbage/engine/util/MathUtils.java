@@ -14,8 +14,18 @@ public class MathUtils {
      * @param progress The x-value for which to interpolate the y-value.
      * @return The interpolated y-value.
      */
-    public static float linearInterpolate(float x1, float y1, float x2, float y2, float progress) {
+    public static float lerp2d(float x1, float y1, float x2, float y2, float progress) {
         return y1 + ((progress - x1) * (y2 - y1)) / (x2 - x1);
+    }
+
+    /**
+     * @param startValue the start value of the line we're lerping
+     * @param endValue the end value of the line we're lerping
+     * @param fraction the progress between these values
+     * @return a number at the progress given between these two values
+     */
+    public static float lerp(float startValue, float endValue, float fraction) {
+        return startValue + (endValue - startValue) * fraction;
     }
 
     /**

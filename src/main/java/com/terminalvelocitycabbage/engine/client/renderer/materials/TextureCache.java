@@ -3,9 +3,9 @@ package com.terminalvelocitycabbage.engine.client.renderer.materials;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import org.joml.Vector2f;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is a cache that stores all textures that a game uses until we migrate to using a texture array so
@@ -34,14 +34,6 @@ public class TextureCache {
             return textures.get(identifier);
         }
         return textures.get(null); //TODO replace null with default texture
-    }
-
-    public Vector2f transformUV(Identifier textureId, Vector2f uv) {
-        var texture = getTexture(textureId);
-        if (texture instanceof Atlas atlas) {
-            atlas.getTextureUVFromModelUV(textureId, uv);
-        }
-        return uv;
     }
 
     /**

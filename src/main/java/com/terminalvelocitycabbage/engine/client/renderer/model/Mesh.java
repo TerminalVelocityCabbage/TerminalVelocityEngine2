@@ -2,8 +2,11 @@ package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.Atlas;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.ArrayUtils;
+import org.joml.Vector2f;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
@@ -36,6 +39,14 @@ public class Mesh {
         this.format = format;
         this.vertices = vertices;
         this.indices = indices;
+    }
+
+    public Mesh(VertexFormat format, DataMesh dataMesh) {
+        this(format, dataMesh.getVertices(format), dataMesh.getIndices());
+    }
+
+    public static Mesh copy(Mesh mesh) {
+        return new Mesh(mesh.format, mesh.vertices, mesh.indices);
     }
 
     public static Mesh of(List<Mesh> meshes) {
@@ -218,6 +229,16 @@ public class Mesh {
         return format;
     }
 
+    public void transformUVsByAtlas(Atlas atlas, Identifier textureIdentifier) {
+        Log.info("Transforming UV coordinates for mesh " + textureIdentifier + " has been initialized: " + isInitialized());
+        for (Vertex vertex : vertices) {
+            float[] data = vertex.getSubData(VertexAttribute.UV);
+            for (int i = 0; i < data.length; i+=2) {
+                var newUV = atlas.getTextureUVFromModelUV(textureIdentifier, new Vector2f(data[i], data[i+1]));
+                vertex.setUV(newUV.x, newUV.y);
+            }
+        }
+    }
 
     public void dumpAsObj() {
         try (PrintStream stream = new PrintStream(new FileOutputStream("./dump.obj"))) {

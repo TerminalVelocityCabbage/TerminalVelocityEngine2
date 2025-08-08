@@ -1,6 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.scene;
 
+import com.terminalvelocitycabbage.engine.client.renderer.materials.Texture;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -68,4 +70,8 @@ public abstract class Scene {
     public TextureCache getTextureCache() {
         return textureCache;
     }
+
+    public abstract Mesh getMesh(Identifier model);
+
+    public abstract Texture getTexture(Identifier model);
 }
