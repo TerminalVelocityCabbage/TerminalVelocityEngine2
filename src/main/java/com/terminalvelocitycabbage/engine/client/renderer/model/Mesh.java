@@ -45,8 +45,13 @@ public class Mesh {
         this(format, dataMesh.getVertices(format), dataMesh.getIndices());
     }
 
-    public static Mesh copy(Mesh mesh) {
-        return new Mesh(mesh.format, mesh.vertices, mesh.indices);
+    public Mesh(Mesh mesh) {
+        this.vertices = new Vertex[mesh.vertices.length];
+        for (int i = 0; i < mesh.vertices.length; i++) {
+            this.vertices[i] = new Vertex(mesh.vertices[i]);
+        }
+        this.indices = mesh.indices.clone();
+        this.format = mesh.format;
     }
 
     public static Mesh of(List<Mesh> meshes) {

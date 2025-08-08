@@ -16,6 +16,11 @@ public class Vertex {
         this.data = new float[format.getNumComponents()];
     }
 
+    public Vertex(Vertex vertex) {
+        this.format = vertex.format;
+        this.data = Arrays.copyOf(vertex.data, vertex.data.length);
+    }
+
     /**
      * @return This vertex with the updated position data
      */

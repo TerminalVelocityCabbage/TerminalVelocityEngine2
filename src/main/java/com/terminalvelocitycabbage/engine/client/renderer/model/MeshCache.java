@@ -16,7 +16,7 @@ public class MeshCache {
         this.modelMeshMap = new HashMap<>();
 
         modelRegistry.getRegistryContents().forEach((identifier, model) -> {
-            modelMeshMap.put(identifier, Mesh.copy(meshRegistry.get(model.getMeshIdentifier())));
+            modelMeshMap.put(identifier, new Mesh(meshRegistry.get(model.getMeshIdentifier())));
         });
 
         modelRegistry.getRegistryContents().forEach((identifier, model) -> {
