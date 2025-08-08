@@ -5,7 +5,6 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.ImageUtils;
 import com.terminalvelocitycabbage.engine.util.MathUtils;
-import com.terminalvelocitycabbage.engine.util.touples.Triplet;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.lwjgl.system.MemoryUtil;
@@ -15,10 +14,9 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Atlas extends SingleTexture {
+public class Atlas extends Texture {
 
-    //Identifier of the registered texture in this Atlas -> X pos, Y pos, Size
-    Map<Identifier, Triplet<Integer, Integer, Integer>> atlas;
+    private Map<Identifier, AtlasTexture> atlas;
 
     public Atlas(Map<Identifier, Resource> textureResources) {
 
@@ -40,8 +38,6 @@ public class Atlas extends SingleTexture {
         //Determines the size of the atlas from the texture data
         Vector2i atlasDimensions = getAtlasDimension(sortedTextureData);
 
-        Log.info("Atlas Dimensions: " + atlasDimensions.x + "px x " + atlasDimensions.y + "px");
-
         //Start generating the atlas
         Map<Identifier, Vector2i> texturePositionsInAtlas = getTexturePositionsInAtlas(sortedTextureData, atlasDimensions.x, atlasDimensions.y);
         ByteBuffer atlasImageBuffer = MemoryUtil.memAlloc(atlasDimensions.x * atlasDimensions.y * 4);
@@ -59,7 +55,7 @@ public class Atlas extends SingleTexture {
         generateOpenGLTexture(atlasDimensions.x, atlasDimensions.y, 4, atlasImageBuffer);
 
         //Test
-        ImageUtils.saveRGBAtoPNG(atlasImageBuffer, atlasDimensions.x, atlasDimensions.y, new File("atlas.png"));
+        //ImageUtils.saveRGBAtoPNG(atlasImageBuffer, atlasDimensions.x, atlasDimensions.y, new File("atlas.png"));
 
         //Cleanup
         MemoryUtil.memFree(atlasImageBuffer);
@@ -88,6 +84,12 @@ public class Atlas extends SingleTexture {
         }
     }
 
+    /**
+     * @param dataMap The map of individual textures to pack into this atlas
+     * @param atlasWidth The width of the atlas
+     * @param atlasHeight The height of the atlas
+     * @return A map of individual textures and their positions in this atlas
+     */
     private static Map<Identifier, Vector2i> getTexturePositionsInAtlas(Map<Identifier, Data> dataMap, int atlasWidth, int atlasHeight) {
 
         int currentX = 0;
@@ -96,32 +98,38 @@ public class Atlas extends SingleTexture {
         boolean[][] used = new boolean[atlasWidth][atlasHeight];
         Map<Identifier, Vector2i> texturePositionsInAtlas = new HashMap<>();
 
+        //We want to pack the textures in reverse size order so that we know everything will fit
         List<Identifier> reverseKeys = new ArrayList<>(dataMap.keySet());
         Collections.reverse(reverseKeys);
+
+        //Remembers the height of the last texture added, so if the next one doesn't fit, we can move below it
         int lastHeight = dataMap.get(reverseKeys.getFirst()).height();
+        //Loop through all textures and mark their positions in the texture position map
         for (Identifier textureIdentifier : reverseKeys) {
             var data = dataMap.get(textureIdentifier);
 
+            //If this texture doesn't fit in the current row
             if (currentX >= atlasWidth) {
                 currentY += lastHeight;
+                //Find the next empty pixel in this row
                 for (int i = 0; i < atlasWidth; i++) {
-                    Log.info(i + " " + currentY);
                     if (!used[i][currentY]) {
                         currentX = i;
                         break;
                     }
                 }
             }
+            //If this texture fits here
             if (data.width() + currentX <= atlasWidth) {
+                //Mark this texture's position here
                 texturePositionsInAtlas.put(textureIdentifier, new Vector2i(currentX, currentY));
+                //Mark the pixels that this texture used as used so we don't overwrite these pixels later
                 markUsed(used, currentX, currentY, data.width());
+                //Move the current position over in this row
                 currentX += data.width();
-                Log.info("current x updated to: " + currentX);
             }
             lastHeight = data.height();
         }
-
-        Log.info("Atlas Positions: " + texturePositionsInAtlas.toString());
 
         if (dataMap.size() != texturePositionsInAtlas.size()) Log.crash("Failed to pack all textures into atlas, not all textures were added");
 
@@ -149,13 +157,11 @@ public class Atlas extends SingleTexture {
 
         //Get min texture size in this atlas
         int minSize = sortedTextureData.values().iterator().next().width();
-        Log.info("Min: " + minSize);
         int maxSize = 0;
         //Get max texture size in this atlas
         for (Data data : sortedTextureData.values()) {
             maxSize = data.width();
         }
-        Log.info("Max: " + maxSize);
 
         //Generate a Map of all sizes between the min and max for counting
         Map<Integer, Integer> sizeCounts = new LinkedHashMap<>();
@@ -168,9 +174,7 @@ public class Atlas extends SingleTexture {
             sizeCounts.put(data.width(), sizeCounts.get(data.width()) + 1);
         }
 
-        Log.info("Size Counts: " + sizeCounts.toString());
-
-        //Get the number of max-sized textures that this atlas needs
+        //Get the number of max-sized textures that this atlas needs by packing in smaller textures into it's size
         int numMaxSizeTextures = 0;
         int lastSizeLeftover = 0;
         for (Map.Entry<Integer, Integer> entry : sizeCounts.entrySet()) {
@@ -182,12 +186,8 @@ public class Atlas extends SingleTexture {
             }
         }
 
-        Log.info("Number of max-sized textures: " + numMaxSizeTextures);
-
         //Determine size of atlas
         Vector2i maxTextureSizeAtlasDimensions = MathUtils.findMostSquareDimensions(numMaxSizeTextures);
-
-        Log.info("Max Texture Size Atlas Dimensions: " + maxTextureSizeAtlasDimensions.x + "px x " + maxTextureSizeAtlasDimensions.y + "px");
         return new Vector2i(maxTextureSizeAtlasDimensions.x * maxSize, maxTextureSizeAtlasDimensions.y * maxSize);
     }
 
@@ -209,7 +209,7 @@ public class Atlas extends SingleTexture {
         });
 
         //Sort Texture data by texture size, so it's simpler to insert it into the atlas
-        Map<Identifier, Data> sortedTextureData = unsortedTextureData.entrySet()
+        return unsortedTextureData.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue())
                 .collect(Collectors.toMap(
@@ -218,8 +218,9 @@ public class Atlas extends SingleTexture {
                         (oldValue, newValue) -> oldValue,
                         LinkedHashMap::new
                 ));
-        return sortedTextureData;
     }
+
+    public record AtlasTexture(int x, int y, int size) { }
 
     @Override
     public int getHeight() {
@@ -236,32 +237,17 @@ public class Atlas extends SingleTexture {
         return textureID;
     }
 
-    public Vector2i getTexturePosition(Identifier textureIdentifier) {
-        var texture = atlas.get(textureIdentifier);
-        return new Vector2i(texture.getValue0(), texture.getValue1());
-    }
-
-    public int getTextureX(Identifier textureIdentifier) {
-        return atlas.get(textureIdentifier).getValue0();
-    }
-
-    public int getTextureY(Identifier textureIdentifier) {
-        return atlas.get(textureIdentifier).getValue1();
-    }
-
-    public int getTextureSize(Identifier textureIdentifier) {
-        return atlas.get(textureIdentifier).getValue2();
+    public AtlasTexture getTextureInfo(Identifier textureIdentifier) {
+        return atlas.get(textureIdentifier);
     }
 
     public Vector2f getTextureUVFromModelUV(Identifier textureIdentifier, int u, int v) {
 
-        var xPos = getTextureX(textureIdentifier);
-        var yPos = getTextureY(textureIdentifier);
-        var size = getTextureSize(textureIdentifier);
+        var atlasTexture = atlas.get(textureIdentifier);
 
         return new Vector2f(
-                MathUtils.linearInterpolate(xPos, 0, xPos + size, 1, u),
-                MathUtils.linearInterpolate(yPos, 0, yPos + size, 1, v)
+                MathUtils.linearInterpolate(atlasTexture.x(), 0, atlasTexture.x() + atlasTexture.size(), 1, u),
+                MathUtils.linearInterpolate(atlasTexture.y(), 0, atlasTexture.y() + atlasTexture.size(), 1, v)
         );
     }
 

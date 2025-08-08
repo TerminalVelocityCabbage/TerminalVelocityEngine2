@@ -25,7 +25,7 @@ public class TextureCache {
      * @param textureResource a resource pointing to the texture to create if not in the default location
      */
     public void createTexture(Identifier textureId, Resource textureResource) {
-        textures.putIfAbsent(textureId, new Texture(textureId, textureResource));
+        textures.putIfAbsent(textureId, new SingleTexture(textureId, textureResource));
     }
 
     /**
