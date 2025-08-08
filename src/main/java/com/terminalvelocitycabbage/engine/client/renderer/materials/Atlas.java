@@ -35,24 +35,24 @@ public class Atlas extends Texture {
         Map<Identifier, Data> sortedTextureData = loadTextureData(textureResources);
         //Determines the size of the atlas from the texture data
         Vector2i atlasDimensions = getAtlasDimension(sortedTextureData);
+        this.width = atlasDimensions.x;
+        this.height = atlasDimensions.y;
 
         //Storage for individual texture info in this atlas
         this.atlas = new HashMap<>();
 
         //Start generating the atlas
-        Map<Identifier, Vector2i> texturePositionsInAtlas = getTexturePositionsInAtlas(sortedTextureData, atlasDimensions.x, atlasDimensions.y, this.atlas);
+        Map<Identifier, Vector2i> texturePositionsInAtlas = getTexturePositionsInAtlas(sortedTextureData);
         ByteBuffer atlasImageBuffer = MemoryUtil.memAlloc(atlasDimensions.x * atlasDimensions.y * 4);
         for (Map.Entry<Identifier, Vector2i> identifierVector2iEntry : texturePositionsInAtlas.entrySet()) {
             var textureIdentifier = identifierVector2iEntry.getKey();
             var texturePositionInAtlas = identifierVector2iEntry.getValue();
             var textureData = sortedTextureData.get(textureIdentifier);
-            insertSubImage(atlasImageBuffer, atlasDimensions, textureData, texturePositionInAtlas);
+            insertSubImage(atlasImageBuffer, textureData, texturePositionInAtlas);
             textureData.free();
         }
 
         //Set this Atlas' info
-        this.width = atlasDimensions.x;
-        this.height = atlasDimensions.y;
         generateOpenGLTexture(atlasDimensions.x, atlasDimensions.y, 4, atlasImageBuffer);
 
         //Test
@@ -63,18 +63,21 @@ public class Atlas extends Texture {
     }
 
     /**
-     * Inserts a subImage into the atlas using fast memCopy.
+     * Inserts the subimage into this atlas buffer
+     * @param atlas The atlas image buffer which this image is being added to
+     * @param subImage The image buffer to be inserted
+     * @param dest The location for the sub image buffer
      */
-    private static void insertSubImage(ByteBuffer atlas, Vector2i atlasDimensions, Data subImage, Vector2i dest) {
+    private void insertSubImage(ByteBuffer atlas, Data subImage, Vector2i dest) {
 
         long atlasBaseAddr = MemoryUtil.memAddress(atlas);
         long subImageBaseAddr = MemoryUtil.memAddress(subImage.imageBuffer());
 
         for (int row = 0; row < subImage.height(); row++) {
             int destRow = dest.y() + row;
-            if (destRow >= atlasDimensions.y() || dest.x() + subImage.width() > atlasDimensions.x()) continue;
+            if (destRow >= getHeight() || dest.x() + subImage.width() > getWidth()) continue;
 
-            long destOffset = ((long) destRow * atlasDimensions.x() + dest.x()) * 4;
+            long destOffset = ((long) destRow * getWidth() + dest.x()) * 4;
             long srcOffset = ((long) row * subImage.width()) * 4;
 
             MemoryUtil.memCopy(
@@ -87,17 +90,14 @@ public class Atlas extends Texture {
 
     /**
      * @param dataMap     The map of individual textures to pack into this atlas
-     * @param atlasWidth  The width of the atlas
-     * @param atlasHeight The height of the atlas
-     * @param atlas
      * @return A map of individual textures and their positions in this atlas
      */
-    private static Map<Identifier, Vector2i> getTexturePositionsInAtlas(Map<Identifier, Data> dataMap, int atlasWidth, int atlasHeight, Map<Identifier, AtlasTexture> atlas) {
+    private Map<Identifier, Vector2i> getTexturePositionsInAtlas(Map<Identifier, Data> dataMap) {
 
         int currentX = 0;
         int currentY = 0;
 
-        boolean[][] used = new boolean[atlasWidth][atlasHeight];
+        boolean[][] used = new boolean[getWidth()][getHeight()];
         Map<Identifier, Vector2i> texturePositionsInAtlas = new HashMap<>();
 
         //We want to pack the textures in reverse size order so that we know everything will fit
@@ -111,10 +111,10 @@ public class Atlas extends Texture {
             var data = dataMap.get(textureIdentifier);
 
             //If this texture doesn't fit in the current row
-            if (currentX >= atlasWidth) {
+            if (currentX >= getWidth()) {
                 currentY += lastHeight;
                 //Find the next empty pixel in this row
-                for (int i = 0; i < atlasWidth; i++) {
+                for (int i = 0; i < getWidth(); i++) {
                     if (!used[i][currentY]) {
                         currentX = i;
                         break;
@@ -122,7 +122,7 @@ public class Atlas extends Texture {
                 }
             }
             //If this texture fits here
-            if (data.width() + currentX <= atlasWidth) {
+            if (data.width() + currentX <= getWidth()) {
                 //Mark this texture's position here
                 texturePositionsInAtlas.put(textureIdentifier, new Vector2i(currentX, currentY));
                 //Put this texture into the atlas info map
@@ -151,13 +151,18 @@ public class Atlas extends Texture {
         }
     }
 
+
+    /**
+     * Determines the minimum square-ish size for this texture.
+     * How?:
+     *     To generate a tightly packed atlas, we need to know how big it needs to be first, To do this, we will figure out
+     *     how many of the smallest texture there are and divide that by 4 and round up. We will do this for each power of
+     *     2 between the min and max individual texture sizes and add that number to the next one up as we go. This will
+     *     eventually equal the number of max size textures we need, which is easier to determine the atlas dimension from.
+     * @param sortedTextureData The texture data that needs to fit into this atlas in order from largest to smallest
+     * @return The size in pixels that this atlas will be
+     */
     private static Vector2i getAtlasDimension(Map<Identifier, Data> sortedTextureData) {
-        /*
-        To generate a tightly packed atlas, we need to know how big it needs to be first, To do this, we will figure out
-        how many of the smallest texture there are and divide that by 4 and round up. We will do this for each power of
-        2 between the min and max individual texture sizes and add that number to the next one up as we go. This will
-        eventually equal the number of max size textures we need, which is easier to determine the atlas dimension from.
-         */
 
         //Get min texture size in this atlas
         int minSize = sortedTextureData.values().iterator().next().width();
@@ -226,28 +231,25 @@ public class Atlas extends Texture {
 
     public record AtlasTexture(int x, int y, int size) { }
 
-    @Override
-    public int getHeight() {
-        return height;
-    }
-
-    @Override
-    public int getWidth() {
-        return width;
-    }
-
-    @Override
-    public int getTextureID() {
-        return textureID;
-    }
-
+    /**
+     * Gets some information about a texture on this atlas
+     * @param textureIdentifier The texture which you want information about
+     * @return The Texture info for that texture
+     */
     public AtlasTexture getTextureInfo(Identifier textureIdentifier) {
         return atlas.get(textureIdentifier);
     }
 
+    /**
+     * Transforms some UV coordinates to coordinates that represent the atlas region of the original texture given
+     * @param textureIdentifier The texture that the UV coordinates we're transforming used to map to before it was
+     *                          added to this atlas
+     * @param modelUV The original UV coordinates to the original simple texture
+     * @return A new set of UV coordinates to the atlas region that contains the existing texture
+     */
     public Vector2f getTextureUVFromModelUV(Identifier textureIdentifier, Vector2f modelUV) {
 
-        var atlasTexture = atlas.get(textureIdentifier);
+        var atlasTexture = getTextureInfo(textureIdentifier);
 
         return new Vector2f(
                 MathUtils.lerp(atlasTexture.x(), atlasTexture.x() + atlasTexture.size(), modelUV.x()) / getWidth(),

@@ -86,7 +86,7 @@ public class TextureCache {
             texturesToCompileToAtlas.forEach((atlasId, textures) -> {
                 var atlas = new Atlas(textures);
                 for (Identifier textureId : textures.keySet()) {
-                    if (textures.containsKey(textureId)) Log.warn("Overriding texture " + textureId + " with atlas texture, likely due to a duplicate texture identifier");
+                    if (this.textures.containsKey(textureId)) Log.warn("Overriding texture " + textureId + " with atlas texture, likely due to a duplicate texture identifier");
                     this.textures.put(textureId, atlas);
                 }
             });
