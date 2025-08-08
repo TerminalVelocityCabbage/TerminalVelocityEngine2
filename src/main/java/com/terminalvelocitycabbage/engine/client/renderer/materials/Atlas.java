@@ -172,11 +172,13 @@ public class Atlas extends SingleTexture {
 
         //Get the number of max-sized textures that this atlas needs
         int numMaxSizeTextures = 0;
+        int lastSizeLeftover = 0;
         for (Map.Entry<Integer, Integer> entry : sizeCounts.entrySet()) {
             if (entry.getKey() == maxSize) {
                 numMaxSizeTextures += entry.getValue();
             } else {
-                numMaxSizeTextures += Math.ceilDiv(entry.getValue(), 4);
+                numMaxSizeTextures += Math.ceilDiv(entry.getValue() - (lastSizeLeftover * 4), 4);
+                lastSizeLeftover = entry.getValue() % 4;
             }
         }
 
