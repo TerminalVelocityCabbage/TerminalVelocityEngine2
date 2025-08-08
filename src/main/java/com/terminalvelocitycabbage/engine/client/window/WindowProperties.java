@@ -1,7 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -135,20 +134,18 @@ public class WindowProperties {
      */
     public void setScene(Identifier sceneIdentifier) {
         var client = ClientBase.getInstance();
-        TextureCache textureCache;
         //Cleanup the currently active scene so it can be closed
         if (activeScene != null) {
-            textureCache = activeScene.getTextureCache();
             activeScene.cleanup();
             //All entities that should not persist into the next scene should be removed from the global manager
             client.getManager().freeNonPersistentEntities();
-        } else {
-            textureCache = new TextureCache();
         }
         //Set the currently active scene to the one specified
         activeScene = client.getSceneRegistry().get(sceneIdentifier);
-        //Re-use the previous scene's texture cache
-        activeScene.setTextureCache(textureCache);
+        //Create this scene's texture cache
+        activeScene.setTextureCache(activeScene.createTextureCache());
+        //Create this scene's mesh cache
+        activeScene.setMeshCache(activeScene.createMeshCache());
         //Initialize the new scene
         activeScene.init();
     }

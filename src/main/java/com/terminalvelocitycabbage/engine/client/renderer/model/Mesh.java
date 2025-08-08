@@ -2,8 +2,11 @@ package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.Atlas;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.ArrayUtils;
+import org.joml.Vector2f;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
@@ -36,6 +39,19 @@ public class Mesh {
         this.format = format;
         this.vertices = vertices;
         this.indices = indices;
+    }
+
+    public Mesh(VertexFormat format, DataMesh dataMesh) {
+        this(format, dataMesh.getVertices(format), dataMesh.getIndices());
+    }
+
+    public Mesh(Mesh mesh) {
+        this.vertices = new Vertex[mesh.vertices.length];
+        for (int i = 0; i < mesh.vertices.length; i++) {
+            this.vertices[i] = new Vertex(mesh.vertices[i]);
+        }
+        this.indices = mesh.indices.clone();
+        this.format = mesh.format;
     }
 
     public static Mesh of(List<Mesh> meshes) {
@@ -144,6 +160,7 @@ public class Mesh {
      */
     public void render() {
         if (vertices.length == 0) return;
+        //TODO move this initialization to scenes so that it doesn't hang on first time rendering something
         if (!isInitialized()) init();
         glBindVertexArray(getVaoId());
         glDrawElements(GL_TRIANGLES, getNumIndices(), GL_UNSIGNED_INT, 0);
@@ -218,6 +235,20 @@ public class Mesh {
         return format;
     }
 
+    /**
+     * Transforms this mesh's current UVS from a single texture UV to an atlas UV
+     * @param atlas The atlas that the UVs need to be transformed from
+     * @param textureIdentifier The texture that the UVs were originally intended for
+     */
+    public void transformUVsByAtlas(Atlas atlas, Identifier textureIdentifier) {
+        for (Vertex vertex : vertices) {
+            float[] data = vertex.getSubData(VertexAttribute.UV);
+            for (int i = 0; i < data.length; i+=2) {
+                var newUV = atlas.getTextureUVFromModelUV(textureIdentifier, new Vector2f(data[i], data[i+1]));
+                vertex.setUV(newUV.x, newUV.y);
+            }
+        }
+    }
 
     public void dumpAsObj() {
         try (PrintStream stream = new PrintStream(new FileOutputStream("./dump.obj"))) {

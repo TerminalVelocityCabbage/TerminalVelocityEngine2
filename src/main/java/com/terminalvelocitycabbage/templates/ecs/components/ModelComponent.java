@@ -3,20 +3,20 @@ package com.terminalvelocitycabbage.templates.ecs.components;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
-public class MaterialComponent implements Component {
+public class ModelComponent implements Component {
 
-    Identifier texture;
+    Identifier model;
 
     @Override
     public void setDefaults() {
-        setTexture(null);
+        this.model = null;
     }
 
-    public Identifier getTexture() {
-        return texture;
+    public Identifier getModel() {
+        return model;
     }
 
-    public void setTexture(Identifier texture) {
-        this.texture = texture;
+    public void setModel(Identifier mesh) {
+        this.model = mesh;
     }
 }

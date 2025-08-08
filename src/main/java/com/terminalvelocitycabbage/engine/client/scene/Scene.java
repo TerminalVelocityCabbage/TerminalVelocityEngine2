@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.scene;
 
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
+import com.terminalvelocitycabbage.engine.client.renderer.model.MeshCache;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -16,7 +17,7 @@ public abstract class Scene {
     private Identifier renderGraph;
     private List<Routine> routines;
     private TextureCache textureCache;
-    //TODO Mesh Cache
+    private MeshCache meshCache;
 
     public Scene(Identifier renderGraph, List<Routine> routines) {
         this.renderGraph = renderGraph;
@@ -28,6 +29,18 @@ public abstract class Scene {
      * entities that belong to this scene, this could be level information or the UI etc.
      */
     public abstract void init();
+
+    /**
+     * An opportunity for the player to create a texture cache for the textures needed in this scene
+     * @return A texture cache for this scene
+     */
+    public abstract TextureCache createTextureCache();
+
+    /**
+     * An opportunity for the player to create a mesh cache for the meshes needed in this scene
+     * @return A mesh cache for this scene
+     */
+    public abstract MeshCache createMeshCache();
 
     /**
      * This method is called when this scene is replaced with another scene or when the game closes (if this is the
@@ -61,5 +74,13 @@ public abstract class Scene {
      */
     public TextureCache getTextureCache() {
         return textureCache;
+    }
+
+    public void setMeshCache(MeshCache meshCache) {
+        this.meshCache = meshCache;
+    }
+
+    public MeshCache getMeshCache() {
+        return meshCache;
     }
 }

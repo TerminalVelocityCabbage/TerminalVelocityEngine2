@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer.materials;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -7,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This is a temporary cache that stores all textures that a game uses until we migrate to using a texture array so
+ * This is a cache that stores all textures that a game uses until we migrate to using a texture array so
  * all textures are at the ready
  */
 public class TextureCache {
@@ -15,16 +16,12 @@ public class TextureCache {
     //The list of textures that this cache holds
     private final Map<Identifier, Texture> textures;
 
-    public TextureCache() {
-        textures = new HashMap<>();
+    public TextureCache(Map<Identifier, Texture> textures) {
+        this.textures = textures;
     }
 
-    /**
-     * @param textureId the id for the new texture
-     * @param textureResource a resource pointing to the texture to create if not in the default location
-     */
-    public void createTexture(Identifier textureId, Resource textureResource) {
-        textures.putIfAbsent(textureId, new Texture(textureId, textureResource));
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
@@ -32,7 +29,10 @@ public class TextureCache {
      * @return The requested texture or null (in the future this will return a default texture)
      */
     public Texture getTexture(Identifier identifier) {
-        return textures.get(textures.containsKey(identifier) ? identifier : null); //TODO replace null with default texture
+        if (textures.containsKey(identifier)) {
+            return textures.get(identifier);
+        }
+        return textures.get(null); //TODO replace null with default texture
     }
 
     /**
@@ -42,17 +42,56 @@ public class TextureCache {
         textures.values().forEach(Texture::cleanup);
     }
 
-    /**
-     * @return The size of this cache
-     */
-    public int size() {
-        return textures.size();
-    }
+    public static class Builder {
 
-    /**
-     * @return A map of all textures and identifiers on this cache
-     */
-    public Map<Identifier, Texture> getTextures() {
-        return textures;
+        private final Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas;
+        private final Map<Identifier, Resource> singleTextures;
+
+        private final Map<Identifier, Texture> textures;
+
+        public Builder() {
+            texturesToCompileToAtlas = new HashMap<>();
+            textures = new HashMap<>();
+            singleTextures = new HashMap<>();
+        }
+
+        public Builder addAtlas(Identifier atlasId) {
+            texturesToCompileToAtlas.putIfAbsent(atlasId, new HashMap<>());
+            return this;
+        }
+
+        public Builder addTexture(Identifier textureId, Resource textureResource) {
+            singleTextures.putIfAbsent(textureId, textureResource);
+            return this;
+        }
+
+        public Builder addTexture(Identifier textureId, Resource textureResource, Identifier... atlasId) {
+            for (Identifier identifier : atlasId) {
+                if (!texturesToCompileToAtlas.containsKey(identifier)) {
+                    Log.crash("Atlas with ID " + identifier + " does not exist on this TextureCache builder, use addAtlas() to add an atlas before trying to add a texture to it");
+                }
+                texturesToCompileToAtlas.get(identifier).put(textureId, textureResource);
+            }
+            return this;
+        }
+
+        public TextureCache build() {
+
+            //Add single textures
+            singleTextures.forEach((textureId, textureResource) -> {
+                if (textures.containsKey(textureId)) Log.warn("Overriding texture " + textureId + " with single texture, likely due to a duplicate texture identifier");
+                textures.put(textureId, new SingleTexture(textureId, textureResource));
+            });
+            //Create Atlases
+            texturesToCompileToAtlas.forEach((atlasId, textures) -> {
+                var atlas = new Atlas(textures);
+                for (Identifier textureId : textures.keySet()) {
+                    if (this.textures.containsKey(textureId)) Log.warn("Overriding texture " + textureId + " with atlas texture, likely due to a duplicate texture identifier");
+                    this.textures.put(textureId, atlas);
+                }
+            });
+
+            return new TextureCache(textures);
+        }
     }
 }

@@ -8,20 +8,20 @@ public class Material {
     public static final Color DEFAULT_ALBEDO_COLOR = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 
     //if the texture exists the colors below will be ignored by the shader.
-    protected Texture texture;
+    protected SingleTexture texture;
     private final Color ambientColor;
     private final Color diffuseColor;
     private final Color specularColor;
 
     //One of these will be null
     private float reflectivity;
-    private Texture reflectivityTexture;
+    private SingleTexture reflectivityTexture;
 
     public static Builder builder() {
         return new Builder();
     }
 
-    protected Material(Texture albedo, Color ambientColor, Color diffuseColor, Color specularColor, float reflectivity, Texture reflectivityTexture) {
+    protected Material(SingleTexture albedo, Color ambientColor, Color diffuseColor, Color specularColor, float reflectivity, SingleTexture reflectivityTexture) {
         this.texture = albedo;
         this.ambientColor = ambientColor;
         this.diffuseColor = diffuseColor;
@@ -33,9 +33,9 @@ public class Material {
     public static class Builder {
 
         //The normal color values of the texture
-        private Texture albedoTexture;
+        private SingleTexture albedoTexture;
         //A texture with only alpha channels determining reflectivity at a pixel
-        private Texture reflectivityTexture;
+        private SingleTexture reflectivityTexture;
 
         //If the albedo texture isn't set there needs to be some way of determining colors
         private Color ambientColor;
@@ -44,12 +44,12 @@ public class Material {
         //If a reflectivity texture isn't present
         private float reflectivity;
 
-        public Builder texture(Texture texture) {
+        public Builder texture(SingleTexture texture) {
             this.albedoTexture = texture;
             return this;
         }
 
-        public Builder reflectivity(Texture texture) {
+        public Builder reflectivity(SingleTexture texture) {
             this.reflectivityTexture = texture;
             return this;
         }
@@ -111,7 +111,7 @@ public class Material {
         }
     }
 
-    public Texture getTexture() {
+    public SingleTexture getTexture() {
         return texture;
     }
 
@@ -131,7 +131,7 @@ public class Material {
         return reflectivity;
     }
 
-    public Texture getReflectivityTexture() {
+    public SingleTexture getReflectivityTexture() {
         return reflectivityTexture;
     }
 
