@@ -4,6 +4,8 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
@@ -29,6 +31,10 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     private final WindowManager windowManager;
     private final Registry<RenderGraph> renderGraphRegistry;
 
+    //Scene stuff
+    protected final Registry<Mesh> meshRegistry;
+    protected final Registry<Model> modelRegistry;
+
     //Networking stuff
     private final Client client;
 
@@ -45,6 +51,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         renderGraphRegistry = new Registry<>();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
+        meshRegistry = new Registry<>();
+        modelRegistry = new Registry<>();
         client = new Client();
     }
 
@@ -84,6 +92,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry));
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
+        eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
+        eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelRegistry));
         eventDispatcher.dispatchEvent(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry()));
         localizer.init();
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
@@ -187,5 +197,13 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public InputHandler getInputHandler() {
         return inputHandler;
+    }
+
+    public Registry<Mesh> getMeshRegistry() {
+        return meshRegistry;
+    }
+
+    public Registry<Model> getModelRegistry() {
+        return modelRegistry;
     }
 }

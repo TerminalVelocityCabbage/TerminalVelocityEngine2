@@ -160,6 +160,7 @@ public class Mesh {
      */
     public void render() {
         if (vertices.length == 0) return;
+        //TODO move this initialization to scenes so that it doesn't hang on first time rendering something
         if (!isInitialized()) init();
         glBindVertexArray(getVaoId());
         glDrawElements(GL_TRIANGLES, getNumIndices(), GL_UNSIGNED_INT, 0);
@@ -234,8 +235,12 @@ public class Mesh {
         return format;
     }
 
+    /**
+     * Transforms this mesh's current UVS from a single texture UV to an atlas UV
+     * @param atlas The atlas that the UVs need to be transformed from
+     * @param textureIdentifier The texture that the UVs were originally intended for
+     */
     public void transformUVsByAtlas(Atlas atlas, Identifier textureIdentifier) {
-        Log.info("Transforming UV coordinates for mesh " + textureIdentifier + " has been initialized: " + isInitialized());
         for (Vertex vertex : vertices) {
             float[] data = vertex.getSubData(VertexAttribute.UV);
             for (int i = 0; i < data.length; i+=2) {

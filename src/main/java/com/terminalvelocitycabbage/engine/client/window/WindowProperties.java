@@ -1,7 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
-import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
@@ -145,7 +144,8 @@ public class WindowProperties {
         activeScene = client.getSceneRegistry().get(sceneIdentifier);
         //Create this scene's texture cache
         activeScene.setTextureCache(activeScene.createTextureCache());
-        //TODO init mesh cache also
+        //Create this scene's mesh cache
+        activeScene.setMeshCache(activeScene.createMeshCache());
         //Initialize the new scene
         activeScene.init();
     }
