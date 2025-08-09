@@ -64,7 +64,7 @@ public abstract class MainEntrypoint extends Entrypoint {
      * This is mainly used for networking tasks, most things for clients should happen every frame
      */
     public void tick() {
-
+        stateHandler.tick();
     }
 
     public EventDispatcher getEventDispatcher() {
