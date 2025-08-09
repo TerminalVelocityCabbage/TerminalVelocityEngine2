@@ -142,10 +142,6 @@ public class WindowProperties {
         }
         //Set the currently active scene to the one specified
         activeScene = client.getSceneRegistry().get(sceneIdentifier);
-        //Create this scene's texture cache
-        activeScene.setTextureCache(activeScene.createTextureCache());
-        //Create this scene's mesh cache
-        activeScene.setMeshCache(activeScene.createMeshCache());
         //Initialize the new scene
         activeScene.init();
     }
