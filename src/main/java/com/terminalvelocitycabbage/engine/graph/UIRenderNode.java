@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.graph;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.Projection;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
@@ -47,7 +48,7 @@ public abstract class UIRenderNode extends RenderNode {
 
     public void drawBox(Scene scene, Style style) {
 
-        var texture = scene.getTextureCache().getTexture(style.getTextureIdentifier());
+        var texture = ClientBase.getInstance().getTextureCache().getTexture(style.getTextureIdentifier());
         texture.bind();
 
         shaderProgram.getUniform("modelMatrix").setUniform(style.getTransformation().getTransformationMatrix());

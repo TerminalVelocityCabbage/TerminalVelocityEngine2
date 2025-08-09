@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.templates.events;
 
 import com.terminalvelocitycabbage.engine.TerminalVelocityEngine;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
@@ -36,6 +37,7 @@ public class ConfigureTexturesEvent extends Event {
             singleTextures.putIfAbsent(textureIdentifier, fileSystem.getResource(ResourceCategory.TEXTURE, textureIdentifier));
         } else {
             for (Identifier atlasIdentifier : atlasIdentifiers) {
+                if (!texturesToCompileToAtlas.containsKey(atlasIdentifier)) Log.crash("Tried to add texture to non-existent atlas, make sure that the atlas was registered beforehand");
                 texturesToCompileToAtlas.get(atlasIdentifier).putIfAbsent(textureIdentifier, fileSystem.getResource(ResourceCategory.TEXTURE, textureIdentifier));
             }
         }
