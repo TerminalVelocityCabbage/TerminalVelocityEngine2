@@ -14,84 +14,64 @@ import java.util.Map;
 public class TextureCache {
 
     //The list of textures that this cache holds
-    private final Map<Identifier, Texture> textures;
+    private final Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas;
 
-    public TextureCache(Map<Identifier, Texture> textures) {
-        this.textures = textures;
+    private final Map<Identifier, Resource> singleTextures;
+    private final Map<Identifier, Texture> generatedTextures;
+
+    public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures) {
+        this.generatedTextures = new HashMap<>();
+        this.texturesToCompileToAtlas = texturesToCompileToAtlas;
+        this.singleTextures = singleTextures;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public void generateAtlas(Identifier atlasIdentifier) {
+        var textures = texturesToCompileToAtlas.get(atlasIdentifier);
+        var atlas = new Atlas(textures);
+        for (Identifier textureId : textures.keySet()) {
+            Log.info("Generating texture " + textureId + " for atlas " + atlasIdentifier);
+            this.generatedTextures.put(textureId, atlas);
+        }
     }
 
     /**
-     * @param identifier The identifier for the texture you wish to retrieve from this cache
+     * @param texture The identifier for the texture you wish to retrieve from this cache
      * @return The requested texture or null (in the future this will return a default texture)
      */
-    public Texture getTexture(Identifier identifier) {
-        if (textures.containsKey(identifier)) {
-            return textures.get(identifier);
+    public Texture getTexture(Identifier texture) {
+        if (generatedTextures.containsKey(texture)) {
+            return generatedTextures.get(texture);
+        } else if (singleTextures.containsKey(texture)) {
+            //TODO add generateTexture method to do this at scene init for games to optimize this
+            //TODO add a way to see if a texture is generated then generate it off thread with default texture like Rust skins
+            var generatedTexture = new SingleTexture(texture, singleTextures.get(texture));
+            generatedTextures.put(texture, generatedTexture);
+            return generatedTexture;
+        } else {
+            Log.warn("Texture " + texture + " not found in cache, returning default texture");
+            return generatedTextures.get(null); //TODO replace null with default texture
         }
-        return textures.get(null); //TODO replace null with default texture
+    }
+
+    /**
+     * Cleans up the given atlas (frees all memory associated from the gpu)
+     * @param atlasIdentifier The atlas that needs to be cleaned up
+     */
+    public void cleanupAtlas(Identifier atlasIdentifier) {
+        boolean clean = false;
+        for (Identifier textureId : texturesToCompileToAtlas.get(atlasIdentifier).keySet()) {
+            if (!clean) {
+                generatedTextures.get(textureId).cleanup();
+                clean = true;
+            }
+            generatedTextures.remove(textureId);
+        }
     }
 
     /**
      * cleans up all textures
      */
     public void cleanup() {
-        textures.values().forEach(Texture::cleanup);
-    }
-
-    public static class Builder {
-
-        private final Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas;
-        private final Map<Identifier, Resource> singleTextures;
-
-        private final Map<Identifier, Texture> textures;
-
-        public Builder() {
-            texturesToCompileToAtlas = new HashMap<>();
-            textures = new HashMap<>();
-            singleTextures = new HashMap<>();
-        }
-
-        public Builder addAtlas(Identifier atlasId) {
-            texturesToCompileToAtlas.putIfAbsent(atlasId, new HashMap<>());
-            return this;
-        }
-
-        public Builder addTexture(Identifier textureId, Resource textureResource) {
-            singleTextures.putIfAbsent(textureId, textureResource);
-            return this;
-        }
-
-        public Builder addTexture(Identifier textureId, Resource textureResource, Identifier... atlasId) {
-            for (Identifier identifier : atlasId) {
-                if (!texturesToCompileToAtlas.containsKey(identifier)) {
-                    Log.crash("Atlas with ID " + identifier + " does not exist on this TextureCache builder, use addAtlas() to add an atlas before trying to add a texture to it");
-                }
-                texturesToCompileToAtlas.get(identifier).put(textureId, textureResource);
-            }
-            return this;
-        }
-
-        public TextureCache build() {
-
-            //Add single textures
-            singleTextures.forEach((textureId, textureResource) -> {
-                if (textures.containsKey(textureId)) Log.warn("Overriding texture " + textureId + " with single texture, likely due to a duplicate texture identifier");
-                textures.put(textureId, new SingleTexture(textureId, textureResource));
-            });
-            //Create Atlases
-            texturesToCompileToAtlas.forEach((atlasId, textures) -> {
-                var atlas = new Atlas(textures);
-                for (Identifier textureId : textures.keySet()) {
-                    if (this.textures.containsKey(textureId)) Log.warn("Overriding texture " + textureId + " with atlas texture, likely due to a duplicate texture identifier");
-                    this.textures.put(textureId, atlas);
-                }
-            });
-
-            return new TextureCache(textures);
-        }
+        generatedTextures.values().forEach(Texture::cleanup);
     }
 }

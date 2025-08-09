@@ -4,6 +4,7 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
@@ -34,6 +35,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     //Scene stuff
     protected final Registry<Mesh> meshRegistry;
     protected final Registry<Model> modelRegistry;
+    protected TextureCache textureCache;
 
     //Networking stuff
     private final Client client;
@@ -90,6 +92,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new EntityComponentRegistrationEvent(manager));
         eventDispatcher.dispatchEvent(new EntitySystemRegistrationEvent(manager));
         eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry));
+        var configureTexturesEvent = new ConfigureTexturesEvent(fileSystem);
+        eventDispatcher.dispatchEvent(configureTexturesEvent);
+        textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures());
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
@@ -206,5 +211,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public Registry<Model> getModelRegistry() {
         return modelRegistry;
+    }
+
+    public TextureCache getTextureCache() {
+        return textureCache;
     }
 }
