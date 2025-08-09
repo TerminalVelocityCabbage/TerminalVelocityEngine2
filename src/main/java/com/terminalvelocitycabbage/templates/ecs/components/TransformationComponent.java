@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
 import com.terminalvelocitycabbage.engine.ecs.Component;
+import com.terminalvelocitycabbage.engine.util.Transformation;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -8,74 +9,51 @@ import org.joml.Vector3i;
 
 public class TransformationComponent implements Component {
 
-    Matrix4f transformationMatrix;
-
-    Vector3f position;
-    Quaternionf rotation;
-    float scale;
-
-    boolean dirty;
+    Transformation transformation;
 
     @Override
     public void setDefaults() {
-        transformationMatrix = new Matrix4f();
-        position = new Vector3f();
-        rotation = new Quaternionf();
-        scale = 1f;
+        this.transformation = new Transformation();
     }
 
     public Vector3f getPosition() {
-        return position;
+        return transformation.getPosition();
     }
 
     public TransformationComponent setPosition(float x, float y, float z) {
-        this.position.set(x, y, z);
-        dirty = true;
+        transformation.setPosition(x, y, z);
         return this;
     }
 
     public TransformationComponent setPosition(Vector3i position) {
-        this.position.set(position.x, position.y, position.z);
-        dirty = true;
+        transformation.setPosition(position);
         return this;
     }
 
     public Quaternionf getRotation() {
-        return rotation;
+        return transformation.getRotation();
     }
 
     public TransformationComponent rotate(float x, float y, float z) {
-        this.rotation.rotateYXZ((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
-        dirty = true;
+        transformation.rotate(x, y, z);
         return this;
     }
 
     public TransformationComponent setRotation(float x, float y, float z, float angle) {
-        this.rotation.fromAxisAngleDeg(x, y, z, angle);
-        dirty = true;
+        transformation.setRotation(x, y, z, angle);
         return this;
     }
 
     public float getScale() {
-        return scale;
+        return transformation.getScale();
     }
 
     public TransformationComponent setScale(float scale) {
-        this.scale = scale;
-        dirty = true;
+        transformation.setScale(scale);
         return this;
     }
 
     public Matrix4f getTransformationMatrix() {
-        if (dirty) updateTransformationMatrix();
-        return transformationMatrix;
-    }
-
-    public void updateTransformationMatrix() {
-        this.transformationMatrix.translationRotateScale(position, rotation, scale);
-    }
-
-    public boolean isDirty() {
-        return dirty;
+        return transformation.getTransformationMatrix();
     }
 }

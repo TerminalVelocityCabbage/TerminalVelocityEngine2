@@ -6,6 +6,8 @@ import com.terminalvelocitycabbage.engine.client.renderer.model.Vertex;
 
 public class SquareDataMesh extends DataMesh {
 
+    //TODO add dimensions to a constructor unit square for empty constructor
+
     @Override
     public Vertex[] getVertices(VertexFormat format) {
         return new Vertex[] {

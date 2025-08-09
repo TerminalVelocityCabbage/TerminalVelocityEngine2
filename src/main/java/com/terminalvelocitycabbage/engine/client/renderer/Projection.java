@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Matrix4f;
 
 /**
@@ -28,6 +29,14 @@ public class Projection {
         projectionMatrix = new Matrix4f();
     }
 
+    public Projection(Type type, float nearPlane, float farPlane) {
+        if (type != Type.ORTHOGONAL) Log.crash("This constructor is meant only for use with the orthogonal projection type.");
+        this.type = type;
+        this.nearPlane = nearPlane;
+        this.farPlane = farPlane;
+        projectionMatrix = new Matrix4f();
+    }
+
     /**
      * @return The current projection matrix
      */
@@ -44,7 +53,7 @@ public class Projection {
     public void updateProjectionMatrix(float width, float height) {
         switch (type) {
             case PERSPECTIVE -> projectionMatrix.setPerspective(fieldOfView, width / height, nearPlane, farPlane);
-            case ORTHOGONAL -> projectionMatrix.setOrtho(0, width, 0, height, nearPlane, farPlane); //TODO verify
+            case ORTHOGONAL -> projectionMatrix.setOrtho(-(width / 2), width / 2, -(width / 2), width / 2, nearPlane, farPlane); //TODO verify
         }
     }
 
