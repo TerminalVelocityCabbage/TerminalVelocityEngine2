@@ -9,6 +9,7 @@ import com.terminalvelocitycabbage.engine.mod.Mod;
 import com.terminalvelocitycabbage.engine.networking.PacketRegistry;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
+import com.terminalvelocitycabbage.engine.state.StateHandler;
 import com.terminalvelocitycabbage.engine.translation.Localizer;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import com.terminalvelocitycabbage.engine.util.TickManager;
@@ -22,6 +23,7 @@ public abstract class MainEntrypoint extends Entrypoint {
     protected final Scheduler scheduler;
     protected long deltaTime; //Tick delta time not render time
     protected final MutableInstant tickClock;
+    protected final StateHandler stateHandler;
 
     //Networking stuff
     protected final PacketRegistry packetRegistry;
@@ -48,6 +50,7 @@ public abstract class MainEntrypoint extends Entrypoint {
         manager = new Manager();
         scheduler = new Scheduler();
         tickClock = MutableInstant.ofNow();
+        stateHandler = new StateHandler();
         modRegistry = new Registry<>();
         fileSystem = new GameFileSystem();
         routineRegistry = new Registry<>();
@@ -110,5 +113,9 @@ public abstract class MainEntrypoint extends Entrypoint {
 
     public Registry<Routine> getRoutineRegistry() {
         return routineRegistry;
+    }
+
+    public StateHandler getStateHandler() {
+        return stateHandler;
     }
 }

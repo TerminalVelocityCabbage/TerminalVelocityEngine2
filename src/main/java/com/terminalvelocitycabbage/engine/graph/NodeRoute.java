@@ -2,36 +2,38 @@ package com.terminalvelocitycabbage.engine.graph;
 
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.state.StateHandler;
 import org.lwjgl.opengl.GLCapabilities;
 
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 public non-sealed class NodeRoute implements GraphNode {
 
     boolean initialized = false;
-    Predicate<GLCapabilities> capabilitiesPredicate;
+    BiPredicate<GLCapabilities, StateHandler> routePredicate;
     RenderGraph.RenderPath.Config mainNodeConfig;
     RenderGraph.RenderPath.Config backupNodeConfig;
     RenderGraph.RenderPath mainNode;
     RenderGraph.RenderPath backupNode;
 
-    public NodeRoute(Predicate<GLCapabilities> capabilities, RenderGraph.RenderPath.Config mainNode, RenderGraph.RenderPath.Config backupNode) {
-        this.capabilitiesPredicate = capabilities;
+    public NodeRoute(BiPredicate<GLCapabilities, StateHandler> capabilities, RenderGraph.RenderPath.Config mainNode, RenderGraph.RenderPath.Config backupNode) {
+        this.routePredicate = capabilities;
         this.mainNodeConfig = mainNode;
         this.backupNodeConfig = backupNode;
     }
 
     /**
      * @param capabilities The GL capabilities of this device (can be used to determine the route)
+     * @param stateHandler
      * @return The {@link GraphNode} that should be taken
      */
-    public RenderGraph.RenderPath evaluate(GLCapabilities capabilities) {
+    public RenderGraph.RenderPath evaluate(GLCapabilities capabilities, StateHandler stateHandler) {
 
         if (!initialized) {
             Log.crash("Can't evaluate uninitialized Node Route");
         }
 
-        if (capabilitiesPredicate.test(capabilities)) {
+        if (routePredicate.test(capabilities, stateHandler)) {
             return getMainNode();
         }
         return getBackupNode();

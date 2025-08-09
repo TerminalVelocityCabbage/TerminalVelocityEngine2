@@ -85,6 +85,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
             eventDispatcher.dispatchEvent(new ResourceRegistrationEvent(fileSystem, category));
         }
         fileSystem.init();
+        eventDispatcher.dispatchEvent(new GameStateRegistrationEvent(stateHandler));
         eventDispatcher.dispatchEvent(new InputHandlerRegistrationEvent(inputHandler));
         eventDispatcher.dispatchEvent(new EntityComponentRegistrationEvent(manager));
         eventDispatcher.dispatchEvent(new EntitySystemRegistrationEvent(manager));

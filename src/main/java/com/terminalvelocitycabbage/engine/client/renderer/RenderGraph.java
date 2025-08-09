@@ -9,6 +9,7 @@ import com.terminalvelocitycabbage.engine.graph.NodeRoute;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.state.StateHandler;
 import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 import com.terminalvelocitycabbage.engine.util.Toggle;
@@ -20,7 +21,7 @@ import javax.management.ReflectionException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 public class RenderGraph {
 
@@ -136,7 +137,7 @@ public class RenderGraph {
                     switch (graphNode.getValue1()) {
                         case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher()); //We assume that the server is not rendering anything
                         case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, renderGraph.getRenderConfig(), deltaTime);
-                        case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities).render(windowProperties, deltaTime);
+                        case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities, ClientBase.getInstance().getStateHandler()).render(windowProperties, deltaTime);
                     }
                 }
                 //Publish an event before this GraphNode so mods can inject their own logic into these renderers
@@ -148,6 +149,8 @@ public class RenderGraph {
 
             private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
             private final HeterogeneousMap renderConfig;
+
+            public static final RenderGraph.RenderPath.Config EMPTY_ROUTE = RenderGraph.RenderPath.builder();
 
             private Config() {
                 graphNodes = new LinkedHashMap<>();
@@ -204,13 +207,25 @@ public class RenderGraph {
             /**
              * A conditional node executor, if the predicate returns true the default node will be chosen and if false the backup node
              * @param identifier The identifier of this GraphNode
-             * @param capabilitiesPredicate A predicate which determines which route to take in the graph
+             * @param routePredicate A predicate which determines which route to take in the graph
              * @param defaultNode The node progressed to if the predicate is true
              * @param backupNode The node progressed to if the predicate is false
              * @return this Builder (for easy changing of methods)
              */
-            public Config route(Identifier identifier, Predicate<GLCapabilities> capabilitiesPredicate, Config defaultNode, Config backupNode) {
-                graphNodes.put(identifier, new Pair<>(new Toggle(true), new NodeRoute(capabilitiesPredicate, defaultNode, backupNode)));
+            public Config route(Identifier identifier, BiPredicate<GLCapabilities, StateHandler> routePredicate, Config defaultNode, Config backupNode) {
+                graphNodes.put(identifier, new Pair<>(new Toggle(true), new NodeRoute(routePredicate, defaultNode, backupNode)));
+                return this;
+            }
+
+            /**
+             * A conditional node executor, if the predicate returns true the default node will be chosen and if false nothing will happen
+             * @param identifier The identifier of this GraphNode
+             * @param routePredicate A predicate which determines which route to take in the graph
+             * @param defaultNode The node progressed to if the predicate is true
+             * @return this Builder (for easy changing of methods)
+             */
+            public Config route(Identifier identifier, BiPredicate<GLCapabilities, StateHandler> routePredicate, Config defaultNode) {
+                graphNodes.put(identifier, new Pair<>(new Toggle(true), new NodeRoute(routePredicate, defaultNode, EMPTY_ROUTE)));
                 return this;
             }
 
