@@ -41,8 +41,13 @@ public class Style {
             return this;
         }
 
-        public Builder setScale(float scale) {
+        public Builder scale(float scale) {
             transformation.setScale(scale);
+            return this;
+        }
+
+        public Builder size(int width, int height) {
+            transformation.setScale(width, height, 1f);
             return this;
         }
 

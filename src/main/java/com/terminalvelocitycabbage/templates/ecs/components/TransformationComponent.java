@@ -44,7 +44,7 @@ public class TransformationComponent implements Component {
         return this;
     }
 
-    public float getScale() {
+    public Vector3f getScale() {
         return transformation.getScale();
     }
 

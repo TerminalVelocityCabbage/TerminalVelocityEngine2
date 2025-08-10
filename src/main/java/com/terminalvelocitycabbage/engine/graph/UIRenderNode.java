@@ -12,9 +12,11 @@ import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 import com.terminalvelocitycabbage.templates.meshes.SquareDataMesh;
 
+import static org.lwjgl.opengl.GL11.*;
+
 public abstract class UIRenderNode extends RenderNode {
 
-    static final Projection PROJECTION = new Projection(Projection.Type.ORTHOGONAL, -100, 100);
+    static final Projection PROJECTION = new Projection(Projection.Type.ORTHOGONAL, 0, 100);
 
     public static final VertexFormat UI_ELEMENT_MESH_FORMAT = VertexFormat.builder()
             .addElement(VertexAttribute.XYZ_POSITION)
@@ -40,7 +42,13 @@ public abstract class UIRenderNode extends RenderNode {
         shaderProgram.getUniform("textureSampler").setUniform(0);
         shaderProgram.getUniform("projectionMatrix").setUniform(PROJECTION.getProjectionMatrix());
 
-        drawUIElements(scene);
+        if (glIsEnabled(GL_DEPTH_TEST)) {
+            glDisable(GL_DEPTH_TEST);
+            drawUIElements(scene);
+            glEnable(GL_DEPTH_TEST);
+        } else {
+            drawUIElements(scene);
+        }
 
         //Reset
         shaderProgram.unbind();
