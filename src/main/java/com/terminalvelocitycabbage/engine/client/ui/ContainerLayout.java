@@ -73,7 +73,7 @@ public class ContainerLayout extends Layout {
     }
 
     @Override
-    public Matrix4f getTransformationMatrix(ContainerLayout currentContainerLayout) {
+    public Matrix4f getTransformationMatrix(ContainerLayout currentContainerLayout, Layout previousElementLayout) {
 
         transformationMatrix = new Matrix4f();
 

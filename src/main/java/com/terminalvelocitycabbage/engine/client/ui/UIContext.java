@@ -8,7 +8,6 @@ public class UIContext {
     Identifier previousContainer;
     Identifier currentContainer;
     Identifier previousElement;
-    Identifier currentElement;
 
     WindowProperties windowProperties;
 
@@ -41,14 +40,6 @@ public class UIContext {
 
     public void setPreviousElement(Identifier previousSibling) {
         this.previousElement = previousSibling;
-    }
-
-    public void setCurrentElement(Identifier currentSibling) {
-        this.currentElement = currentSibling;
-    }
-
-    public Identifier getCurrentElement() {
-        return currentElement;
     }
 
     public int getWindowWidth() {

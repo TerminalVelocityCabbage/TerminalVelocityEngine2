@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -56,7 +57,7 @@ public class Layout {
         }
     }
 
-    public Matrix4f getTransformationMatrix(ContainerLayout currentContainerLayout) {
+    public Matrix4f getTransformationMatrix(ContainerLayout currentContainerLayout, Layout previousElementLayout) {
 
         Matrix4f transformationMatrix = new Matrix4f();
 
@@ -71,7 +72,12 @@ public class Layout {
 
         //Move the element to its proper location
         var parentTransformationMatrix = currentContainerLayout.getStoredTransformationMatrix();
-        transformationMatrix.translateLocal((float) containerPixelWidth / 2, (float) containerPixelHeight / 2, 0);
+        //TODO do container children positions here (don't move x and y, use container justify children to decide how to offset)
+        if (previousElementLayout != null) {
+            Log.info("Previous element stuff: " + previousElementLayout.getComputedWidth() + " x " + previousElementLayout.getComputedHeight());
+            transformationMatrix.translateLocal(previousElementLayout.getComputedWidth(), previousElementLayout.getComputedHeight(), 0);
+        }
+        //Locate the elements based on container
         if (parentTransformationMatrix != null) transformationMatrix.translateLocal(parentTransformationMatrix.getTranslation(new Vector3f()));
 
         return transformationMatrix;

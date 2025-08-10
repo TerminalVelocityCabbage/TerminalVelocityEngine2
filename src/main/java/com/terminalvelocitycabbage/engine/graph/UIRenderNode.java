@@ -40,6 +40,7 @@ public abstract class UIRenderNode extends RenderNode {
         super(shaderProgramConfig);
     }
 
+    //TODO this stuff needs to be done for all ui nodes on a graph, we don't really want to create a new cache for every UI node I don't think
     @Override
     public void init(RenderGraph renderGraph) {
         super.init(renderGraph);
@@ -85,7 +86,6 @@ public abstract class UIRenderNode extends RenderNode {
         context.setPreviousContainer(null);
         context.setPreviousElement(null);
         context.setCurrentContainer(ROOT_ELEMENT_IDENTIFIER);
-        context.setCurrentElement(null);
 
         Log.info("Rendering UI -------------------------");
         if (glIsEnabled(GL_DEPTH_TEST)) {
@@ -100,12 +100,12 @@ public abstract class UIRenderNode extends RenderNode {
         shaderProgram.unbind();
     }
 
+    //TODO add some warnings if a container is started but not ended as it creates some weird things if you don't
     public boolean startContainer(Identifier elementIdentifier) {
 
         Log.info(elementIdentifier + " started");
 
         context.setPreviousElement(null);
-        context.setCurrentElement(null);
         context.setPreviousContainer(context.getCurrentContainer());
         var current = elementRegistry.get(elementIdentifier);
         current.setParent(context.getCurrentContainer());
@@ -126,14 +126,18 @@ public abstract class UIRenderNode extends RenderNode {
         }
 
         var previousParentContainer = elementRegistry.get(context.getPreviousContainer()).getParent();
-        shaderProgram.getUniform("modelMatrix").setUniform(thisLayout.getTransformationMatrix((ContainerLayout) elementRegistry.get(context.getPreviousContainer()).getLayout()));
+        shaderProgram.getUniform("modelMatrix").setUniform(
+                thisLayout.getTransformationMatrix(
+                        (ContainerLayout) elementRegistry.get(context.getPreviousContainer()).getLayout(),
+                        context.getPreviousElement() == null ? null : elementRegistry.get(context.getPreviousElement()).getLayout()
+                )
+        );
 
         meshCache.getMesh(context.getCurrentContainer()).render();
 
         Log.info(context.getCurrentContainer() + " ended");
 
         context.setPreviousElement(context.getCurrentContainer());
-        context.setCurrentElement(null);
         context.setCurrentContainer(context.getPreviousContainer());
         context.setPreviousContainer(previousParentContainer == null ? context.getPreviousContainer() : previousParentContainer);
 
@@ -145,17 +149,25 @@ public abstract class UIRenderNode extends RenderNode {
         var layout = thisElement.getLayout();
         var style = thisElement.getStyle();
 
+        layout.computeDimensions(elementRegistry.get(context.getCurrentContainer()).getLayout());
+
         if (style.getTextureIdentifier() != null) {
             var texture = ClientBase.getInstance().getTextureCache().getTexture(style.getTextureIdentifier());
             texture.bind();
         }
 
-        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix((ContainerLayout) elementRegistry.get(context.getCurrentContainer()).getLayout()));
+        shaderProgram.getUniform("modelMatrix").setUniform(
+                layout.getTransformationMatrix(
+                        (ContainerLayout) elementRegistry.get(context.getCurrentContainer()).getLayout(),
+                        context.getPreviousElement() == null ? null : elementRegistry.get(context.getPreviousElement()).getLayout()
+                )
+        );
 
         meshCache.getMesh(elementIdentifier).render();
 
-        context.setPreviousElement(context.getCurrentElement());
-        context.setCurrentElement(elementIdentifier);
+        Log.info(elementIdentifier + " drawn");
+
+        context.setPreviousElement(elementIdentifier);
 
         return true;
     }
