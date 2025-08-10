@@ -78,6 +78,18 @@ public class Transformation {
         return this;
     }
 
+    public Transformation addScale(float x, float y, float z) {
+        this.scale.add(x, y, z);
+        this.dirty = true;
+        return this;
+    }
+
+    public Transformation addScale(Vector3f scale) {
+        this.scale.add(scale);
+        this.dirty = true;
+        return this;
+    }
+
     public Matrix4f getTransformationMatrix() {
         if (dirty) updateTransformationMatrix();
         return transformationMatrix;
