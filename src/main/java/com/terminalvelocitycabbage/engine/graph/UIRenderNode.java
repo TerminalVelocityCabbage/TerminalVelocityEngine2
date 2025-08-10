@@ -2,9 +2,12 @@ package com.terminalvelocitycabbage.engine.graph;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.Projection;
+import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
+import com.terminalvelocitycabbage.engine.client.renderer.model.MeshCache;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.Element;
@@ -21,8 +24,9 @@ import static org.lwjgl.opengl.GL11.*;
 
 public abstract class UIRenderNode extends RenderNode {
 
+    static final Identifier ROOT_ELEMENT_IDENTIFIER = ClientBase.getInstance().identifierOf("root");
     static final Projection PROJECTION = new Projection(Projection.Type.ORTHOGONAL, 0, 100);
-    //MeshCache meshCache;
+    MeshCache meshCache;
     Registry<Element> elementRegistry;
 
     public static final VertexFormat UI_ELEMENT_MESH_FORMAT = VertexFormat.builder()
@@ -36,10 +40,30 @@ public abstract class UIRenderNode extends RenderNode {
 
     public UIRenderNode(ShaderProgramConfig shaderProgramConfig) {
         super(shaderProgramConfig);
+    }
+
+    @Override
+    public void init(RenderGraph renderGraph) {
+        super.init(renderGraph);
         this.elementRegistry = new Registry<>();
+        var rootElement = new Element(
+                null,
+                new Layout(
+                        new Layout.Dimension(0, Layout.Unit.PIXELS),
+                        new Layout.Dimension(0, Layout.Unit.PIXELS),
+                        Layout.Anchor.CENTER_CENTER, Layout.PlacementDirection.CENTER_CENTER),
+                Style.builder().build());
+        elementRegistry.register(ROOT_ELEMENT_IDENTIFIER, rootElement);
         registerUIElements(new ElementRegistry(elementRegistry));
-        //TODO generate mesh cache from registered elements and their styles
-        //this.meshCache = new MeshCache();
+        var quadMesh = ClientBase.getInstance().identifierOf("quad");
+        Registry<Mesh> meshRegistry = new Registry<>();
+        meshRegistry.register(quadMesh, QUAD_MESH);
+        Registry<Model> modelRegistry = new Registry<>();
+        elementRegistry.getRegistryContents().forEach((identifier, element) -> {
+            var texture = element.style().getTextureIdentifier();
+            if (texture != null) modelRegistry.register(identifier, new Model(quadMesh, texture));
+        });
+        this.meshCache = new MeshCache(modelRegistry, meshRegistry, ClientBase.getInstance().getTextureCache());
     }
 
     public abstract void registerUIElements(ElementRegistry elementRegistry);
@@ -56,18 +80,12 @@ public abstract class UIRenderNode extends RenderNode {
         shaderProgram.getUniform("textureSampler").setUniform(0);
         shaderProgram.getUniform("projectionMatrix").setUniform(PROJECTION.getProjectionMatrix());
 
+        elementRegistry.get(ROOT_ELEMENT_IDENTIFIER).layout().setDimensions(properties.getWidth(), properties.getHeight());
         context = new UIContext(properties);
-        var rootElement = new Element(
-                null,
-                new Layout(
-                        new Layout.Dimension(properties.getWidth(), Layout.Unit.PIXELS),
-                        new Layout.Dimension(properties.getHeight(), Layout.Unit.PIXELS),
-                        Layout.Anchor.CENTER_CENTER, Layout.PlacementDirection.CENTER_CENTER),
-                Style.builder().build());
         context.setPreviousContainer(null);
         context.setPreviousElement(null);
-        context.setCurrentContainer(rootElement);
-        context.setCurrentElement(rootElement);
+        context.setCurrentContainer(ROOT_ELEMENT_IDENTIFIER);
+        context.setCurrentElement(ROOT_ELEMENT_IDENTIFIER);
 
         if (glIsEnabled(GL_DEPTH_TEST)) {
             glDisable(GL_DEPTH_TEST);
@@ -77,31 +95,20 @@ public abstract class UIRenderNode extends RenderNode {
             drawUIElements(scene);
         }
 
-        if (rootElement.style().getTextureIdentifier() != null) {
-            ClientBase.getInstance().getTextureCache().getTexture(rootElement.style().getTextureIdentifier()).bind();
-            shaderProgram.getUniform("modelMatrix").setUniform(rootElement.layout().getTransformationMatrix(context));
-            QUAD_MESH.render();
-        }
-
         //Reset
         shaderProgram.unbind();
     }
 
     public void startContainer(Identifier elementIdentifier) {
-
-        var thisElement = elementRegistry.get(elementIdentifier);
-
         context.setPreviousElement(null);
         context.setCurrentElement(null);
         context.setPreviousContainer(context.getCurrentContainer());
-        context.setCurrentContainer(thisElement);
-
-
+        context.setCurrentContainer(elementIdentifier);
     }
 
     public void endContainer() {
 
-        var thisElement = context.getCurrentContainer();
+        var thisElement = elementRegistry.get(context.getCurrentContainer());
         var thisLayout = thisElement.layout();
         var style = thisElement.style();
 
@@ -109,13 +116,13 @@ public abstract class UIRenderNode extends RenderNode {
             ClientBase.getInstance().getTextureCache().getTexture(style.getTextureIdentifier()).bind();
         }
 
-        shaderProgram.getUniform("modelMatrix").setUniform(thisLayout.getTransformationMatrix(context));
+        shaderProgram.getUniform("modelMatrix").setUniform(thisLayout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).layout()));
 
-        QUAD_MESH.render();
+        meshCache.getMesh(context.getCurrentContainer()).render();
 
-        context.setPreviousElement(thisElement);
+        context.setPreviousElement(context.getCurrentContainer());
         context.setCurrentElement(null);
-        context.setPreviousContainer(context.getPreviousContainer().parent());
+        context.setPreviousContainer(elementRegistry.get(context.getPreviousContainer()).parent());
         context.setCurrentContainer(context.getPreviousContainer());
 
     }
@@ -131,12 +138,12 @@ public abstract class UIRenderNode extends RenderNode {
             texture.bind();
         }
 
-        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix(context));
+        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).layout()));
 
-        QUAD_MESH.render();
+        meshCache.getMesh(elementIdentifier).render();
 
         context.setPreviousElement(context.getCurrentElement());
-        context.setCurrentElement(thisElement);
+        context.setCurrentElement(elementIdentifier);
 
     }
 

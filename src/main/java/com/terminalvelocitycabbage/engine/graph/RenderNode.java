@@ -63,6 +63,14 @@ public abstract non-sealed class RenderNode implements GraphNode {
     }
 
     /**
+     * An optional init stage for rendergraph nodes
+     * @param renderGraph The rendergraph that this node belongs to
+     */
+    public void init(RenderGraph renderGraph) {
+
+    }
+
+    /**
      * @return The currently compiled shader program of this node
      */
     public ShaderProgram getShaderProgram() {

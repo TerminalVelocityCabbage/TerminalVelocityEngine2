@@ -29,7 +29,6 @@ public class TextureCache {
         var textures = texturesToCompileToAtlas.get(atlasIdentifier);
         var atlas = new Atlas(textures);
         for (Identifier textureId : textures.keySet()) {
-            Log.info("Generating texture " + textureId + " for atlas " + atlasIdentifier);
             this.generatedTextures.put(textureId, atlas);
         }
     }

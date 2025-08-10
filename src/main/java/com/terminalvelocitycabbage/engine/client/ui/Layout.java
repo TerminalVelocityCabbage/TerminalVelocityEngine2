@@ -24,6 +24,11 @@ public class Layout {
         this(new Dimension(width, Unit.PIXELS), new Dimension(height, Unit.PIXELS));
     }
 
+    public void setDimensions(int width, int height) {
+        this.width = new Dimension(width, Unit.PIXELS);
+        this.height = new Dimension(height, Unit.PIXELS);
+    }
+
     public enum Anchor {
         TOP_LEFT,
         TOP_CENTER,
@@ -64,17 +69,17 @@ public class Layout {
 
     public record Dimension(Integer value, Unit unit) {
 
-        float toPixelDimension(UIContext context, boolean width) {
+        float toPixelDimension(Layout parentLayout, boolean width) {
             if (unit == Unit.PIXELS) return value;
             if (width) {
-                return context.getCurrentContainer().layout().getWidth().value() * ((float) value / 100);
+                return parentLayout.getWidth().value() * ((float) value / 100);
             } else {
-                return context.getCurrentContainer().layout().getHeight().value() * ((float) value / 100);
+                return parentLayout.getHeight().value() * ((float) value / 100);
             }
         }
     }
 
-    public Matrix4f getTransformationMatrix(UIContext context) {
+    public Matrix4f getTransformationMatrix(Layout currentContainerLayout) {
 
         Matrix4f transformationMatrix = new Matrix4f();
 
@@ -87,7 +92,7 @@ public class Layout {
             transformationMatrix.translate(0, (float) height.value / 2, 0);
         }
         //Scale the object by its sizes
-        transformationMatrix.scale(width.toPixelDimension(context, true), height.toPixelDimension(context, false), 1);
+        transformationMatrix.scale(width.toPixelDimension(currentContainerLayout, true), height.toPixelDimension(currentContainerLayout, false), 1);
         //Move the element to its proper location
         return transformationMatrix;
     }

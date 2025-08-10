@@ -1,13 +1,14 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class UIContext {
 
-    Element previousContainer;
-    Element currentContainer;
-    Element previousElement;
-    Element currentElement;
+    Identifier previousContainer;
+    Identifier currentContainer;
+    Identifier previousElement;
+    Identifier currentElement;
 
     WindowProperties windowProperties;
 
@@ -18,35 +19,35 @@ public class UIContext {
         this.windowProperties = windowProperties;
     }
 
-    public Element getPreviousContainer() {
+    public Identifier getPreviousContainer() {
         return previousContainer;
     }
 
-    public void setPreviousContainer(Element previousContainer) {
+    public void setPreviousContainer(Identifier previousContainer) {
         this.previousContainer = previousContainer;
     }
 
-    public Element getCurrentContainer() {
+    public Identifier getCurrentContainer() {
         return currentContainer;
     }
 
-    public void setCurrentContainer(Element currentContainer) {
+    public void setCurrentContainer(Identifier currentContainer) {
         this.currentContainer = currentContainer;
     }
 
-    public Element getPreviousElement() {
+    public Identifier getPreviousElement() {
         return previousElement;
     }
 
-    public void setPreviousElement(Element previousSibling) {
+    public void setPreviousElement(Identifier previousSibling) {
         this.previousElement = previousSibling;
     }
 
-    public void setCurrentElement(Element currentSibling) {
+    public void setCurrentElement(Identifier currentSibling) {
         this.currentElement = currentSibling;
     }
 
-    public Element getCurrentElement() {
+    public Identifier getCurrentElement() {
         return currentElement;
     }
 

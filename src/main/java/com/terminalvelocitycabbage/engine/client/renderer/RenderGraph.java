@@ -55,6 +55,9 @@ public class RenderGraph {
     public void init(GLCapabilities capabilities) {
         initialized = true;
         this.capabilities = capabilities;
+        graphNodes.forEach((identifier, togglePair) -> {
+            if (togglePair.getValue1() instanceof RenderNode renderNode) renderNode.init(this);
+        });
     }
 
     /**
