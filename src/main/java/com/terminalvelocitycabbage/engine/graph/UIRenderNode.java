@@ -10,10 +10,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.model.MeshCache;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
-import com.terminalvelocitycabbage.engine.client.ui.Element;
-import com.terminalvelocitycabbage.engine.client.ui.Layout;
-import com.terminalvelocitycabbage.engine.client.ui.Style;
-import com.terminalvelocitycabbage.engine.client.ui.UIContext;
+import com.terminalvelocitycabbage.engine.client.ui.*;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -49,7 +46,7 @@ public abstract class UIRenderNode extends RenderNode {
 
         //Collect all elements used in this UI so that the textures and meshes can be cached
         this.elementRegistry = new Registry<>();
-        var rootElement = new Element(null, new Layout(new Layout.Dimension(0, Layout.Unit.PIXELS), new Layout.Dimension(0, Layout.Unit.PIXELS), Layout.Anchor.CENTER_CENTER, Layout.PlacementDirection.CENTERED), Style.builder().build());
+        var rootElement = new Element(null, new ContainerLayout(new Layout.Dimension(0, Layout.Unit.PIXELS), new Layout.Dimension(0, Layout.Unit.PIXELS), ContainerLayout.Anchor.CENTER_CENTER, ContainerLayout.PlacementDirection.CENTERED), Style.builder().build());
         elementRegistry.register(ROOT_ELEMENT_IDENTIFIER, rootElement);
         registerUIElements(new ElementRegistry(elementRegistry));
 
@@ -61,7 +58,7 @@ public abstract class UIRenderNode extends RenderNode {
         //Pair up meshes with textures here based on all textures used in element styles
         Registry<Model> modelRegistry = new Registry<>();
         elementRegistry.getRegistryContents().forEach((identifier, element) -> {
-            var texture = element.style().getTextureIdentifier();
+            var texture = element.getStyle().getTextureIdentifier();
             //TODO this will eventually depend on what type of texture it is using, eventually we will have textures with unique edge, corner, and middle conditions
             if (texture != null) modelRegistry.register(identifier, new Model(quadMesh, texture));
         });
@@ -83,14 +80,14 @@ public abstract class UIRenderNode extends RenderNode {
         shaderProgram.getUniform("textureSampler").setUniform(0);
         shaderProgram.getUniform("projectionMatrix").setUniform(PROJECTION.getProjectionMatrix());
 
-        elementRegistry.get(ROOT_ELEMENT_IDENTIFIER).layout().setDimensions(properties.getWidth(), properties.getHeight());
-        Log.info("set root dimensions to " + properties.getWidth() + " x " + properties.getHeight());
+        elementRegistry.get(ROOT_ELEMENT_IDENTIFIER).getLayout().setDimensions(properties.getWidth(), properties.getHeight());
         context = new UIContext(properties);
         context.setPreviousContainer(null);
         context.setPreviousElement(null);
         context.setCurrentContainer(ROOT_ELEMENT_IDENTIFIER);
-        context.setCurrentElement(ROOT_ELEMENT_IDENTIFIER);
+        context.setCurrentElement(null);
 
+        Log.info("Rendering UI -------------------------");
         if (glIsEnabled(GL_DEPTH_TEST)) {
             glDisable(GL_DEPTH_TEST);
             drawUIElements(scene);
@@ -105,9 +102,14 @@ public abstract class UIRenderNode extends RenderNode {
 
     public boolean startContainer(Identifier elementIdentifier) {
 
+        Log.info(elementIdentifier + " started");
+
         context.setPreviousElement(null);
         context.setCurrentElement(null);
         context.setPreviousContainer(context.getCurrentContainer());
+        var current = elementRegistry.get(elementIdentifier);
+        current.setParent(context.getCurrentContainer());
+        current.getLayout().computeDimensions(elementRegistry.get(context.getCurrentContainer()).getLayout());
         context.setCurrentContainer(elementIdentifier);
 
         return true;
@@ -115,43 +117,41 @@ public abstract class UIRenderNode extends RenderNode {
 
     public void endContainer() {
 
+        Log.info(context.getCurrentContainer() + " ended");
         var thisElement = elementRegistry.get(context.getCurrentContainer());
-        var thisLayout = thisElement.layout();
-        var style = thisElement.style();
+        var thisLayout = (ContainerLayout) thisElement.getLayout();
+        var style = thisElement.getStyle();
 
         if (style.getTextureIdentifier() != null) {
             ClientBase.getInstance().getTextureCache().getTexture(style.getTextureIdentifier()).bind();
         }
 
-        var parent = elementRegistry.get(elementRegistry.get(context.getPreviousContainer()).parent());
-        shaderProgram.getUniform("modelMatrix").setUniform(
-                thisLayout.getTransformationMatrix(
-                        elementRegistry.get(context.getPreviousContainer()).layout(),
-                        parent == null ? null : parent.layout()
-                )
-        );
+        var previousParentContainer = elementRegistry.get(context.getPreviousContainer()).getParent();
+        shaderProgram.getUniform("modelMatrix").setUniform(thisLayout.getTransformationMatrix(elementRegistry.get(context.getPreviousContainer()).getLayout()));
 
         meshCache.getMesh(context.getCurrentContainer()).render();
 
         context.setPreviousElement(context.getCurrentContainer());
         context.setCurrentElement(null);
-        context.setPreviousContainer(context.getPreviousContainer());
+        Log.info("setting current container to " + context.getPreviousContainer());
+        Log.info("setting previous container to " + previousParentContainer);
         context.setCurrentContainer(context.getPreviousContainer());
+        context.setPreviousContainer(previousParentContainer == null ? context.getPreviousContainer() : previousParentContainer);
 
     }
 
     public boolean drawBox(Identifier elementIdentifier) {
 
         var thisElement = elementRegistry.get(elementIdentifier);
-        var layout = thisElement.layout();
-        var style = thisElement.style();
+        var layout = thisElement.getLayout();
+        var style = thisElement.getStyle();
 
         if (style.getTextureIdentifier() != null) {
             var texture = ClientBase.getInstance().getTextureCache().getTexture(style.getTextureIdentifier());
             texture.bind();
         }
 
-        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).layout(), elementRegistry.get(context.getPreviousContainer()).layout()));
+        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).getLayout()));
 
         meshCache.getMesh(elementIdentifier).render();
 

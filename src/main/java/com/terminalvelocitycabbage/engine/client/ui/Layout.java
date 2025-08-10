@@ -6,68 +6,28 @@ public class Layout {
 
     Dimension width;
     Dimension height;
-    Anchor anchor;
-    PlacementDirection placementDirection;
 
-    public Layout(Dimension width, Dimension height, Anchor anchor, PlacementDirection placementDirection) {
-        this.width = width;
-        this.height = height;
-        this.anchor = anchor;
-        this.placementDirection = placementDirection;
-    }
+    //In Pixels
+    int computedWidth;
+    int computedHeight;
 
     public Layout(Dimension width, Dimension height) {
-        this(width, height, Anchor.INHERIT, PlacementDirection.CENTERED); //TODO down right
+        this.width = width;
+        this.height = height;
     }
 
     public Layout(int width, int height) {
         this(new Dimension(width, Unit.PIXELS), new Dimension(height, Unit.PIXELS));
     }
 
+    public void computeDimensions(Layout parentLayout) {
+        computedWidth = (int) (width.toPixelDimension(parentLayout, true));
+        computedHeight = (int) (height.toPixelDimension(parentLayout, false));
+    }
+
     public void setDimensions(int width, int height) {
         this.width = new Dimension(width, Unit.PIXELS);
         this.height = new Dimension(height, Unit.PIXELS);
-    }
-
-    public enum Anchor {
-        TOP_LEFT(1, -1),
-        TOP_CENTER(1, 0),
-        TOP_RIGHT(1, 1),
-        CENTER_LEFT(0, -1),
-        CENTER_CENTER(0, 0),
-        CENTER_RIGHT(0, 1),
-        BOTTOM_LEFT( -1, -1),
-        BOTTOM_CENTER( -1, 0),
-        BOTTOM_RIGHT( -1, 1),
-        INHERIT(0, 0);
-
-        public int verticalMultiplier;
-        public int horizontalMultiplier;
-
-        Anchor(int verticalMultiplier, int horizontalMultiplier) {
-            this.verticalMultiplier = verticalMultiplier;
-            this.horizontalMultiplier = horizontalMultiplier;
-        }
-    }
-
-    public enum PlacementDirection {
-        DOWN_RIGHT(-0.5f, 0.5f),
-        DOWN(-0.5f, 0),
-        DOWN_LEFT(-0.5f, -0.5f),
-        RIGHT(0, 0.5f),
-        CENTERED(0, 0),
-        LEFT(0, -0.5f),
-        UP_RIGHT(0.5f, 0.5f),
-        UP(0.5f, 0),
-        UP_LEFT(0.5f, -0.5f);
-
-        float xMultiplier;
-        float yMultiplier;
-
-        PlacementDirection(float yOffset, float xOffset) {
-            this.xMultiplier = xOffset;
-            this.yMultiplier = yOffset;
-        }
     }
 
     public enum Unit {
@@ -80,46 +40,32 @@ public class Layout {
         float toPixelDimension(Layout parentLayout, boolean width) {
             if (unit == Unit.PIXELS) return value;
             if (width) {
-                return parentLayout.getWidth().value() * ((float) value / 100);
+                return parentLayout.getComputedWidth() * ((float) value / 100);
             } else {
-                return parentLayout.getHeight().value() * ((float) value / 100);
+                return parentLayout.getComputedHeight() * ((float) value / 100);
             }
+        }
+
+        @Override
+        public String toString() {
+            return "Dimension{" +
+                    "value=" + value +
+                    ", unit=" + unit +
+                    '}';
         }
     }
 
-    public Matrix4f getTransformationMatrix(Layout currentContainerLayout, Layout previousContainerLayout) {
+    public Matrix4f getTransformationMatrix(Layout currentContainerLayout) {
 
         Matrix4f transformationMatrix = new Matrix4f();
 
         var pixelWidth = width.toPixelDimension(currentContainerLayout, true);
         var pixelHeight = height.toPixelDimension(currentContainerLayout, false);
 
-        var containerPixelWidth = currentContainerLayout.getWidth().toPixelDimension(previousContainerLayout, true);
-        var containerPixelHeight = currentContainerLayout.getHeight().toPixelDimension(previousContainerLayout, false);
-
         //Scale the object by its sizes
         transformationMatrix.scale(pixelWidth, pixelHeight, 1);
-        //If the placement direction is not center, we want to move by half each dimension in the placement directions
-        //This is so that once we scale it'll already be in the right place
-        transformationMatrix.translateLocal(
-                placementDirection.xMultiplier * pixelWidth,
-                placementDirection.yMultiplier * pixelHeight,
-                0);
 
-        //Move the element to its proper location
-        transformationMatrix.translateLocal(
-                anchor.horizontalMultiplier * (containerPixelWidth / 2),
-                anchor.verticalMultiplier * (containerPixelHeight / 2),
-                0);
         return transformationMatrix;
-    }
-
-    public PlacementDirection getPlacementDirection() {
-        return placementDirection;
-    }
-
-    public Anchor getAnchor() {
-        return anchor;
     }
 
     public Dimension getHeight() {
@@ -128,5 +74,13 @@ public class Layout {
 
     public Dimension getWidth() {
         return width;
+    }
+
+    public int getComputedWidth() {
+        return computedWidth;
+    }
+
+    public int getComputedHeight() {
+        return computedHeight;
     }
 }
