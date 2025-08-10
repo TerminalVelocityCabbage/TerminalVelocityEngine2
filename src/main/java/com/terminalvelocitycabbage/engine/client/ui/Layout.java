@@ -17,7 +17,7 @@ public class Layout {
     }
 
     public Layout(Dimension width, Dimension height) {
-        this(width, height, Anchor.INHERIT, PlacementDirection.CENTER_CENTER); //TODO down right
+        this(width, height, Anchor.INHERIT, PlacementDirection.CENTERED); //TODO down right
     }
 
     public Layout(int width, int height) {
@@ -30,41 +30,49 @@ public class Layout {
     }
 
     public enum Anchor {
-        TOP_LEFT,
-        TOP_CENTER,
-        TOP_RIGHT,
-        CENTER_LEFT,
-        CENTER_CENTER,
-        CENTER_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_CENTER,
-        BOTTOM_RIGHT,
-        INHERIT
+        TOP_LEFT(1, -1),
+        TOP_CENTER(1, 0),
+        TOP_RIGHT(1, 1),
+        CENTER_LEFT(0, -1),
+        CENTER_CENTER(0, 0),
+        CENTER_RIGHT(0, 1),
+        BOTTOM_LEFT( -1, -1),
+        BOTTOM_CENTER( -1, 0),
+        BOTTOM_RIGHT( -1, 1),
+        INHERIT(0, 0);
+
+        public int verticalMultiplier;
+        public int horizontalMultiplier;
+
+        Anchor(int verticalMultiplier, int horizontalMultiplier) {
+            this.verticalMultiplier = verticalMultiplier;
+            this.horizontalMultiplier = horizontalMultiplier;
+        }
     }
 
     public enum PlacementDirection {
-        DOWN_RIGHT,
-        DOWN_CENTER,
-        DOWN_LEFT,
-        RIGHT_CENTER,
-        CENTER_CENTER,
-        LEFT_CENTER,
-        UP_RIGHT,
-        UP_CENTER,
-        UP_LEFT;
+        DOWN_RIGHT(-0.5f, 0.5f),
+        DOWN(-0.5f, 0),
+        DOWN_LEFT(-0.5f, -0.5f),
+        RIGHT(0, 0.5f),
+        CENTERED(0, 0),
+        LEFT(0, -0.5f),
+        UP_RIGHT(0.5f, 0.5f),
+        UP(0.5f, 0),
+        UP_LEFT(0.5f, -0.5f);
 
-        boolean transformedHorizontally() {
-            return this != UP_CENTER && this != DOWN_CENTER && this != CENTER_CENTER;
-        }
+        float xMultiplier;
+        float yMultiplier;
 
-        boolean transformedVertically() {
-            return this != LEFT_CENTER && this != RIGHT_CENTER && this != CENTER_CENTER;
+        PlacementDirection(float yOffset, float xOffset) {
+            this.xMultiplier = xOffset;
+            this.yMultiplier = yOffset;
         }
     }
 
     public enum Unit {
         PIXELS,
-        PERCENTAGE;
+        PERCENT;
     }
 
     public record Dimension(Integer value, Unit unit) {
@@ -79,21 +87,30 @@ public class Layout {
         }
     }
 
-    public Matrix4f getTransformationMatrix(Layout currentContainerLayout) {
+    public Matrix4f getTransformationMatrix(Layout currentContainerLayout, Layout previousContainerLayout) {
 
         Matrix4f transformationMatrix = new Matrix4f();
 
+        var pixelWidth = width.toPixelDimension(currentContainerLayout, true);
+        var pixelHeight = height.toPixelDimension(currentContainerLayout, false);
+
+        var containerPixelWidth = currentContainerLayout.getWidth().toPixelDimension(previousContainerLayout, true);
+        var containerPixelHeight = currentContainerLayout.getHeight().toPixelDimension(previousContainerLayout, false);
+
+        //Scale the object by its sizes
+        transformationMatrix.scale(pixelWidth, pixelHeight, 1);
         //If the placement direction is not center, we want to move by half each dimension in the placement directions
         //This is so that once we scale it'll already be in the right place
-        if (placementDirection.transformedHorizontally()) {
-            transformationMatrix.translate((float) width.value / 2, 0, 0);
-        }
-        if (placementDirection.transformedVertically()) {
-            transformationMatrix.translate(0, (float) height.value / 2, 0);
-        }
-        //Scale the object by its sizes
-        transformationMatrix.scale(width.toPixelDimension(currentContainerLayout, true), height.toPixelDimension(currentContainerLayout, false), 1);
+        transformationMatrix.translateLocal(
+                placementDirection.xMultiplier * pixelWidth,
+                placementDirection.yMultiplier * pixelHeight,
+                0);
+
         //Move the element to its proper location
+        transformationMatrix.translateLocal(
+                anchor.horizontalMultiplier * (containerPixelWidth / 2),
+                anchor.verticalMultiplier * (containerPixelHeight / 2),
+                0);
         return transformationMatrix;
     }
 

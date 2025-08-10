@@ -15,6 +15,7 @@ import com.terminalvelocitycabbage.engine.client.ui.Layout;
 import com.terminalvelocitycabbage.engine.client.ui.Style;
 import com.terminalvelocitycabbage.engine.client.ui.UIContext;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
@@ -45,24 +46,26 @@ public abstract class UIRenderNode extends RenderNode {
     @Override
     public void init(RenderGraph renderGraph) {
         super.init(renderGraph);
+
+        //Collect all elements used in this UI so that the textures and meshes can be cached
         this.elementRegistry = new Registry<>();
-        var rootElement = new Element(
-                null,
-                new Layout(
-                        new Layout.Dimension(0, Layout.Unit.PIXELS),
-                        new Layout.Dimension(0, Layout.Unit.PIXELS),
-                        Layout.Anchor.CENTER_CENTER, Layout.PlacementDirection.CENTER_CENTER),
-                Style.builder().build());
+        var rootElement = new Element(null, new Layout(new Layout.Dimension(0, Layout.Unit.PIXELS), new Layout.Dimension(0, Layout.Unit.PIXELS), Layout.Anchor.CENTER_CENTER, Layout.PlacementDirection.CENTERED), Style.builder().build());
         elementRegistry.register(ROOT_ELEMENT_IDENTIFIER, rootElement);
         registerUIElements(new ElementRegistry(elementRegistry));
-        var quadMesh = ClientBase.getInstance().identifierOf("quad");
+
+        //Create a mesh cache so that textures can be sampled from the UI atlas
         Registry<Mesh> meshRegistry = new Registry<>();
+        //All meshes that are provided by the UIRenderNode should be registered to the mesh registry here
+        var quadMesh = ClientBase.getInstance().identifierOf("quad");
         meshRegistry.register(quadMesh, QUAD_MESH);
+        //Pair up meshes with textures here based on all textures used in element styles
         Registry<Model> modelRegistry = new Registry<>();
         elementRegistry.getRegistryContents().forEach((identifier, element) -> {
             var texture = element.style().getTextureIdentifier();
+            //TODO this will eventually depend on what type of texture it is using, eventually we will have textures with unique edge, corner, and middle conditions
             if (texture != null) modelRegistry.register(identifier, new Model(quadMesh, texture));
         });
+        //Generate the mesh cache from the paired meshes and textures (models)
         this.meshCache = new MeshCache(modelRegistry, meshRegistry, ClientBase.getInstance().getTextureCache());
     }
 
@@ -81,6 +84,7 @@ public abstract class UIRenderNode extends RenderNode {
         shaderProgram.getUniform("projectionMatrix").setUniform(PROJECTION.getProjectionMatrix());
 
         elementRegistry.get(ROOT_ELEMENT_IDENTIFIER).layout().setDimensions(properties.getWidth(), properties.getHeight());
+        Log.info("set root dimensions to " + properties.getWidth() + " x " + properties.getHeight());
         context = new UIContext(properties);
         context.setPreviousContainer(null);
         context.setPreviousElement(null);
@@ -99,11 +103,14 @@ public abstract class UIRenderNode extends RenderNode {
         shaderProgram.unbind();
     }
 
-    public void startContainer(Identifier elementIdentifier) {
+    public boolean startContainer(Identifier elementIdentifier) {
+
         context.setPreviousElement(null);
         context.setCurrentElement(null);
         context.setPreviousContainer(context.getCurrentContainer());
         context.setCurrentContainer(elementIdentifier);
+
+        return true;
     }
 
     public void endContainer() {
@@ -116,18 +123,24 @@ public abstract class UIRenderNode extends RenderNode {
             ClientBase.getInstance().getTextureCache().getTexture(style.getTextureIdentifier()).bind();
         }
 
-        shaderProgram.getUniform("modelMatrix").setUniform(thisLayout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).layout()));
+        var parent = elementRegistry.get(elementRegistry.get(context.getPreviousContainer()).parent());
+        shaderProgram.getUniform("modelMatrix").setUniform(
+                thisLayout.getTransformationMatrix(
+                        elementRegistry.get(context.getPreviousContainer()).layout(),
+                        parent == null ? null : parent.layout()
+                )
+        );
 
         meshCache.getMesh(context.getCurrentContainer()).render();
 
         context.setPreviousElement(context.getCurrentContainer());
         context.setCurrentElement(null);
-        context.setPreviousContainer(elementRegistry.get(context.getPreviousContainer()).parent());
+        context.setPreviousContainer(context.getPreviousContainer());
         context.setCurrentContainer(context.getPreviousContainer());
 
     }
 
-    public void drawBox(Identifier elementIdentifier) {
+    public boolean drawBox(Identifier elementIdentifier) {
 
         var thisElement = elementRegistry.get(elementIdentifier);
         var layout = thisElement.layout();
@@ -138,13 +151,14 @@ public abstract class UIRenderNode extends RenderNode {
             texture.bind();
         }
 
-        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).layout()));
+        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).layout(), elementRegistry.get(context.getPreviousContainer()).layout()));
 
         meshCache.getMesh(elementIdentifier).render();
 
         context.setPreviousElement(context.getCurrentElement());
         context.setCurrentElement(elementIdentifier);
 
+        return true;
     }
 
     public static class ElementRegistry extends Registry<Element> {
