@@ -117,7 +117,6 @@ public abstract class UIRenderNode extends RenderNode {
 
     public void endContainer() {
 
-        Log.info(context.getCurrentContainer() + " ended");
         var thisElement = elementRegistry.get(context.getCurrentContainer());
         var thisLayout = (ContainerLayout) thisElement.getLayout();
         var style = thisElement.getStyle();
@@ -127,14 +126,14 @@ public abstract class UIRenderNode extends RenderNode {
         }
 
         var previousParentContainer = elementRegistry.get(context.getPreviousContainer()).getParent();
-        shaderProgram.getUniform("modelMatrix").setUniform(thisLayout.getTransformationMatrix(elementRegistry.get(context.getPreviousContainer()).getLayout()));
+        shaderProgram.getUniform("modelMatrix").setUniform(thisLayout.getTransformationMatrix((ContainerLayout) elementRegistry.get(context.getPreviousContainer()).getLayout()));
 
         meshCache.getMesh(context.getCurrentContainer()).render();
 
+        Log.info(context.getCurrentContainer() + " ended");
+
         context.setPreviousElement(context.getCurrentContainer());
         context.setCurrentElement(null);
-        Log.info("setting current container to " + context.getPreviousContainer());
-        Log.info("setting previous container to " + previousParentContainer);
         context.setCurrentContainer(context.getPreviousContainer());
         context.setPreviousContainer(previousParentContainer == null ? context.getPreviousContainer() : previousParentContainer);
 
@@ -151,7 +150,7 @@ public abstract class UIRenderNode extends RenderNode {
             texture.bind();
         }
 
-        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix(elementRegistry.get(context.getCurrentContainer()).getLayout()));
+        shaderProgram.getUniform("modelMatrix").setUniform(layout.getTransformationMatrix((ContainerLayout) elementRegistry.get(context.getCurrentContainer()).getLayout()));
 
         meshCache.getMesh(elementIdentifier).render();
 

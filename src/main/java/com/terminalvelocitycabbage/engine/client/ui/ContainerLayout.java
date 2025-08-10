@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
-import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -74,21 +73,15 @@ public class ContainerLayout extends Layout {
     }
 
     @Override
-    public Matrix4f getTransformationMatrix(Layout currentContainerLayout) {
+    public Matrix4f getTransformationMatrix(ContainerLayout currentContainerLayout) {
 
         transformationMatrix = new Matrix4f();
 
-        ContainerLayout currentContainerLayoutCasted = (ContainerLayout) currentContainerLayout;;
-
-        Log.info("drawing element with dimensions: " + width + " x " + height);
         var pixelWidth = width.toPixelDimension(currentContainerLayout, true);
         var pixelHeight = height.toPixelDimension(currentContainerLayout, false);
-        Log.info("drawing container with dimensions: " + pixelWidth + " x " + pixelHeight + " scale: " + transformationMatrix.getScale(new Vector3f()));
 
-        var containerPixelWidth = currentContainerLayoutCasted.getComputedWidth();
-        var containerPixelHeight = currentContainerLayoutCasted.getComputedHeight();
-
-        Log.info("container pixel dimensions: " + containerPixelWidth + " x " + containerPixelHeight);
+        var containerPixelWidth = currentContainerLayout.getComputedWidth();
+        var containerPixelHeight = currentContainerLayout.getComputedHeight();
 
         //Scale the object by its sizes
         transformationMatrix.scale(pixelWidth, pixelHeight, 1);
@@ -100,7 +93,7 @@ public class ContainerLayout extends Layout {
                 0);
 
         //Move the element to its proper location
-        var parentTransformationMatrix = currentContainerLayoutCasted.getStoredTransformationMatrix();
+        var parentTransformationMatrix = currentContainerLayout.getStoredTransformationMatrix();
         transformationMatrix.translateLocal(
                 anchor.horizontalMultiplier * ((float) containerPixelWidth / 2),
                 anchor.verticalMultiplier * ((float) containerPixelHeight / 2),

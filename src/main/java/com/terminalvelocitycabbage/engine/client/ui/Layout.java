@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class Layout {
 
@@ -55,15 +56,23 @@ public class Layout {
         }
     }
 
-    public Matrix4f getTransformationMatrix(Layout currentContainerLayout) {
+    public Matrix4f getTransformationMatrix(ContainerLayout currentContainerLayout) {
 
         Matrix4f transformationMatrix = new Matrix4f();
 
         var pixelWidth = width.toPixelDimension(currentContainerLayout, true);
         var pixelHeight = height.toPixelDimension(currentContainerLayout, false);
 
+        var containerPixelWidth = currentContainerLayout.getComputedWidth();
+        var containerPixelHeight = currentContainerLayout.getComputedHeight();
+
         //Scale the object by its sizes
         transformationMatrix.scale(pixelWidth, pixelHeight, 1);
+
+        //Move the element to its proper location
+        var parentTransformationMatrix = currentContainerLayout.getStoredTransformationMatrix();
+        transformationMatrix.translateLocal((float) containerPixelWidth / 2, (float) containerPixelHeight / 2, 0);
+        if (parentTransformationMatrix != null) transformationMatrix.translateLocal(parentTransformationMatrix.getTranslation(new Vector3f()));
 
         return transformationMatrix;
     }
