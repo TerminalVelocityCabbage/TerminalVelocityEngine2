@@ -88,13 +88,8 @@ public abstract class UIRenderNode extends RenderNode {
         context.setCurrentContainer(ROOT_ELEMENT_IDENTIFIER);
 
         Log.info("Rendering UI -------------------------");
-        if (glIsEnabled(GL_DEPTH_TEST)) {
-            glDisable(GL_DEPTH_TEST);
-            drawUIElements(scene);
-            glEnable(GL_DEPTH_TEST);
-        } else {
-            drawUIElements(scene);
-        }
+        glClear(GL_DEPTH_BUFFER_BIT);
+        drawUIElements(scene);
 
         //Reset
         shaderProgram.unbind();
