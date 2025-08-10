@@ -53,7 +53,7 @@ public class Projection {
     public void updateProjectionMatrix(float width, float height) {
         switch (type) {
             case PERSPECTIVE -> projectionMatrix.setPerspective(fieldOfView, width / height, nearPlane, farPlane);
-            case ORTHOGONAL -> projectionMatrix.setOrtho(-(width / 2), width / 2, -(width / 2), width / 2, nearPlane, farPlane); //TODO verify
+            case ORTHOGONAL -> projectionMatrix.setOrtho(-(width / 2), width / 2, -(height / 2), height / 2, nearPlane, farPlane);
         }
     }
 
