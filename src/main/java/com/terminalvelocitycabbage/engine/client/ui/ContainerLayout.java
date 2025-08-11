@@ -7,17 +7,19 @@ public class ContainerLayout extends Layout {
 
     Anchor anchor;
     PlacementDirection placementDirection;
+    JustifyChildren justifyChildren;
 
     Matrix4f transformationMatrix;
 
-    public ContainerLayout(Dimension width, Dimension height, Anchor anchor, PlacementDirection placementDirection) {
+    public ContainerLayout(Dimension width, Dimension height, Anchor anchor, PlacementDirection placementDirection, JustifyChildren justifyChildren) {
         super(width, height);
         this.anchor = anchor;
         this.placementDirection = placementDirection;
+        this.justifyChildren = justifyChildren;
     }
 
     public ContainerLayout(Dimension width, Dimension height) {
-        this(width, height, Anchor.CENTER_CENTER, PlacementDirection.CENTERED);
+        this(width, height, Anchor.CENTER_CENTER, PlacementDirection.CENTERED, JustifyChildren.CENTER_CENTER);
     }
 
     public ContainerLayout(int width, int height) {
@@ -40,8 +42,7 @@ public class ContainerLayout extends Layout {
         CENTER_RIGHT(0, 1),
         BOTTOM_LEFT( -1, -1),
         BOTTOM_CENTER( -1, 0),
-        BOTTOM_RIGHT( -1, 1),
-        INHERIT(0, 0);
+        BOTTOM_RIGHT( -1, 1);
 
         public int verticalMultiplier;
         public int horizontalMultiplier;
@@ -69,6 +70,28 @@ public class ContainerLayout extends Layout {
         PlacementDirection(float yOffset, float xOffset) {
             this.xMultiplier = xOffset;
             this.yMultiplier = yOffset;
+        }
+    }
+
+    public enum JustifyChildren {
+        TOP_LEFT(0.5f, -0.5f, PlacementDirection.DOWN_RIGHT),
+        TOP_CENTER(0.5f, 0, PlacementDirection.DOWN),
+        TOP_RIGHT(0.5f, 0.5f, PlacementDirection.DOWN_LEFT),
+        CENTER_LEFT(0, -0.5f, PlacementDirection.RIGHT),
+        CENTER_CENTER(0, 0, PlacementDirection.CENTERED),
+        CENTER_RIGHT(0, 0.5f, PlacementDirection.LEFT),
+        BOTTOM_LEFT( -0.5f, -0.5f, PlacementDirection.UP_RIGHT),
+        BOTTOM_CENTER( -0.5f, 0, PlacementDirection.UP),
+        BOTTOM_RIGHT( -0.5f, 0.5f, PlacementDirection.UP_LEFT);
+
+        public float verticalMultiplier;
+        public float horizontalMultiplier;
+        public PlacementDirection placementDirection;
+
+        JustifyChildren(float verticalMultiplier, float horizontalMultiplier, PlacementDirection placementDirection) {
+            this.verticalMultiplier = verticalMultiplier;
+            this.horizontalMultiplier = horizontalMultiplier;
+            this.placementDirection = placementDirection;
         }
     }
 
@@ -109,6 +132,10 @@ public class ContainerLayout extends Layout {
 
     public Anchor getAnchor() {
         return anchor;
+    }
+
+    public JustifyChildren getChildJustification() {
+        return justifyChildren;
     }
 
     public Matrix4f getStoredTransformationMatrix() {

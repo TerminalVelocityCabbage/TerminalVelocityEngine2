@@ -20,6 +20,17 @@ import com.terminalvelocitycabbage.templates.meshes.SquareDataMesh;
 
 import static org.lwjgl.opengl.GL11.*;
 
+/* TODO
+*   It may be an issue of some reused elements being quasi connected.
+*   We need to replace the elementRegistry with some sort of element configuration registry that elements can be built
+*   from when they're used so that their actual identifiers in the render tree are not the same (when two identical
+*   element identifiers are used on a call they aren't modifying eachother). OR the other option is to make sure that
+*   in each of the drawX methods we don't modify any state for the current element before it is drawn to the screen
+*   since this is technically an immediate mode renderer it might be fine as is, it will depend mostly on how we handle
+*   saved states for more complex elements. I assume these will just be variables edited by actions not stored on any
+*   elements directly though so again, it might be fine.
+*/
+
 public abstract class UIRenderNode extends RenderNode {
 
     static final Identifier ROOT_ELEMENT_IDENTIFIER = ClientBase.getInstance().identifierOf("root");
@@ -47,7 +58,7 @@ public abstract class UIRenderNode extends RenderNode {
 
         //Collect all elements used in this UI so that the textures and meshes can be cached
         this.elementRegistry = new Registry<>();
-        var rootElement = new Element(null, new ContainerLayout(new Layout.Dimension(0, Layout.Unit.PIXELS), new Layout.Dimension(0, Layout.Unit.PIXELS), ContainerLayout.Anchor.CENTER_CENTER, ContainerLayout.PlacementDirection.CENTERED), Style.builder().build());
+        var rootElement = new Element(null, new ContainerLayout(new Layout.Dimension(0, Layout.Unit.PIXELS), new Layout.Dimension(0, Layout.Unit.PIXELS), ContainerLayout.Anchor.CENTER_CENTER, ContainerLayout.PlacementDirection.CENTERED, ContainerLayout.JustifyChildren.CENTER_CENTER), Style.builder().build());
         elementRegistry.register(ROOT_ELEMENT_IDENTIFIER, rootElement);
         registerUIElements(new ElementRegistry(elementRegistry));
 
@@ -93,6 +104,8 @@ public abstract class UIRenderNode extends RenderNode {
 
         //Reset
         shaderProgram.unbind();
+
+        elementRegistry.getRegistryContents().values().forEach(Element::reset);
     }
 
     //TODO add some warnings if a container is started but not ended as it creates some weird things if you don't
@@ -136,6 +149,8 @@ public abstract class UIRenderNode extends RenderNode {
         context.setCurrentContainer(context.getPreviousContainer());
         context.setPreviousContainer(previousParentContainer == null ? context.getPreviousContainer() : previousParentContainer);
 
+        elementRegistry.getRegistryContents().values().forEach(Element::reset);
+
     }
 
     public boolean drawBox(Identifier elementIdentifier) {
@@ -143,8 +158,6 @@ public abstract class UIRenderNode extends RenderNode {
         var thisElement = elementRegistry.get(elementIdentifier);
         var layout = thisElement.getLayout();
         var style = thisElement.getStyle();
-
-        layout.computeDimensions(elementRegistry.get(context.getCurrentContainer()).getLayout());
 
         if (style.getTextureIdentifier() != null) {
             var texture = ClientBase.getInstance().getTextureCache().getTexture(style.getTextureIdentifier());
@@ -159,6 +172,8 @@ public abstract class UIRenderNode extends RenderNode {
         );
 
         meshCache.getMesh(elementIdentifier).render();
+
+        layout.computeDimensions(elementRegistry.get(context.getCurrentContainer()).getLayout());
 
         Log.info(elementIdentifier + " drawn");
 

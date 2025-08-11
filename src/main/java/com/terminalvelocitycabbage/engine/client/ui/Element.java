@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.engine.client.ui;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public final class Element {
+
     private Identifier parent;
     private Layout layout;
     private Style style;
@@ -27,6 +28,10 @@ public final class Element {
 
     public Style getStyle() {
         return style;
+    }
+
+    public void reset() {
+        layout.reset();
     }
 
 }
