@@ -58,7 +58,7 @@ public abstract class UIRenderNode extends RenderNode {
 
         //Collect all elements used in this UI so that the textures and meshes can be cached
         this.elementRegistry = new Registry<>();
-        var rootElement = new Element(null, new ContainerLayout(new Layout.Dimension(0, Layout.Unit.PIXELS), new Layout.Dimension(0, Layout.Unit.PIXELS), ContainerLayout.Anchor.CENTER_CENTER, ContainerLayout.PlacementDirection.CENTERED, ContainerLayout.JustifyChildren.CENTER_CENTER), Style.builder().build());
+        var rootElement = new Element(null, new ContainerLayout(new Layout.Dimension(0, Layout.Unit.PIXELS), new Layout.Dimension(0, Layout.Unit.PIXELS), ContainerLayout.Anchor.CENTER_CENTER, ContainerLayout.PlacementDirection.CENTERED, ContainerLayout.JustifyChildren.CENTER), Style.builder().build());
         elementRegistry.register(ROOT_ELEMENT_IDENTIFIER, rootElement);
         registerUIElements(new ElementRegistry(elementRegistry));
 

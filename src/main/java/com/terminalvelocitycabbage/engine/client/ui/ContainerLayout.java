@@ -19,7 +19,7 @@ public class ContainerLayout extends Layout {
     }
 
     public ContainerLayout(Dimension width, Dimension height) {
-        this(width, height, Anchor.CENTER_CENTER, PlacementDirection.CENTERED, JustifyChildren.CENTER_CENTER);
+        this(width, height, Anchor.CENTER_CENTER, PlacementDirection.CENTERED, JustifyChildren.CENTER);
     }
 
     public ContainerLayout(int width, int height) {
@@ -75,13 +75,13 @@ public class ContainerLayout extends Layout {
 
     public enum JustifyChildren {
         TOP_LEFT(0.5f, -0.5f, PlacementDirection.DOWN_RIGHT),
-        TOP_CENTER(0.5f, 0, PlacementDirection.DOWN),
+        TOP(0.5f, 0, PlacementDirection.DOWN),
         TOP_RIGHT(0.5f, 0.5f, PlacementDirection.DOWN_LEFT),
-        CENTER_LEFT(0, -0.5f, PlacementDirection.RIGHT),
-        CENTER_CENTER(0, 0, PlacementDirection.CENTERED),
-        CENTER_RIGHT(0, 0.5f, PlacementDirection.LEFT),
+        LEFT(0, -0.5f, PlacementDirection.RIGHT),
+        CENTER(0, 0, PlacementDirection.CENTERED),
+        RIGHT(0, 0.5f, PlacementDirection.LEFT),
         BOTTOM_LEFT( -0.5f, -0.5f, PlacementDirection.UP_RIGHT),
-        BOTTOM_CENTER( -0.5f, 0, PlacementDirection.UP),
+        BOTTOM( -0.5f, 0, PlacementDirection.UP),
         BOTTOM_RIGHT( -0.5f, 0.5f, PlacementDirection.UP_LEFT);
 
         public float verticalMultiplier;
