@@ -34,4 +34,12 @@ public final class Element {
         layout.reset();
     }
 
+    @Override
+    public String toString() {
+        return "Element{" +
+                "parent=" + parent +
+                ", layout=" + layout.toString() +
+                ", style=" + style.toString() +
+                '}';
+    }
 }

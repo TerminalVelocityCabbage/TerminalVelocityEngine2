@@ -7,6 +7,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
+import com.terminalvelocitycabbage.engine.client.ui.Font;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
@@ -32,10 +33,11 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     private final WindowManager windowManager;
     private final Registry<RenderGraph> renderGraphRegistry;
 
-    //Scene stuff
+    //Rendering stuff
     protected final Registry<Mesh> meshRegistry;
     protected final Registry<Model> modelRegistry;
     protected TextureCache textureCache;
+    protected final Registry<Font> fontRegistry;
 
     //Networking stuff
     private final Client client;
@@ -55,6 +57,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         inputCallbackListener = new InputCallbackListener();
         meshRegistry = new Registry<>();
         modelRegistry = new Registry<>();
+        fontRegistry = new Registry<>();
         client = new Client();
     }
 
@@ -95,6 +98,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         var configureTexturesEvent = new ConfigureTexturesEvent(fileSystem);
         eventDispatcher.dispatchEvent(configureTexturesEvent);
         textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures());
+        eventDispatcher.dispatchEvent(new GenerateFontsEvent(fileSystem, fontRegistry));
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
@@ -215,5 +219,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public TextureCache getTextureCache() {
         return textureCache;
+    }
+
+    public Registry<Font> getFontRegistry() {
+        return fontRegistry;
     }
 }

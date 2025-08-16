@@ -153,6 +153,19 @@ public abstract class UIRenderNode extends RenderNode {
 
     }
 
+    public boolean drawText(Identifier elementIdentifier, String text) {
+
+        Element thisElement = elementRegistry.get(elementIdentifier);
+        Identifier fontIdentifier = thisElement.getStyle().getFontIdentifier();
+        Font font = ClientBase.getInstance().getFontRegistry().get(fontIdentifier);
+
+        Font.ShapedText shapedText = font.shapeText(text);
+
+        font.drawText(shapedText, 0, 0);
+
+        return true;
+    }
+
     public boolean drawBox(Identifier elementIdentifier) {
 
         var thisElement = elementRegistry.get(elementIdentifier);
