@@ -10,6 +10,8 @@ import org.lwjgl.util.harfbuzz.HarfBuzz;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
 
+import java.util.stream.IntStream;
+
 public class Font {
 
     private final int fontSize; //In pixels
@@ -17,6 +19,8 @@ public class Font {
     private final long facePointer;
     private final FT_Face face;
     private final long font;
+
+    public static final int[] ISO_8859_1_GLYPH_IDS = IntStream.rangeClosed(32, 126).toArray();
 
     public Font(Resource resource, int fontSize) {
 
@@ -119,5 +123,25 @@ public class Font {
             this.xOffset = xOffset;
             this.yOffset = yOffset;
         }
+    }
+
+    public int getFontSize() {
+        return fontSize;
+    }
+
+    public long getFreeType() {
+        return freeType;
+    }
+
+    public long getFacePointer() {
+        return facePointer;
+    }
+
+    public FT_Face getFace() {
+        return face;
+    }
+
+    public long getFont() {
+        return font;
     }
 }

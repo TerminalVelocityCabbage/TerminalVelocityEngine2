@@ -63,4 +63,12 @@ public class MathUtils {
         return new Vector2i(bestWidth, bestHeight);
     }
 
+    public static int findNearestPowerOfTwo(int number) {
+        int powerOfTwo = 1;
+        while (powerOfTwo < number) {
+            powerOfTwo <<= 1;
+        }
+        return powerOfTwo;
+    }
+
 }
