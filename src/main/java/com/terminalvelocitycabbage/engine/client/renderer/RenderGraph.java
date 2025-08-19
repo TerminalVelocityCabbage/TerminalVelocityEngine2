@@ -53,6 +53,15 @@ public class RenderGraph {
      * @param capabilities the gl capabilities of this device
      */
     public void init(GLCapabilities capabilities) {
+
+        //Validate shaders match up with their configs
+        graphNodes.forEach((identifier, pair) -> {
+            if (pair.getValue1() instanceof RenderNode renderNode) {
+                renderNode.init();
+                renderNode.getShaderProgramConfig().validateVertexShader();
+            }
+        });
+
         initialized = true;
         this.capabilities = capabilities;
     }

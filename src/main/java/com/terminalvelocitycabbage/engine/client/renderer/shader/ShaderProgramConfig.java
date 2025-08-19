@@ -56,6 +56,13 @@ public class ShaderProgramConfig {
         return uniforms.get(uniformName);
     }
 
+    public boolean validateVertexShader() {
+        for (Shader shader : shaders) {
+            if (shader.shaderType.equals(Shader.Type.VERTEX)) return shader.validate(vertexFormat);
+        }
+        return true;
+    }
+
     public static class Builder {
         VertexFormat vertexFormat;
         List<Shader> shaders;

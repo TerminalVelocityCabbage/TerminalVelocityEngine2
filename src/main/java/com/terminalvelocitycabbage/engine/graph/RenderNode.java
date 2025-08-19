@@ -13,11 +13,19 @@ import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 public abstract non-sealed class RenderNode implements GraphNode {
 
     boolean recompileShaders = false;
-    ShaderProgramConfig shaderProgramConfig;
+    final ShaderProgramConfig shaderProgramConfig;
     ShaderProgram shaderProgram;
 
     public RenderNode(ShaderProgramConfig shaderProgramConfig) {
         this.shaderProgramConfig = shaderProgramConfig;
+    }
+
+    public void init() {
+        //Compile this shader program now that this renderer is ready to go (if needed)
+        if (shaderProgram == null && shaderProgramConfig != null) {
+            shaderProgram = ShaderProgram.of(shaderProgramConfig);
+            recompileShaders = false;
+        }
     }
 
     /**
@@ -34,12 +42,6 @@ public abstract non-sealed class RenderNode implements GraphNode {
         if (recompileShaders) {
             shaderProgram.cleanup();
             shaderProgram = null;
-        }
-
-        //Compile this shader program now that this renderer is ready to do (if needed)
-        if (shaderProgram == null && shaderProgramConfig != null) {
-            shaderProgram = ShaderProgram.of(shaderProgramConfig);
-            recompileShaders = false;
         }
 
         execute(scene, properties, renderConfig, deltaTime);
@@ -67,5 +69,12 @@ public abstract non-sealed class RenderNode implements GraphNode {
      */
     public ShaderProgram getShaderProgram() {
         return shaderProgram;
+    }
+
+    /**
+     * @return The current shader program config of this node
+     */
+    public ShaderProgramConfig getShaderProgramConfig() {
+        return shaderProgramConfig;
     }
 }
