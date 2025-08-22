@@ -1,14 +1,21 @@
 package com.terminalvelocitycabbage.test.ecs;
 
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.ecs.ComponentFilter;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
+import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.templates.events.RoutineSystemExecutionEvent;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,8 +70,20 @@ public class ECSTests {
         @Override
         public void update(Manager manager, float deltaTime) {
             manager.getEntitiesWith(PositionComponent.class).forEach(entity -> {
-                entity.getComponent(PositionComponent.class).getPosition().add(1, 0, 0);
+                entity.getComponent(PositionComponent.class).getPosition().add(1 * deltaTime, 0 * deltaTime, 0 * deltaTime);
             });
+        }
+    }
+
+    public static class MoveEntitySystem2 extends System {
+
+        @Override
+        public void update(Manager manager, float deltaTime) {
+            for (int i = 0; i < 10000; i++) {
+                manager.getEntitiesWith(PositionComponent.class).forEach(entity -> {
+                    entity.getComponent(PositionComponent.class).getPosition().add(2 * deltaTime, 0 * deltaTime, 0 * deltaTime);
+                });
+            }
         }
     }
 
@@ -171,7 +190,7 @@ public class ECSTests {
         //This entity should be ignored without exceptions
         var entity2 = manager.createEntity();
         entity2.addComponent(VelocityComponent.class);
-        manager.getSystem(MoveEntitySystem.class).update(manager, 0);
+        manager.getSystem(MoveEntitySystem.class).update(manager, 1);
         assertEquals(new Vector3f(1, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
     }
 
@@ -292,5 +311,130 @@ public class ECSTests {
         manager.addRelationship(entity1, "hates", entity2);
         assertTrue(manager.entityHasRelationship(entity1, "hates", entity2));
         assertFalse(manager.entityHasRelationship(entity2, "hates", entity1));
+    }
+
+    @Test
+    void testBasicSystemRoutineOperateOnEntity() {
+
+        var dummyEventDispatcher = new EventDispatcher();
+        manager.registerComponent(PositionComponent.class);
+        manager.registerComponent(VelocityComponent.class);
+        manager.createSystem(MoveEntitySystem.class);
+        var entity1 = manager.createEntity();
+        entity1.addComponent(PositionComponent.class);
+        //This entity should be ignored without exceptions
+        var entity2 = manager.createEntity();
+        entity2.addComponent(VelocityComponent.class);
+
+        //Create Routine
+        var routine = Routine.builder().addStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class).build();
+
+        routine.update(manager, dummyEventDispatcher, 10);
+
+        assertEquals(new Vector3f(10, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+
+    }
+
+    @Test
+    void testMultiStepSystemRoutineOperateOnEntity() {
+
+        var dummyEventDispatcher = new EventDispatcher();
+        manager.registerComponent(PositionComponent.class);
+        manager.registerComponent(VelocityComponent.class);
+        manager.createSystem(MoveEntitySystem.class);
+        var entity1 = manager.createEntity();
+        entity1.addComponent(PositionComponent.class);
+        //This entity should be ignored without exceptions
+        var entity2 = manager.createEntity();
+        entity2.addComponent(VelocityComponent.class);
+
+        //Create Routine
+        var routine = Routine.builder()
+                .addStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class)
+                .addStep(new Identifier("test", "testSystem2"), MoveEntitySystem.class)
+                .build();
+
+        routine.update(manager, dummyEventDispatcher, 10);
+
+        assertEquals(new Vector3f(20, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+
+    }
+
+    @Test
+    void testParallelStepSystemRoutineOperateOnEntity() {
+
+        var dummyEventDispatcher = new EventDispatcher();
+        manager.registerComponent(PositionComponent.class);
+        manager.registerComponent(VelocityComponent.class);
+        manager.createSystem(MoveEntitySystem.class);
+        manager.createSystem(MoveEntitySystem2.class);
+        var entity1 = manager.createEntity();
+        entity1.addComponent(PositionComponent.class);
+        //This entity should be ignored without exceptions
+        var entity2 = manager.createEntity();
+        entity2.addComponent(VelocityComponent.class);
+
+        //Create Routine
+        var routine = Routine.builder()
+                .addParallelStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
+                .build();
+
+        routine.update(manager, dummyEventDispatcher, 10);
+
+        assertEquals(new Vector3f(200010, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+
+    }
+
+    @Test
+    void testParallelStepSystemRoutineOperateOnEntityOrdered() {
+
+        var dummyEventDispatcher = new EventDispatcher();
+        manager.registerComponent(PositionComponent.class);
+        manager.registerComponent(VelocityComponent.class);
+        manager.createSystem(MoveEntitySystem.class);
+        manager.createSystem(MoveEntitySystem2.class);
+        var entity1 = manager.createEntity();
+        entity1.addComponent(PositionComponent.class);
+        //This entity should be ignored without exceptions
+        var entity2 = manager.createEntity();
+        entity2.addComponent(VelocityComponent.class);
+
+        List<String> executedSteps = new ArrayList<>();
+
+        var id1 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier("test", "testSystem0")), (event) -> {
+            executedSteps.add("testSystem0");
+            Log.info("testSystem0 post");
+            assertEquals(new Vector3f(10, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+        });
+        var id2 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier("test", "testSystem1")), (event) -> {
+            executedSteps.add("testSystem1");
+            Log.info("testSystem1 post");
+            assertEquals(new Vector3f(200020, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+        });
+        var id3 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier("test", "testSystem2")), (event) -> {
+            executedSteps.add("testSystem2");
+            Log.info("testSystem2 post");
+            assertEquals(new Vector3f(200030, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+        });
+
+        //Create Routine
+        var routine = Routine.builder()
+                .addStep(new Identifier("test", "testSystem0"), MoveEntitySystem.class)
+                .addParallelStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
+                .addStep(new Identifier("test", "testSystem2"), MoveEntitySystem.class)
+                .build();
+
+        routine.update(manager, dummyEventDispatcher, 10);
+
+        assertEquals(executedSteps.get(0), "testSystem0");
+        assertEquals(executedSteps.get(1), "testSystem1");
+        assertEquals(executedSteps.get(2), "testSystem2");
+
+        assertEquals(executedSteps.size(), 3);
+
+        dummyEventDispatcher.removeEventListener(id1);
+        dummyEventDispatcher.removeEventListener(id2);
+        dummyEventDispatcher.removeEventListener(id3);
+
     }
 }
