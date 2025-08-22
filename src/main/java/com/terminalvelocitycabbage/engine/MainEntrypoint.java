@@ -48,7 +48,7 @@ public abstract class MainEntrypoint extends Entrypoint {
         this.eventDispatcher = new EventDispatcher();
         tickManager = new TickManager(ticksPerSecond);
         manager = new Manager();
-        scheduler = new Scheduler();
+        scheduler = new Scheduler(4); //TODO expose this somehow or make it relative to available threads or something
         tickClock = MutableInstant.ofNow();
         stateHandler = new StateHandler();
         modRegistry = new Registry<>();
