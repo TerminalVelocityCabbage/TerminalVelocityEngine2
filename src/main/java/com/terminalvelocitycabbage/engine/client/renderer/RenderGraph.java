@@ -110,7 +110,11 @@ public class RenderGraph {
     }
 
     public void cleanup() {
-
+        graphNodes.forEach((identifier, pair) -> {
+            if (pair.getValue1() instanceof Routine routine) {
+                routine.shutdown();
+            }
+        });
     }
 
     public HeterogeneousMap getRenderConfig() {

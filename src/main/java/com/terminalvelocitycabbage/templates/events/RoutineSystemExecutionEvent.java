@@ -8,10 +8,12 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 public class RoutineSystemExecutionEvent extends Event {
 
     Manager manager;
+    long deltaTime;
 
-    public RoutineSystemExecutionEvent(Identifier name, Manager manager) {
+    public RoutineSystemExecutionEvent(Identifier name, Manager manager, long deltaTime) {
         super(name);
         this.manager = manager;
+        this.deltaTime = deltaTime;
     }
 
     //TODO figure out a way to cache these identifiers since this might get really slow really fast
@@ -27,4 +29,7 @@ public class RoutineSystemExecutionEvent extends Event {
         return manager;
     }
 
+    public long getDeltaTime() {
+        return deltaTime;
+    }
 }

@@ -26,18 +26,30 @@ public non-sealed class Routine implements GraphNode {
         this.pool = new ForkJoinPool();
     }
 
+    /**
+     * @return A new Builder instance to configure a new Routine
+     */
     public static Builder builder() {
         return new Builder();
     }
 
-    public void update(Manager manager, EventDispatcher eventDispatcher, float deltaTime) {
+    /**
+     * @param manager The ECS Manager for this entrypoint, passed to the system being executed to operate on
+     * @param eventDispatcher The event dispatcher for which to dispatch pre- and post-routine step events for so that
+     *                        Mods can inject their own systems into the pipeline
+     * @param deltaTime The time since the last execution of this Routine
+     */
+    public void update(Manager manager, EventDispatcher eventDispatcher, long deltaTime) {
         for (Map.Entry<Identifier, Step> step : steps.entrySet()) {
-            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(step.getKey()), manager));
+            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(step.getKey()), manager, deltaTime));
             step.getValue().execute(manager, deltaTime, pool);
-            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(step.getKey()), manager));
+            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(step.getKey()), manager, deltaTime));
         }
     }
 
+    /**
+     * Shuts down this routine and cleans up the forkjoinpool
+     */
     public void shutdown() {
         pool.shutdown();
     }
@@ -74,17 +86,31 @@ public non-sealed class Routine implements GraphNode {
             steps = new LinkedHashMap<>();
         }
 
+        /**
+         * @param stepIdentifier The identifier used to identify this step in the routine especially for mods
+         * @param system The system class which will be executed when this step runs
+         * @return This builder for easy chaining of methods
+         */
         public Builder addStep(Identifier stepIdentifier, Class<? extends System> system) {
             steps.put(stepIdentifier, new SequentialStep(system));
             return this;
         }
 
+        /**
+         * @param stepIdentifier The identifier used to identify this step in the routine, especially for mods
+         * @param systems The set of systems which will be executed in parallel during this step in the routine
+         *                Note that systems inside this parallel node do not complete in any guaranteed order
+         * @return This builder for easy chaining of methods
+         */
         public Builder addParallelStep(Identifier stepIdentifier, Class<? extends System>... systems) {
             if (systems.length == 0) Log.crash("Error adding parallel step to routine", new IllegalArgumentException("At least one system required"));
             steps.put(stepIdentifier, new ParallelStep(Set.of(systems)));
             return this;
         }
 
+        /**
+         * @return A new Routine instance from the configuration of this builder
+         */
         public Routine build() {
             return new Routine(steps);
         }
