@@ -144,7 +144,7 @@ public class RenderGraph {
                 //Execute all nodes in the graph
                 if (enabled && graphNode != null) {
                     switch (graphNode.getValue1()) {
-                        case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher()); //We assume that the server is not rendering anything
+                        case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher(), deltaTime); //We assume that the server is not rendering anything
                         case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, renderGraph.getRenderConfig(), deltaTime);
                         case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities, ClientBase.getInstance().getStateHandler()).render(windowProperties, deltaTime);
                     }

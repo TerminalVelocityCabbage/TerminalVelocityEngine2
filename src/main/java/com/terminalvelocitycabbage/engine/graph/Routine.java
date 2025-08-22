@@ -6,13 +6,11 @@ import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.util.MutableInstant;
-import com.terminalvelocitycabbage.engine.util.Toggle;
-import com.terminalvelocitycabbage.engine.util.touples.Triplet;
 import com.terminalvelocitycabbage.templates.events.RoutineSystemExecutionEvent;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
 /**
  * A node for an {@link RenderGraph}, specifically for executing a set of ECS systems.
@@ -20,97 +18,76 @@ import java.util.Map;
  */
 public non-sealed class Routine implements GraphNode {
 
-    //This Map stores data about this managed system including:
-    // - If it's enabled
-    // - When it was last executed (for use in calculating deltaTime)
-    // - The Class which defines this System's Logic
-    // - The ComponentFilter which this system will operate on the current matching entities with
-    Map<Identifier, Triplet<Toggle, MutableInstant, Class<? extends System>>> filteredSystems;
+    private final Map<Identifier, Step> steps;
+    private final ForkJoinPool pool;
 
-    private Routine(Map<Identifier, Triplet<Toggle, MutableInstant, Class<? extends System>>> managedSystems) {
-        this.filteredSystems = managedSystems;
+    private Routine(Map<Identifier, Step> steps) {
+        this.steps = steps;
+        this.pool = new ForkJoinPool();
     }
 
-    /**
-     * @return a new instance of {@link Routine.Builder} for use in configuring a new Render Graph.
-     */
     public static Builder builder() {
         return new Builder();
     }
 
-    /**
-     * @param manager the ESC manager that this routine operates on, usually returned by the client or server entrypoint
-     */
-    public void update(Manager manager, EventDispatcher eventDispatcher) {
-        filteredSystems.forEach((id, triplet) -> {
-            var enabled = triplet.getValue0().getStatus();
-            //Publish this routine stage's pre update event so mods can inject their own systems
-            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(id), manager, enabled));
-            //If this system is not paused update this system
-            if (enabled) {
-                manager.getSystem(triplet.getValue2()).update(manager, triplet.getValue1().getDeltaTime());
-                triplet.getValue1().now();
+    public void update(Manager manager, EventDispatcher eventDispatcher, float deltaTime) {
+        for (Map.Entry<Identifier, Step> step : steps.entrySet()) {
+            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(step.getKey()), manager));
+            step.getValue().execute(manager, deltaTime, pool);
+            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(step.getKey()), manager));
+        }
+    }
+
+    public void shutdown() {
+        pool.shutdown();
+    }
+
+    private interface Step {
+        void execute(Manager manager, float deltaTime, ForkJoinPool pool);
+    }
+
+    private record SequentialStep(Class<? extends System> system) implements Step {
+
+        @Override
+        public void execute(Manager manager, float deltaTime, ForkJoinPool pool) {
+            manager.getSystem(system).update(manager, deltaTime);
+        }
+    }
+
+    private record ParallelStep(Set<Class<? extends System> > systems) implements Step {
+
+        @Override
+        public void execute(Manager manager, float deltaTime, ForkJoinPool pool) {
+            Set<ForkJoinTask<?>> tasks = new HashSet<>(systems.size());
+            for (Class<? extends System> system : systems) {
+                tasks.add(pool.submit(() -> manager.getSystem(system).update(manager, deltaTime)));
             }
-            //Publish this routine stage's post update event so mods can inject their own systems
-            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(id), manager, enabled));
-        });
-    }
-
-    /**
-     * Pauses the specified node of this routine, when paused a node will be skipped in this routines next update pass
-     * @param systemIdentifier the {@link Identifier} for the node that you want to resume
-     */
-    public void pauseSystem(Identifier systemIdentifier) {
-        filteredSystems.get(systemIdentifier).getValue0().disable();
-    }
-
-    /**
-     * Resumes or "un-pauses" the specified node of this routine
-     * @param systemIdentifier the {@link Identifier} for the node that you want to resume
-     */
-    public void resumeSystem(Identifier systemIdentifier) {
-        filteredSystems.get(systemIdentifier).getValue0().enable();
+            tasks.forEach(ForkJoinTask::join);
+        }
     }
 
     public static class Builder {
 
-        Map<Identifier, Triplet<Toggle, MutableInstant, Class<? extends System>>> systems = new HashMap();
+        private final Map<Identifier, Step> steps;
 
-        /**
-         * Adds a node to this Routine. addNode calls should be specified in the order that they should be executed.
-         * This method automatically enabled this node, and assumes that this system does not need entities filtered,
-         * useful for systems that perform logic not on entities.
-         * @param nodeIdentifier An {@link Identifier} to identify this node (useful for pausing and publishing events)
-         * @param system The system that this node executes
-         * @return this Builder for easy chaining of add nodes
-         */
-        public Builder addNode(Identifier nodeIdentifier, Class<? extends System> system) {
-            return addNode(nodeIdentifier, system, true);
+        private Builder() {
+            steps = new LinkedHashMap<>();
         }
 
-        /**
-         * Adds a node to this Routine. addNode calls should be specified in the order that they should be executed.
-         * @param nodeIdentifier An {@link Identifier} to identify this node (useful for pausing and publishing events)
-         * @param system The system that this node executes
-         * @param automaticallyEnable A boolean to represent if this node should be executed or paused by default
-         * @return this Builder for easy chaining of add nodes
-         */
-        public Builder addNode(Identifier nodeIdentifier, Class<? extends System> system, boolean automaticallyEnable) {
-            if (systems.containsKey(nodeIdentifier)) {
-                Log.crash("Could not add system node " + nodeIdentifier + " to Routine",
-                        new RuntimeException("node " + nodeIdentifier + " already exists on this Routine."));
-            }
-            systems.put(nodeIdentifier, new Triplet<>(new Toggle(automaticallyEnable), MutableInstant.ofNow(), system));
+        public Builder addStep(Identifier stepIdentifier, Class<? extends System> system) {
+            steps.put(stepIdentifier, new SequentialStep(system));
             return this;
         }
 
-        /**
-         * @return A new instance of {@link Routine} based on this builder configuration.
-         */
-        public Routine build() {
-            return new Routine(systems);
+        public Builder addParallelStep(Identifier stepIdentifier, Class<? extends System>... systems) {
+            if (systems.length == 0) Log.crash("Error adding parallel step to routine", new IllegalArgumentException("At least one system required"));
+            steps.put(stepIdentifier, new ParallelStep(Set.of(systems)));
+            return this;
         }
 
+        public Routine build() {
+            return new Routine(steps);
+        }
     }
 
 }
