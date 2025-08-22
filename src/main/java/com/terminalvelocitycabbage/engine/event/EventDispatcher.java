@@ -37,6 +37,10 @@ public class EventDispatcher {
 		return uuid;
     }
 
+	/**
+	 * Unsubscribes a listener from it's event
+	 * @param uuid The UUID of the event listener (returned when the listener is created)
+	 */
 	public void removeEventListener(UUID uuid) {
 		if (!eventListenersByUUID.containsKey(uuid)) return;
 		var listener = eventListenersByUUID.get(uuid);
