@@ -7,28 +7,29 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class RoutineSystemExecutionEvent extends Event {
 
-    boolean enabled;
     Manager manager;
+    long deltaTime;
 
-    public RoutineSystemExecutionEvent(Identifier name, Manager manager, boolean paused) {
+    public RoutineSystemExecutionEvent(Identifier name, Manager manager, long deltaTime) {
         super(name);
         this.manager = manager;
-        this.enabled = paused;
+        this.deltaTime = deltaTime;
     }
 
+    //TODO figure out a way to cache these identifiers since this might get really slow really fast
     public static Identifier pre(Identifier systemIdentifier) {
         return TerminalVelocityEngine.identifierOf("routineSystemExecutionEventPre-[" + systemIdentifier.toString() + "]");
     }
 
     public static Identifier post(Identifier systemIdentifier) {
-        return TerminalVelocityEngine.identifierOf("routineSystemExecutionEventPre-[" + systemIdentifier.toString() + "]");
+        return TerminalVelocityEngine.identifierOf("routineSystemExecutionEventPost-[" + systemIdentifier.toString() + "]");
     }
 
     public Manager getManager() {
         return manager;
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public long getDeltaTime() {
+        return deltaTime;
     }
 }

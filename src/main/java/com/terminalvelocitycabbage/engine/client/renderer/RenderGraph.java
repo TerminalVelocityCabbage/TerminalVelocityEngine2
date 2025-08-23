@@ -53,6 +53,15 @@ public class RenderGraph {
      * @param capabilities the gl capabilities of this device
      */
     public void init(GLCapabilities capabilities) {
+
+        //Validate shaders match up with their configs
+        graphNodes.forEach((identifier, pair) -> {
+            if (pair.getValue1() instanceof RenderNode renderNode) {
+                renderNode.init(this);
+                renderNode.getShaderProgramConfig().validateVertexShader();
+            }
+        });
+
         initialized = true;
         this.capabilities = capabilities;
         graphNodes.forEach((identifier, togglePair) -> {
@@ -104,7 +113,11 @@ public class RenderGraph {
     }
 
     public void cleanup() {
-
+        graphNodes.forEach((identifier, pair) -> {
+            if (pair.getValue1() instanceof Routine routine) {
+                routine.shutdown();
+            }
+        });
     }
 
     public HeterogeneousMap getRenderConfig() {
@@ -138,7 +151,7 @@ public class RenderGraph {
                 //Execute all nodes in the graph
                 if (enabled && graphNode != null) {
                     switch (graphNode.getValue1()) {
-                        case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher()); //We assume that the server is not rendering anything
+                        case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher(), deltaTime); //We assume that the server is not rendering anything
                         case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, renderGraph.getRenderConfig(), deltaTime);
                         case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities, ClientBase.getInstance().getStateHandler()).render(windowProperties, deltaTime);
                     }

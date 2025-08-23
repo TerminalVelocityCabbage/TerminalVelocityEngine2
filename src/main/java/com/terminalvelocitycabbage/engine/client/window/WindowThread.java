@@ -56,7 +56,7 @@ public class WindowThread extends Thread {
             deltaTime = rendererClock.getDeltaTime();
             rendererClock.now();
 
-            //Make sure window Properties are correct with the current window size
+            //Make sure window properties are correct with current window size
             int[] width = new int[1];
             int[] height = new int[1];
             glfwGetFramebufferSize(windowHandle, width, height);

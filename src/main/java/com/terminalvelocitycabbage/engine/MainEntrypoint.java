@@ -20,7 +20,7 @@ public abstract class MainEntrypoint extends Entrypoint {
     protected final Registry<Routine> routineRegistry;
     protected final TickManager tickManager;
     protected final Manager manager;
-    protected final Scheduler scheduler;
+    protected final Scheduler scheduler; //TODO determine if it makes sense to maintain schedulers here or not, also tick & update schedulers?
     protected long deltaTime; //Tick delta time not render time
     protected final MutableInstant tickClock;
     protected final StateHandler stateHandler;
@@ -48,7 +48,7 @@ public abstract class MainEntrypoint extends Entrypoint {
         this.eventDispatcher = new EventDispatcher();
         tickManager = new TickManager(ticksPerSecond);
         manager = new Manager();
-        scheduler = new Scheduler();
+        scheduler = new Scheduler(4); //TODO expose this somehow or make it relative to available threads or something
         tickClock = MutableInstant.ofNow();
         stateHandler = new StateHandler();
         modRegistry = new Registry<>();
@@ -65,6 +65,11 @@ public abstract class MainEntrypoint extends Entrypoint {
      */
     public void tick() {
         stateHandler.tick();
+    }
+
+    @Override
+    public void destroy() {
+        scheduler.shutdown();
     }
 
     public EventDispatcher getEventDispatcher() {
