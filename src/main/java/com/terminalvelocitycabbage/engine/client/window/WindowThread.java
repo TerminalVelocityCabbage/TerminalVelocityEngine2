@@ -55,7 +55,15 @@ public class WindowThread extends Thread {
         while (!quit) {
             deltaTime = rendererClock.getDeltaTime();
             rendererClock.now();
+
+            //Make sure window properties are correct with current window size
+            int[] width = new int[1];
+            int[] height = new int[1];
+            glfwGetFramebufferSize(windowHandle, width, height);
+            properties.resize(width[0], height[0]);
             if (properties.isResized()) glViewport(0, 0, properties.getWidth(), properties.getHeight());
+
+            //Clear the last frame and render a new one
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).render(getProperties(), deltaTime);
             properties.endFrame();

@@ -12,7 +12,7 @@ public class Transformation {
 
     Vector3f position;
     Quaternionf rotation;
-    float scale;
+    Vector3f scale;
 
     boolean dirty;
 
@@ -20,7 +20,7 @@ public class Transformation {
         transformationMatrix = new Matrix4f();
         position = new Vector3f();
         rotation = new Quaternionf();
-        scale = 1f;
+        scale = new Vector3f(1f);
         dirty = true;
     }
 
@@ -62,12 +62,12 @@ public class Transformation {
         return this;
     }
 
-    public float getScale() {
+    public Vector3f getScale() {
         return scale;
     }
 
     public Transformation setScale(float scale) {
-        this.scale = scale;
+        this.scale.set(scale);
         dirty = true;
         return this;
     }

@@ -11,6 +11,8 @@ public class WindowProperties {
 
     private int width;
     private int height;
+    private int lastWidth;
+    private int lastHeight;
     private String title;
     private boolean focused;
     private boolean mousedOver;
@@ -102,9 +104,13 @@ public class WindowProperties {
      * @param height the height of this window
      */
     public void resize(int width, int height) {
-        this.resized = true;
-        this.width = width;
-        this.height = height;
+        if (width != lastWidth || height != lastHeight) {
+            this.resized = true;
+            this.lastWidth = this.width;
+            this.lastHeight = this.height;
+            this.width = width;
+            this.height = height;
+        }
     }
 
     /**

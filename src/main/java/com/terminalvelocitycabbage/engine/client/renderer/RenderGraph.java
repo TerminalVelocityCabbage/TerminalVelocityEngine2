@@ -57,7 +57,7 @@ public class RenderGraph {
         //Validate shaders match up with their configs
         graphNodes.forEach((identifier, pair) -> {
             if (pair.getValue1() instanceof RenderNode renderNode) {
-                renderNode.init();
+                renderNode.init(this);
                 renderNode.getShaderProgramConfig().validateVertexShader();
             }
         });
