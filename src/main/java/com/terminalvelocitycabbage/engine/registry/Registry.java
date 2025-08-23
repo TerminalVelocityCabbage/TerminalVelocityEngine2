@@ -33,7 +33,7 @@ public class Registry<T> {
      */
     public RegistryPair<T> register(Identifier identifier, T item) {
         if (registryContents.containsKey(identifier)) {
-            Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+            Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored. This will likely cause issues later on (probably crashes).");
             return null;
         }
         registryContents.put(identifier, item);

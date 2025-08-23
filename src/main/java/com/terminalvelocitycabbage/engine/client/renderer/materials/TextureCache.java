@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.renderer.materials;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -18,20 +19,27 @@ public class TextureCache {
 
     private final Map<Identifier, Resource> singleTextures;
     private final Map<Identifier, Texture> generatedTextures;
+    private final Map<Identifier, Texture> fontAtlasTextures;
 
     public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures) {
-        this.generatedTextures = new HashMap<>();
         this.texturesToCompileToAtlas = texturesToCompileToAtlas;
+
         this.singleTextures = singleTextures;
+        this.generatedTextures = new HashMap<>();
+        this.fontAtlasTextures = new HashMap<>();
     }
 
     public void generateAtlas(Identifier atlasIdentifier) {
         var textures = texturesToCompileToAtlas.get(atlasIdentifier);
         var atlas = new Atlas(textures);
         for (Identifier textureId : textures.keySet()) {
-            Log.info("Generating texture " + textureId + " for atlas " + atlasIdentifier);
             this.generatedTextures.put(textureId, atlas);
         }
+    }
+
+    public void generateFontAtlas(Identifier fontIdentifier, int[] glyphIds) {
+        Log.info("Generating font atlas for " + fontIdentifier);
+        this.fontAtlasTextures.put(fontIdentifier, new FontAtlas(ClientBase.getInstance().getFontRegistry().get(fontIdentifier), glyphIds));
     }
 
     /**
