@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.test.ecs;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,8 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SchedulerTest {
 
@@ -18,7 +18,7 @@ public class SchedulerTest {
 
     @BeforeEach
     void setup() {
-        scheduler = new Scheduler(4);
+        scheduler = new Scheduler(new Identifier("test", "default"), 4);
     }
 
     @AfterEach
@@ -210,6 +210,78 @@ public class SchedulerTest {
         assertEquals(1, returnValues.size());
         assertTrue(returnValues.contains(69420));
 
+    }
+
+    @Test
+    void testAsyncTaskInPoolOverflow() {
+
+        long now = System.currentTimeMillis();
+        List<Integer> returnValues = new ArrayList<>();
+
+        Identifier pool = scheduler.registerPool(new Identifier("test", "customPool"), 1);
+
+        var task1 = scheduler.scheduleAsyncTask(
+                pool,
+                () -> {
+                    try {
+                        Log.info("started async task 1");
+                        Thread.sleep(700);
+                    } catch (InterruptedException ignored) { }
+                }
+        );
+
+        var task2 = scheduler.scheduleAsyncTask(
+                pool,
+                () -> {
+                    try {
+                        Log.info("started async task 1");
+                        Thread.sleep(700);
+                    } catch (InterruptedException ignored) { }
+                }
+        );
+
+        assertNotNull(task1);
+        assertNull(task2);
+    }
+
+    @Test
+    void testAsyncTaskInPoolOverflowCallable() {
+
+        long now = System.currentTimeMillis();
+        List<Integer> returnValues = new ArrayList<>();
+
+        Identifier pool = scheduler.registerPool(new Identifier("test", "customPool"), 1);
+
+        var task1 = scheduler.scheduleAsyncTask(
+                pool,
+                () -> {
+                    try {
+                        Log.info("started async task 1");
+                        Thread.sleep(700);
+                    } catch (InterruptedException ignored) { }
+                    return 1;
+                },
+                (integer) -> {
+                    Log.info("async task 1: " + integer);
+                }
+        );
+
+        var task2 = scheduler.scheduleAsyncTask(
+                pool,
+                () -> {
+                    try {
+                        Log.info("started async task 1");
+                        Thread.sleep(700);
+                    } catch (InterruptedException ignored) { }
+                    return 1;
+                },
+                (integer) -> {
+                    Log.info("async task 1: " + integer);
+                }
+        );
+
+        assertNotNull(task1);
+        assertNull(task2);
     }
 
 }

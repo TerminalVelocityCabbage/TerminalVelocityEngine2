@@ -40,7 +40,6 @@ public abstract class MainEntrypoint extends Entrypoint {
     //Localizations
     protected final Localizer localizer;
 
-
     protected final EventDispatcher eventDispatcher;
 
     public MainEntrypoint(String namespace, int ticksPerSecond) {
@@ -48,7 +47,7 @@ public abstract class MainEntrypoint extends Entrypoint {
         this.eventDispatcher = new EventDispatcher();
         tickManager = new TickManager(ticksPerSecond);
         manager = new Manager();
-        scheduler = new Scheduler(4); //TODO expose this somehow or make it relative to available threads or something
+        scheduler = new Scheduler(identifierOf("default"), 4); //TODO expose this somehow or make it relative to available threads or something
         tickClock = MutableInstant.ofNow();
         stateHandler = new StateHandler();
         modRegistry = new Registry<>();
