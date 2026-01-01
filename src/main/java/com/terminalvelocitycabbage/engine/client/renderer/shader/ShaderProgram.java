@@ -73,7 +73,7 @@ public class ShaderProgram {
     }
 
     /**
-     * @return The OpenGL id of this shader program
+     * @return The OpenGL identifier of this shader program
      */
     public int getProgramID() {
         return programID;

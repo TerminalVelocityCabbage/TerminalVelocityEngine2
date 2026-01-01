@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.registry;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 
-import java.util.*;
+import java.util.LinkedHashMap;
 
 public class Registry<T> {
 
@@ -24,6 +24,25 @@ public class Registry<T> {
      */
     public Registry() {
         this(null);
+    }
+
+    /**
+     * Registers an item to this registry for retrieval later by its identifier or name
+     * @param item The item to be registered (if it extends Identifiable)
+     */
+    public RegistryPair<T> register(T item) {
+        if (item instanceof Identifiable identifiable) {
+            var identifier = identifiable.getIdentifier();
+            if (registryContents.containsKey(identifier)) {
+                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+                return null;
+            }
+            registryContents.put(identifier, item);
+            return new RegistryPair<>(identifier, item);
+        } else {
+            Log.warn("Tried to register item of type " + item.getClass().getName() + " which does not implement Identifiable, the item will not be registered. Try registering with a declared Identifier instead of implicit with this method");
+            return null;
+        }
     }
 
     /**

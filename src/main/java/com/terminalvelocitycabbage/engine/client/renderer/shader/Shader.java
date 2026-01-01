@@ -50,7 +50,7 @@ public class Shader {
     }
 
     /**
-     * @return The shader id for this shader once created
+     * @return The shader identifier for this shader once created
      */
     public int create() {
 

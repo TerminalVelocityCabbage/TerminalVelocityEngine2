@@ -215,7 +215,7 @@ public class Mesh {
     }
 
     /**
-     * @return The opengl id given to this mesh
+     * @return The opengl identifier given to this mesh
      */
     public final int getVaoId() {
         return vaoId;

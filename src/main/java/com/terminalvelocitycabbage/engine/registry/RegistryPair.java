@@ -26,7 +26,7 @@ public class RegistryPair<T> extends Pair<Identifier, T> {
     /**
      * @return The value associated with this registration
      */
-    public T getValue() {
+    public T getElement() {
         return getValue1();
     }
 }
