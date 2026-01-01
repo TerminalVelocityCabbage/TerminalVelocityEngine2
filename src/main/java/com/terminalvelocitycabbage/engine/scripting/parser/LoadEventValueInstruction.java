@@ -4,17 +4,20 @@ import com.terminalvelocitycabbage.engine.scripting.api.ScriptEventValue;
 
 public final class LoadEventValueInstruction implements ScriptInstruction {
 
+    private final ScriptEventValue<?, ?> value;
     private final int targetSlot;
-    private final ScriptEventValue value;
 
-    public LoadEventValueInstruction(int targetSlot, ScriptEventValue value) {
-        this.targetSlot = targetSlot;
+    public LoadEventValueInstruction(
+            ScriptEventValue<?, ?> value,
+            int targetSlot
+    ) {
         this.value = value;
+        this.targetSlot = targetSlot;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        Object event = context.getLocal(0); // slot 0 = event instance
+        Object event = context.getEvent();
         Object extracted = value.extract(event);
         context.setLocal(targetSlot, extracted);
     }

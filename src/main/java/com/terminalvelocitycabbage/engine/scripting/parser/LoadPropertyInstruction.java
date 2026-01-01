@@ -4,24 +4,20 @@ import com.terminalvelocitycabbage.engine.scripting.api.ScriptProperty;
 
 public final class LoadPropertyInstruction implements ScriptInstruction {
 
-    private final int sourceSlot;
+    private final ScriptProperty<?, ?> property;
+    private final int ownerSlot;
     private final int targetSlot;
-    private final ScriptProperty<?> property;
 
-    public LoadPropertyInstruction(
-            int sourceSlot,
-            int targetSlot,
-            ScriptProperty<?> property
-    ) {
-        this.sourceSlot = sourceSlot;
-        this.targetSlot = targetSlot;
+    public LoadPropertyInstruction(ScriptProperty<?, ?> property, int ownerSlot, int targetSlot) {
         this.property = property;
+        this.ownerSlot = ownerSlot;
+        this.targetSlot = targetSlot;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        Object source = context.getLocal(sourceSlot);
-        Object value = property.get(source);
+        Object owner = context.getLocal(ownerSlot);
+        Object value = property.get(owner);
         context.setLocal(targetSlot, value);
     }
 }

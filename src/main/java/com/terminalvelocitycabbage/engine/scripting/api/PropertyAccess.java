@@ -3,24 +3,42 @@ package com.terminalvelocitycabbage.engine.scripting.api;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public sealed interface PropertyAccess<T> permits PropertyAccess.ReadOnly, PropertyAccess.ReadWrite {
+public sealed interface PropertyAccess<O, V>
+        permits PropertyAccess.ReadOnly, PropertyAccess.ReadWrite {
 
-    Object get(T owner);
+    V get(O instance);
 
-    record ReadOnly<T>(Function<T, Object> getter) implements PropertyAccess<T> {
+    final class ReadOnly<O, V> implements PropertyAccess<O, V> {
+
+        private final Function<O, V> getter;
+
+        public ReadOnly(Function<O, V> getter) {
+            this.getter = getter;
+        }
 
         @Override
-        public Object get(T owner) {
-            return getter.apply(owner);
+        public V get(O instance) {
+            return getter.apply(instance);
         }
     }
 
-    record ReadWrite<T>(Function<T, Object> getter, BiConsumer<T, Object> setter) implements PropertyAccess<T> {
+    final class ReadWrite<O, V> implements PropertyAccess<O, V> {
+
+        private final Function<O, V> getter;
+        private final BiConsumer<O, V> setter;
+
+        public ReadWrite(Function<O, V> getter, BiConsumer<O, V> setter) {
+            this.getter = getter;
+            this.setter = setter;
+        }
 
         @Override
-        public Object get(T owner) {
-            return getter.apply(owner);
+        public V get(O instance) {
+            return getter.apply(instance);
         }
+
+        // setter omitted for now
     }
 }
+
 

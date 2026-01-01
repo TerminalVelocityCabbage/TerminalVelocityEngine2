@@ -7,11 +7,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public record ScriptEvent(Identifier identifier,
-                          Class<?> eventClass,
-                          Map<String, ScriptEventValue> exposedValues,
-                          ScriptVisibility visibility,
-                          String documentation) implements Identifiable {
+public record ScriptEvent<E>(
+        Identifier identifier,
+        Class<?> eventClass,
+        Map<String, ScriptEventValue<E, ?>> exposedValues,
+        String documentation) implements Identifiable {
 
     public static <E> ScriptEventBuilder<E> builder() {
         return new ScriptEventBuilder<>();
@@ -22,7 +22,6 @@ public record ScriptEvent(Identifier identifier,
         private Identifier id;
         private Class<E> eventClass;
         private final Map<String, ScriptEventValue> values = new LinkedHashMap<>();
-        private ScriptVisibility visibility = ScriptVisibility.PUBLIC;
         private String documentation = "";
 
         public ScriptEventBuilder<E> id(Identifier id) {
@@ -51,11 +50,6 @@ public record ScriptEvent(Identifier identifier,
             return this;
         }
 
-        public ScriptEventBuilder<E> visibility(ScriptVisibility visibility) {
-            this.visibility = visibility;
-            return this;
-        }
-
         public ScriptEventBuilder<E> doc(String documentation) {
             this.documentation = documentation;
             return this;
@@ -63,7 +57,7 @@ public record ScriptEvent(Identifier identifier,
 
         public ScriptEvent build() {
             if (id == null)
-                throw new IllegalStateException("ScriptEvent id is required");
+                throw new IllegalStateException("ScriptEvent identifier is required");
             if (eventClass == null)
                 throw new IllegalStateException("ScriptEvent eventClass is required");
 
@@ -71,7 +65,6 @@ public record ScriptEvent(Identifier identifier,
                     id,
                     eventClass,
                     Map.copyOf(values),
-                    visibility,
                     documentation
             );
         }

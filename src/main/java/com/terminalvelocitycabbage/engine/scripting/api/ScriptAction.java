@@ -10,6 +10,10 @@ import java.util.function.Consumer;
 public record ScriptAction(Identifier identifier, List<SyntaxPattern> patterns, ScriptType returnType,
                            Consumer<ActionContext> executor, String documentation) implements Identifiable {
 
+    public void execute(ActionContext context) {
+        executor.accept(context);
+    }
+
     public static Builder builder(Identifier id) {
         return new Builder(id);
     }
