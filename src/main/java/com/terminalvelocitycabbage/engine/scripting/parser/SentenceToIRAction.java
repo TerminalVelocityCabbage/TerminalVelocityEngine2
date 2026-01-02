@@ -1,11 +1,11 @@
 package com.terminalvelocitycabbage.engine.scripting.parser;
 
-import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.scripting.core.CoreLibrary;
-import com.terminalvelocitycabbage.engine.scripting.core.CoreTypes;
+import com.terminalvelocitycabbage.engine.scripting.api.ScriptAction;
+import com.terminalvelocitycabbage.engine.scripting.api.syntax.SyntaxPattern;
 import com.terminalvelocitycabbage.engine.scripting.parser.data.SentenceNode;
-import com.terminalvelocitycabbage.engine.scripting.parser.data.intermediate.*;
+import com.terminalvelocitycabbage.engine.scripting.parser.data.intermediate.IRAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class SentenceToIRAction {
@@ -14,44 +14,39 @@ public final class SentenceToIRAction {
             SentenceNode sentence,
             ParsingContext context
     ) {
-        if (sentence.verb().equals("print")) {
+        List<IRAction> matches = new ArrayList<>();
 
-            if (sentence.arguments().size() != 1) {
-                throw new RuntimeException(
-                        "print expects exactly 1 argument at line "
-                                + sentence.lineNumber()
-                );
+        for (ScriptAction action : context.actions().getRegistryContents().values()) {
+            for (SyntaxPattern pattern : action.patterns()) {
+
+                SyntaxMatcher.match(pattern, sentence, context)
+                        .ifPresent(match -> {
+                            matches.add(
+                                    new IRAction(
+                                            action.id(),
+                                            action.returnType(),
+                                            match.arguments()
+                                    )
+                            );
+                        });
             }
+        }
 
-            String rawArg = sentence.arguments().get(0);
-
-            IRValue value;
-
-            if (rawArg.startsWith("\"")) {
-                value = new IRLiteral(
-                        CoreTypes.TEXT,
-                        rawArg.substring(1, rawArg.length() - 1)
-                );
-            } else {
-                // TODO property access for now
-                value = new IRProperty(
-                        CoreTypes.TEXT,
-                        Identifier.of("test:game.name"),
-                        rawArg
-                );
-            }
-
-            return new IRAction(
-                    new Identifier(CoreLibrary.CORE_NAMESPACE, "print"),
-                    CoreTypes.VOID,
-                    List.of(new IRArgument("value", value))
+        if (matches.isEmpty()) {
+            throw new RuntimeException(
+                    "No matching action for: " + sentence.rawText()
             );
         }
 
-        throw new RuntimeException(
-                "Unknown action '" + sentence.verb()
-                        + "' at line " + sentence.lineNumber()
-        );
+        if (matches.size() > 1) {
+            throw new RuntimeException(
+                    "Ambiguous action for: " + sentence.rawText()
+            );
+        }
+
+        return matches.get(0);
     }
 }
+
+
 

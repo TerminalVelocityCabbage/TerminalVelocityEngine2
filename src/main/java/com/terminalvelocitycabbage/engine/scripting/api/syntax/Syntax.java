@@ -2,18 +2,16 @@ package com.terminalvelocitycabbage.engine.scripting.api.syntax;
 
 import com.terminalvelocitycabbage.engine.scripting.api.ScriptType;
 
-import java.util.Set;
-
 public final class Syntax {
 
     private Syntax() {}
 
-    public static LiteralElement literal(String... literals) {
-        return new LiteralElement(Set.of(literals));
+    public static SyntaxLiteral literal(String literal) {
+        return new SyntaxLiteral(literal);
     }
 
-    public static ArgumentElement argument(String name, ScriptType type) {
-        return new ArgumentElement(name, type);
+    public static SyntaxArgument argument(String name, ScriptType type) {
+        return new SyntaxArgument(name, type);
     }
 
 }

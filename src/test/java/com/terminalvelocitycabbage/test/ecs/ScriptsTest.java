@@ -118,7 +118,15 @@ public class ScriptsTest {
 
         List<ScriptBlock> blocks = ScriptBlockParser.parse(scriptText);
 
-        ParsingContext context = new ParsingContext(scriptEventRegistry, scriptTypeRegistry);
+        ParsingContext context =
+                new ParsingContext(
+                        scriptEventRegistry,
+                        scriptTypeRegistry,
+                        scriptActionRegistry,
+                        scriptPropertyRegistry,
+                        scriptConstantRegistry
+                );
+
 
         List<IRBlock> irBlocks = new ArrayList<>();
 
@@ -132,7 +140,7 @@ public class ScriptsTest {
                         SentenceParser.parse(line);
 
                 IRAction action =
-                        SentenceToIRAction.parse(sentence, context);
+                        ActionToIR.parse(sentence, context);
 
                 irBlock.body().add(action);
             }

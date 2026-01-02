@@ -93,6 +93,10 @@ public class Registry<T> {
         return registryContents.containsKey(identifier);
     }
 
+    /**
+     * @param namespace the namespace (portion before the : in an identifier) to search this registry for
+     * @return All identifiers in this registry with that namespace
+     */
     public Set<Identifier> getIdentifiersWithNamespace(String namespace) {
         Set<Identifier> identifiers = new LinkedHashSet<>();
         registryContents.keySet().forEach(identifier -> {
@@ -101,6 +105,10 @@ public class Registry<T> {
         return identifiers;
     }
 
+    /**
+     * @param name the name (portion after the : in an identifier) to search this registry for
+     * @return All identifiers in this registry with that name
+     */
     public Set<Identifier> getIdentifiersWithName(String name) {
         Set<Identifier> identifiers = new LinkedHashSet<>();
         registryContents.keySet().forEach(identifier -> {

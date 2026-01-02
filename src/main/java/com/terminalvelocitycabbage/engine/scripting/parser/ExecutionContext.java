@@ -1,26 +1,28 @@
 package com.terminalvelocitycabbage.engine.scripting.parser;
 
+import com.terminalvelocitycabbage.engine.scripting.api.ScriptType;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public final class ExecutionContext {
 
-    private final Object event;
-    private final Object[] locals;
+    private final Map<ScriptType, Object> scopedValues = new HashMap<>();
 
-    public ExecutionContext(Object event, int localCount) {
-        this.event = event;
-        this.locals = new Object[localCount];
+    public void setScopeValue(ScriptType type, Object value) {
+        scopedValues.put(type, value);
     }
 
-    public Object getEvent() {
-        return event;
-    }
-
-    public Object getLocal(int slot) {
-        return locals[slot];
-    }
-
-    public void setLocal(int slot, Object value) {
-        locals[slot] = value;
+    public Object getCurrentScopeValue(ScriptType type) {
+        Object value = scopedValues.get(type);
+        if (value == null) {
+            throw new RuntimeException(
+                    "No value in scope for type " + type.getIdentifier()
+            );
+        }
+        return value;
     }
 }
+
 
 

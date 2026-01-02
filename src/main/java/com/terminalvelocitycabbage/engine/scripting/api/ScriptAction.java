@@ -1,72 +1,46 @@
 package com.terminalvelocitycabbage.engine.scripting.api;
 
-import com.terminalvelocitycabbage.engine.registry.Identifiable;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.scripting.api.syntax.SyntaxPattern;
 
 import java.util.List;
-import java.util.function.Consumer;
 
-public record ScriptAction(Identifier identifier, List<SyntaxPattern> patterns, ScriptType returnType,
-                           Consumer<ActionContext> executor, String documentation) implements Identifiable {
+public final class ScriptAction {
 
-    public void execute(ActionContext context) {
-        executor.accept(context);
+    private final Identifier id;
+    private final List<SyntaxPattern> patterns;
+    private final ScriptType returnType;
+    private final ActionExecutor executor;
+    private final String documentation;
+
+    public ScriptAction(
+            Identifier id,
+            List<SyntaxPattern> patterns,
+            ScriptType returnType,
+            ActionExecutor executor,
+            String documentation
+    ) {
+        this.id = id;
+        this.patterns = patterns;
+        this.returnType = returnType;
+        this.executor = executor;
+        this.documentation = documentation;
     }
 
-    public static Builder builder(Identifier id) {
-        return new Builder(id);
+    public Identifier id() {
+        return id;
     }
 
-    public static Builder builder(String namespace, String name) {
-        return new Builder(new Identifier(namespace, name));
+    public List<SyntaxPattern> patterns() {
+        return patterns;
     }
 
-    public void invoke(ActionContext arguments) {
-        executor.accept(arguments);
+    public ScriptType returnType() {
+        return returnType;
     }
 
-    @Override
-    public Identifier getIdentifier() {
-        return identifier;
-    }
-
-    public static final class Builder {
-        private final Identifier identifier;
-        private List<SyntaxPattern> patterns;
-        private ScriptType returnType;
-        private Consumer<ActionContext> executor;
-        private String documentation = "";
-
-        private Builder(Identifier id) {
-            this.identifier = id;
-        }
-
-        public Builder patterns(List<SyntaxPattern> patterns) {
-            this.patterns = patterns;
-            return this;
-        }
-
-        public Builder returns(ScriptType returnType) {
-            this.returnType = returnType;
-            return this;
-        }
-
-        public Builder exec(Consumer<ActionContext> executor) {
-            this.executor = executor;
-            return this;
-        }
-
-        public Builder doc(String documentation) {
-            this.documentation = documentation;
-            return this;
-        }
-
-        public ScriptAction build() {
-            if (patterns == null || executor == null) {
-                throw new IllegalStateException("Action must have patterns and executor");
-            }
-            return new ScriptAction(identifier, patterns, returnType, executor, documentation);
-        }
+    public ActionExecutor executor() {
+        return executor;
     }
 }
+

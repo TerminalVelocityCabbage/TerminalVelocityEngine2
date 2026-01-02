@@ -6,44 +6,25 @@ import java.util.Map;
 
 public final class ActionContext {
 
-    private final ExecutionContext execution;
-    private final int[] argumentSlots;
-    private final Map<String, Integer> nameToIndex;
+    private final Map<String, Object> arguments;
+    private final ExecutionContext executionContext;
 
     public ActionContext(
-            ExecutionContext execution,
-            int[] argumentSlots,
-            Map<String, Integer> nameToIndex
+            Map<String, Object> arguments,
+            ExecutionContext executionContext
     ) {
-        this.execution = execution;
-        this.argumentSlots = argumentSlots;
-        this.nameToIndex = nameToIndex;
+        this.arguments = arguments;
+        this.executionContext = executionContext;
     }
 
-    public Object get(int index) {
-        return execution.getLocal(argumentSlots[index]);
+    @SuppressWarnings("unchecked")
+    public <T> T get(String name) {
+        return (T) arguments.get(name);
     }
 
-    public Object get(String name) {
-        Integer index = nameToIndex.get(name);
-        if (index == null) {
-            throw new RuntimeException("Unknown argument: " + name);
-        }
-        return get(index);
-    }
-
-    public boolean isPresent(String name) {
-        return nameToIndex.containsKey(name);
-    }
-
-    public Object getEvent() {
-        return execution.getEvent();
-    }
-
-    public void setResult(Object value, int resultSlot) {
-        if (resultSlot >= 0) {
-            execution.setLocal(resultSlot, value);
-        }
+    public ExecutionContext execution() {
+        return executionContext;
     }
 }
+
 

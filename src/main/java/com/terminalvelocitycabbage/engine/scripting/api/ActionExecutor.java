@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.scripting.api;
 
 @FunctionalInterface
-public interface ScriptActionExecutor {
-    void execute(Object[] arguments);
+public interface ActionExecutor {
+    void execute(ActionContext context);
 }
 

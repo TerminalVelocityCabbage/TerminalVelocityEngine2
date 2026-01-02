@@ -46,13 +46,13 @@ public final class IRPrinter {
 
     private static void printValue(IRValue value, StringBuilder sb) {
         switch (value) {
-            case IRLiteral(ScriptType type, Object value1) -> sb
+            case IRLiteralValue(ScriptType type, Object value1) -> sb
                     .append("LITERAL<")
                     .append(type.getIdentifier())
                     .append(">(")
                     .append(value1)
                     .append(")");
-            case IRProperty(ScriptType type, Identifier propertyId, String accessPath) -> sb
+            case IRPropertyValue(ScriptType type, Identifier propertyId, String accessPath) -> sb
                     .append("PROPERTY<")
                     .append(type.getIdentifier())
                     .append(">(")
