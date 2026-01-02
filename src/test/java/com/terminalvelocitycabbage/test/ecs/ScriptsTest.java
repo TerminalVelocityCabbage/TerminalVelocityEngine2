@@ -8,8 +8,16 @@ import com.terminalvelocitycabbage.engine.scripting.api.registry.*;
 import com.terminalvelocitycabbage.engine.scripting.core.CoreLibrary;
 import com.terminalvelocitycabbage.engine.scripting.core.CoreTypes;
 import com.terminalvelocitycabbage.engine.scripting.parser.*;
+import com.terminalvelocitycabbage.engine.scripting.parser.core.EventBlockHeaderParser;
+import com.terminalvelocitycabbage.engine.scripting.parser.data.ScriptBlock;
+import com.terminalvelocitycabbage.engine.scripting.parser.data.ScriptLine;
+import com.terminalvelocitycabbage.engine.scripting.parser.data.SentenceNode;
+import com.terminalvelocitycabbage.engine.scripting.parser.data.intermediate.IRAction;
+import com.terminalvelocitycabbage.engine.scripting.parser.data.intermediate.IRBlock;
+import com.terminalvelocitycabbage.engine.scripting.parser.data.intermediate.IRPrinter;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +51,99 @@ public class ScriptsTest {
         public Game getGame() {
             return game;
         }
+    }
+
+    @Test
+    void testIRPrintScript() {
+
+        // --- registries ---
+        ScriptTypeRegistry scriptTypeRegistry = new ScriptTypeRegistry();
+        ScriptActionRegistry scriptActionRegistry = new ScriptActionRegistry();
+        ScriptPropertyRegistry scriptPropertyRegistry = new ScriptPropertyRegistry();
+        ScriptEventRegistry scriptEventRegistry = new ScriptEventRegistry();
+        ScriptConstantRegistry scriptConstantRegistry = new ScriptConstantRegistry();
+
+        CoreLibrary.registerAll(
+                scriptTypeRegistry,
+                scriptActionRegistry,
+                scriptPropertyRegistry,
+                scriptEventRegistry,
+                scriptConstantRegistry
+        );
+
+        // --- types ---
+        ScriptType GAME_TYPE =
+                scriptTypeRegistry
+                        .register(ScriptType.of(CoreLibrary.CORE_NAMESPACE, "game"))
+                        .getElement();
+
+        // --- event ---
+        ScriptEvent<GameStartEvent> gameStartEvent =
+                ScriptEvent.<GameStartEvent>builder()
+                        .id(new Identifier("test", "game_start"))
+                        .eventClass(GameStartEvent.class)
+                        .exposedValue("game", GAME_TYPE, GameStartEvent::getGame)
+                        .doc("Fires when the game has fully started.")
+                        .build();
+
+        scriptEventRegistry.register(gameStartEvent);
+
+        // --- property ---
+        ScriptProperty<Game, String> gameNameProperty =
+                new ScriptProperty<>(
+                        new Identifier("test", "game.name"),
+                        GAME_TYPE,
+                        CoreTypes.TEXT,
+                        new PropertyAccess.ReadOnly<>(Game::getName),
+                        ScriptVisibility.PUBLIC,
+                        "The game name."
+                );
+
+        scriptPropertyRegistry.register(gameNameProperty);
+
+        // --- actions ---
+        ScriptAction printAction =
+                scriptActionRegistry.get(
+                        new Identifier(CoreLibrary.CORE_NAMESPACE, "print")
+                );
+
+        String scriptText = """
+                on game_start:
+                    print game.name
+                """;
+
+        BlockHeaderParserRegistry headerParsers = new BlockHeaderParserRegistry();
+
+        headerParsers.register(new Identifier("test", "event_parser"), new EventBlockHeaderParser());
+
+        List<ScriptBlock> blocks = ScriptBlockParser.parse(scriptText);
+
+        ParsingContext context = new ParsingContext(scriptEventRegistry, scriptTypeRegistry);
+
+        List<IRBlock> irBlocks = new ArrayList<>();
+
+        for (ScriptBlock block : blocks) {
+
+            IRBlock irBlock =
+                    headerParsers.parse(block, context);
+
+            for (ScriptLine line : block.body()) {
+                SentenceNode sentence =
+                        SentenceParser.parse(line);
+
+                IRAction action =
+                        SentenceToIRAction.parse(sentence, context);
+
+                irBlock.body().add(action);
+            }
+
+            irBlocks.add(irBlock);
+        }
+
+        for (IRBlock ir : irBlocks) {
+            System.out.println(IRPrinter.print(ir));
+        }
+
     }
 
     @Test

@@ -1,6 +1,11 @@
 package com.terminalvelocitycabbage.engine.scripting.parser.data;
 
-//Represents a root level block of code in a script
-public sealed interface ScriptBlock permits EventBlock { //TODO FunctionBlock, ConstBlock
+import java.util.List;
 
-}
+//Represents a root level block of code in a script
+public record ScriptBlock(
+        String headerLine,
+        List<ScriptLine> body,
+        int headerLineNumber
+) {}
+

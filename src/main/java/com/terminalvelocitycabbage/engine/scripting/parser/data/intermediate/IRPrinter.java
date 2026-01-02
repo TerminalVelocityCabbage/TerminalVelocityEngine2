@@ -75,8 +75,6 @@ public final class IRPrinter {
         }
     }
 
-
-
     private static void indent(StringBuilder sb, int level) {
         sb.append("    ".repeat(level));
     }

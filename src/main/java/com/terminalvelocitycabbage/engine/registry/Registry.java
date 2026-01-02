@@ -3,6 +3,8 @@ package com.terminalvelocitycabbage.engine.registry;
 import com.terminalvelocitycabbage.engine.debug.Log;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class Registry<T> {
 
@@ -81,6 +83,30 @@ public class Registry<T> {
      */
     public T get(Identifier identifier) {
         return registryContents.get(identifier);
+    }
+
+    /**
+     * @param identifier The key identifier that is requested
+     * @return a boolean of true if it exists in this registry or false if not
+     */
+    public boolean contains(Identifier identifier) {
+        return registryContents.containsKey(identifier);
+    }
+
+    public Set<Identifier> getIdentifiersWithNamespace(String namespace) {
+        Set<Identifier> identifiers = new LinkedHashSet<>();
+        registryContents.keySet().forEach(identifier -> {
+            if (identifier.getNamespace().equals(namespace)) identifiers.add(identifier);
+        });
+        return identifiers;
+    }
+
+    public Set<Identifier> getIdentifiersWithName(String name) {
+        Set<Identifier> identifiers = new LinkedHashSet<>();
+        registryContents.keySet().forEach(identifier -> {
+            if (identifier.getName().equals(name)) identifiers.add(identifier);
+        });
+        return identifiers;
     }
 
     public LinkedHashMap<Identifier, T> getRegistryContents() {

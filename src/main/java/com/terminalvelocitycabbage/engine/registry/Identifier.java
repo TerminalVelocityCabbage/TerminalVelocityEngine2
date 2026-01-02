@@ -45,6 +45,11 @@ public class Identifier {
 		return name;
 	}
 
+	public static boolean isValidIdentifierString(String identifier) {
+		if (!identifier.contains(":")) return false;
+		return identifier.split(":").length == 2;
+	}
+
 	@Override
 	public String toString() {
 		return namespace + ':' + name;
