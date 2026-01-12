@@ -2,7 +2,9 @@ package com.terminalvelocitycabbage.engine.registry;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class Registry<T> {
 
@@ -24,6 +26,25 @@ public class Registry<T> {
      */
     public Registry() {
         this(null);
+    }
+
+    /**
+     * Registers an item to this registry for retrieval later by its identifier or name
+     * @param item The item to be registered (if it extends Identifiable)
+     */
+    public RegistryPair<T> register(T item) {
+        if (item instanceof Identifiable identifiable) {
+            var identifier = identifiable.getIdentifier();
+            if (registryContents.containsKey(identifier)) {
+                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+                return null;
+            }
+            registryContents.put(identifier, item);
+            return new RegistryPair<>(identifier, item);
+        } else {
+            Log.warn("Tried to register item of type " + item.getClass().getName() + " which does not implement Identifiable, the item will not be registered. Try registering with a declared Identifier instead of implicit with this method");
+            return null;
+        }
     }
 
     /**
@@ -62,6 +83,38 @@ public class Registry<T> {
      */
     public T get(Identifier identifier) {
         return registryContents.get(identifier);
+    }
+
+    /**
+     * @param identifier The key identifier that is requested
+     * @return a boolean of true if it exists in this registry or false if not
+     */
+    public boolean contains(Identifier identifier) {
+        return registryContents.containsKey(identifier);
+    }
+
+    /**
+     * @param namespace the namespace (portion before the : in an identifier) to search this registry for
+     * @return All identifiers in this registry with that namespace
+     */
+    public Set<Identifier> getIdentifiersWithNamespace(String namespace) {
+        Set<Identifier> identifiers = new LinkedHashSet<>();
+        registryContents.keySet().forEach(identifier -> {
+            if (identifier.getNamespace().equals(namespace)) identifiers.add(identifier);
+        });
+        return identifiers;
+    }
+
+    /**
+     * @param name the name (portion after the : in an identifier) to search this registry for
+     * @return All identifiers in this registry with that name
+     */
+    public Set<Identifier> getIdentifiersWithName(String name) {
+        Set<Identifier> identifiers = new LinkedHashSet<>();
+        registryContents.keySet().forEach(identifier -> {
+            if (identifier.getName().equals(name)) identifiers.add(identifier);
+        });
+        return identifiers;
     }
 
     public LinkedHashMap<Identifier, T> getRegistryContents() {

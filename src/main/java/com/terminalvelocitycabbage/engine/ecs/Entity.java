@@ -46,7 +46,7 @@ public class Entity implements Poolable {
 
     public <T extends Component> T addComponent(Class<T> componentClass) {
         if (containsComponent(componentClass)) {
-            Log.warn("Tried to add component " + componentClass.getName() + " to entity with id " + getID() + " which already contains it");
+            Log.warn("Tried to add component " + componentClass.getName() + " to entity with identifier " + getID() + " which already contains it");
         }
         components.put(componentClass, manager.obtainComponent(componentClass, this));
         manager.invalidateQueryCacheForComponents(componentClass);
