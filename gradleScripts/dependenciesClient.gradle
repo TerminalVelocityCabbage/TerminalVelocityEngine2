@@ -1,5 +1,5 @@
 ext {
-    lwjglVersion = "3.3.2"
+    lwjglVersion = "3.4.0"
     lwjglNatives = "to be determined later by gradle script"
 }
 
