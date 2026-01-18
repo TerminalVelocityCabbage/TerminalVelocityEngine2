@@ -30,14 +30,46 @@ public class Registry<T> {
      * Registers an item to this registry for retrieval later by its identifier or name
      * @param identifier The identifier of this registered item
      * @param item The item to be registered
+     * @param replaceIfExists Whether to replace an existing item with the same identifier if one already exists
+     */
+    public RegistryPair<T> register(Identifier identifier, T item, boolean replaceIfExists) {
+        if (contains(identifier)) {
+            if (!replaceIfExists) {
+                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+                return null;
+            }
+            replace(identifier, item);
+        } else {
+            registryContents.put(identifier, item);
+        }
+        return new RegistryPair<>(identifier, item);
+    }
+
+    /**
+     * Registers an item to this registry for retrieval later by its identifier or name
+     * @param identifier The identifier of this registered item
+     * @param item The item to be registered
      */
     public RegistryPair<T> register(Identifier identifier, T item) {
-        if (registryContents.containsKey(identifier)) {
+        if (contains(identifier)) {
             Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
             return null;
         }
         registryContents.put(identifier, item);
         return new RegistryPair<>(identifier, item);
+    }
+
+    /**
+     * Registers an item to this registry for retrieval later by its identifier or name
+     * @param item The item to be registered. Must implement {@link Identifiable}
+     */
+    public RegistryPair<T> register(T item) {
+        if (item instanceof Identifiable identifiable) {
+            return register(identifiable.getIdentifier(), item);
+        } else {
+            Log.error("Cannot register item " + item.getClass().getName() + " since it does not implement Identifiable.");
+        }
+        return null;
     }
 
     /**
@@ -47,12 +79,20 @@ public class Registry<T> {
      * @return A registry pair representing the new object and it's registry identifier
      */
     public RegistryPair<T> replace(Identifier identifier, T newItem) {
-        if (!registryContents.containsKey(identifier)) {
+        if (!contains(identifier)) {
             Log.warn("Cannot replace registry item with ID: " + identifier.toString() + " since it does not exist in this registry.");
             return null;
         }
         registryContents.replace(identifier, newItem);
         return new RegistryPair<>(identifier, newItem);
+    }
+
+    /**
+     * @param identifier the identifier to check for
+     * @return whether this registry contains the specified identifier
+     */
+    public boolean contains(Identifier identifier) {
+        return registryContents.containsKey(identifier);
     }
 
     /**
@@ -62,6 +102,30 @@ public class Registry<T> {
      */
     public T get(Identifier identifier) {
         return registryContents.get(identifier);
+    }
+
+    /**
+     * @param namespace the namespace (portion before the : in an identifier) to search this registry for
+     * @return All identifiers in this registry with that namespace
+     */
+    public Set<Identifier> getIdentifiersWithNamespace(String namespace) {
+        Set<Identifier> identifiers = new LinkedHashSet<>();
+        registryContents.keySet().forEach(identifier -> {
+            if (identifier.getNamespace().equals(namespace)) identifiers.add(identifier);
+        });
+        return identifiers;
+    }
+
+    /**
+     * @param name the name (portion after the : in an identifier) to search this registry for
+     * @return All identifiers in this registry with that name
+     */
+    public Set<Identifier> getIdentifiersWithName(String name) {
+        Set<Identifier> identifiers = new LinkedHashSet<>();
+        registryContents.keySet().forEach(identifier -> {
+            if (identifier.getName().equals(name)) identifiers.add(identifier);
+        });
+        return identifiers;
     }
 
     public LinkedHashMap<Identifier, T> getRegistryContents() {
