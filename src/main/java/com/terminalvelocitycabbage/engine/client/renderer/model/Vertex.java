@@ -88,18 +88,6 @@ public class Vertex {
     }
 
     /**
-     * @return This vertex with the updated bone index data
-     */
-    public Vertex setBoneIndices(float i0, float i1, float i2, float i3) {
-        var offset = format.getOffset(VertexAttribute.BONE_INDICES);
-        data[offset] = i0;
-        data[offset + 1] = i1;
-        data[offset + 2] = i2;
-        data[offset + 3] = i3;
-        return this;
-    }
-
-    /**
      * Gets sub-data from the vertex data by component
      * @param element The element for which the data is to be retrieved
      * @return a float array of data relating to the specified attribute
