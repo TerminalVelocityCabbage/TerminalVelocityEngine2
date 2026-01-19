@@ -38,6 +38,7 @@ public class BedrockGeometry {
         public List<Float> pivot;
         public List<Float> rotation;
         public Map<String, UVMappedFace> uv;
+        public List<Float> uv_list;
         public float inflate;
         public Boolean mirror;
     }

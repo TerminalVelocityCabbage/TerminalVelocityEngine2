@@ -88,8 +88,7 @@ public class BedrockModelLoader {
                                     }
                                 }
                             } else if (uvData instanceof List<?> uvList) {
-                                // Handle simple [u, v] array if necessary, though Bedrock geometry often uses objects for cubes
-                                // But for now, let's just avoid the crash.
+                                cube.uv_list = (List<Float>) uvList;
                             }
                             bone.cubes.add(cube);
                         }

@@ -13,20 +13,20 @@ public class SquareDataMesh extends DataMesh {
         return new Vertex[] {
                 new Vertex(format)
                         .setXYZPosition(-0.5f, 0.5f, 0f)
-                        .setRGBColor(0.5f, 0.0f, 0.0f)
-                        .setUV(0, 0),
+                        .setUV(0, 0)
+                        .setXYZNormal(0, 0, 1),
                 new Vertex(format)
                         .setXYZPosition(-0.5f, -0.5f, 0f)
-                        .setRGBColor(0.0f, 0.5f, 0.0f)
-                        .setUV(0, 1),
+                        .setUV(0, 1)
+                        .setXYZNormal(0, 0, 1),
                 new Vertex(format)
                         .setXYZPosition(0.5f, -0.5f, 0f)
-                        .setRGBColor(0.0f, 0.0f, 0.5f)
-                        .setUV(1, 1),
+                        .setUV(1, 1)
+                        .setXYZNormal(0, 0, 1),
                 new Vertex(format)
                         .setXYZPosition(0.5f, 0.5f, 0f)
-                        .setRGBColor(0.0f, 0.5f, 0.5f)
                         .setUV(1, 0)
+                        .setXYZNormal(0, 0, 1)
         };
     }
 
