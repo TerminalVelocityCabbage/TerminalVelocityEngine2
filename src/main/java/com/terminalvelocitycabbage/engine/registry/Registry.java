@@ -131,4 +131,9 @@ public class Registry<T> {
     public LinkedHashMap<Identifier, T> getRegistryContents() {
         return registryContents;
     }
+
+    @Override
+    public String toString() {
+        return registryContents.toString();
+    }
 }

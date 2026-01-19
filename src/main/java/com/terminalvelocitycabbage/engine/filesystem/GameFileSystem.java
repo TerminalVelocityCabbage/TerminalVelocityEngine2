@@ -87,6 +87,8 @@ public class GameFileSystem {
             //Get the resource type and put this resource into it to be used later
             fileSystemContents.get(resourceLocation.type()).put(resourceLocation.resourceIdentifier(), resource);
         }
+
+        listResources();
     }
 
     /**

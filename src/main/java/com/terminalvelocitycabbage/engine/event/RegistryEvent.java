@@ -17,6 +17,10 @@ public class RegistryEvent<T> extends Event {
         return registry.register(identifier, item);
     }
 
+    public RegistryPair<T> register(T newItem) {
+        return registry.register(newItem);
+    }
+
     public Registry<T> getRegistry() {
         return registry;
     }

@@ -25,6 +25,7 @@ public class Mesh {
 
     private final Vertex[] vertices;
     private final int[] indices;
+    private final DataMesh dataMesh;
     VertexFormat format;
     private int vaoId;
     private List<Integer> vboIdList;
@@ -39,10 +40,26 @@ public class Mesh {
         this.format = format;
         this.vertices = vertices;
         this.indices = indices;
+        this.dataMesh = null;
     }
 
     public Mesh(VertexFormat format, DataMesh dataMesh) {
         this(format, dataMesh.getVertices(format), dataMesh.getIndices());
+        this.setDataMesh(dataMesh);
+    }
+
+    private void setDataMesh(DataMesh dataMesh) {
+        try {
+            var field = Mesh.class.getDeclaredField("dataMesh");
+            field.setAccessible(true);
+            field.set(this, dataMesh);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public DataMesh getDataMesh() {
+        return dataMesh;
     }
 
     public Mesh(Mesh mesh) {
@@ -52,6 +69,7 @@ public class Mesh {
         }
         this.indices = mesh.indices.clone();
         this.format = mesh.format;
+        this.dataMesh = mesh.dataMesh;
     }
 
     public static Mesh of(List<Mesh> meshes) {

@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine.client.renderer.model;
 
 import com.terminalvelocitycabbage.engine.client.renderer.materials.Atlas;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
@@ -16,6 +17,8 @@ public class MeshCache {
         this.modelMeshMap = new HashMap<>();
 
         modelRegistry.getRegistryContents().forEach((identifier, model) -> {
+            Log.info("Loading mesh " + model.getMeshIdentifier() + " for model " + identifier);
+            Log.info(meshRegistry);
             modelMeshMap.put(identifier, new Mesh(meshRegistry.get(model.getMeshIdentifier())));
         });
 

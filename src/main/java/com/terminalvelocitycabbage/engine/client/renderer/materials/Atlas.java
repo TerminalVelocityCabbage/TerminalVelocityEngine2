@@ -3,11 +3,13 @@ package com.terminalvelocitycabbage.engine.client.renderer.materials;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.util.ImageUtils;
 import com.terminalvelocitycabbage.engine.util.MathUtils;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,11 +34,13 @@ public class Atlas extends Texture {
         }
 
         //Generates all texture data into temporary data objects for use later
-        Map<Identifier, Data> sortedTextureData = loadTextureData(textureResources);
+        LinkedHashMap<Identifier, Data> sortedTextureData = loadTextureData(textureResources);
         //Determines the size of the atlas from the texture data
         Vector2i atlasDimensions = getAtlasDimension(sortedTextureData);
         this.width = atlasDimensions.x;
         this.height = atlasDimensions.y;
+
+        Log.info("Creating atlas with dimensions " + atlasDimensions.x + "x" + atlasDimensions.y);
 
         //Storage for individual texture info in this atlas
         this.atlas = new HashMap<>();
@@ -56,7 +60,7 @@ public class Atlas extends Texture {
         generateOpenGLTexture(atlasDimensions.x, atlasDimensions.y, 4, atlasImageBuffer);
 
         //Test
-        //ImageUtils.saveRGBAtoPNG(atlasImageBuffer, atlasDimensions.x, atlasDimensions.y, new File("atlas.png"));
+        ImageUtils.saveRGBAtoPNG(atlasImageBuffer, atlasDimensions.x, atlasDimensions.y, new File("atlas.png"));
 
         //Cleanup
         MemoryUtil.memFree(atlasImageBuffer);
@@ -186,12 +190,13 @@ public class Atlas extends Texture {
         //Get the number of max-sized textures that this atlas needs by packing in smaller textures into it's size
         int numMaxSizeTextures = 0;
         int lastSizeLeftover = 0;
+        int numThatFitInNextSize = 0;
         for (Map.Entry<Integer, Integer> entry : sizeCounts.entrySet()) {
             if (entry.getKey() == maxSize) {
                 numMaxSizeTextures += entry.getValue();
             } else {
-                numMaxSizeTextures += Math.ceilDiv(entry.getValue() - (lastSizeLeftover * 4), 4);
-                lastSizeLeftover = entry.getValue() % 4;
+                numMaxSizeTextures += (entry.getValue() + numThatFitInNextSize) % 4 == 0 ? 0 : 1;
+                numThatFitInNextSize = (int)(entry.getValue() / 4f);
             }
         }
 
@@ -204,7 +209,7 @@ public class Atlas extends Texture {
      * @param textureResources The texture resources that this atlas is going to be comprised of
      * @return A list of these resource identifiers and the loaded associated data in order of smallest to largest sizes
      */
-    private static Map<Identifier, Data> loadTextureData(Map<Identifier, Resource> textureResources) {
+    private static LinkedHashMap<Identifier, Data> loadTextureData(Map<Identifier, Resource> textureResources) {
         //Generate texture data from resources for each texture and validate it is compatible with the texture atlas
         Map<Identifier, Data> unsortedTextureData = new HashMap<>();
         textureResources.forEach((textureIdentifier, textureResource) -> {
