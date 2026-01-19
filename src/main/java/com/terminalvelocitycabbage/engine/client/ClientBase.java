@@ -99,7 +99,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
         eventDispatcher.dispatchEvent(new LoadBedrockModelsEvent(fileSystem));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
-        eventDispatcher.dispatchEvent(new LoadBedrockAnimationsEvent(fileSystem));
         eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelRegistry));
         eventDispatcher.dispatchEvent(new EntityTemplateRegistrationEvent(manager));
         eventDispatcher.dispatchEvent(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry()));
