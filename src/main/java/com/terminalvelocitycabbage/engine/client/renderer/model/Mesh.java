@@ -290,7 +290,7 @@ public class Mesh {
             }
 
             for (int i = 0; i < index.length; i+=3) {
-                stream.println("f " + (index[i]+1) + " " + (index[i+1]+1) + " " + (index[i+2]+1));
+                stream.println("f " + (index[i]+1) + "/" + (index[i]+1) + "/" + (index[i]+1) + " " + (index[i+1]+1) + "/" + (index[i+1]+1) + "/" + (index[i+1]+1) + " " + (index[i+2]+1) + "/" + (index[i+2]+1) + "/" + (index[i+2]+1));
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

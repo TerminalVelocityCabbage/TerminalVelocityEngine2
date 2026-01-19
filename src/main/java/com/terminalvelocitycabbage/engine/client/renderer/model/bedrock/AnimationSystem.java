@@ -22,7 +22,7 @@ public class AnimationSystem extends System {
         var entities = manager.getEntitiesWith(AnimationComponent.class);
         for (var entity : entities) {
             var animComp = entity.getComponent(AnimationComponent.class);
-            if (animComp.playing && animComp.animations != null && animComp.currentAnimation != null) {
+            if (animComp.animations != null && animComp.geometry != null) {
                 updateAnimation(animComp, deltaTime);
             }
         }
@@ -36,18 +36,22 @@ public class AnimationSystem extends System {
      * @param deltaTime Time elapsed since the last update
      */
     private void updateAnimation(AnimationComponent animComp, float deltaTime) {
-        animComp.currentTime += deltaTime;
-        var animation = animComp.animations.animations.get(animComp.currentAnimation);
-        if (animation == null) return;
-
-        if (animComp.currentTime > animation.animation_length) {
-            if (animation.loop) {
-                animComp.currentTime %= animation.animation_length;
-            } else {
-                animComp.currentTime = animation.animation_length;
-                animComp.playing = false;
+        if (animComp.playing && animComp.currentAnimation != null) {
+            animComp.currentTime += deltaTime;
+            var animation = animComp.animations.animations.get(animComp.currentAnimation);
+            if (animation != null) {
+                if (animComp.currentTime > animation.animation_length) {
+                    if (animation.loop) {
+                        animComp.currentTime %= animation.animation_length;
+                    } else {
+                        animComp.currentTime = animation.animation_length;
+                        animComp.playing = false;
+                    }
+                }
             }
         }
+
+        var animation = animComp.currentAnimation != null ? animComp.animations.animations.get(animComp.currentAnimation) : null;
 
         // Initialize bone transforms if needed
         if (animComp.boneTransforms == null || animComp.boneTransforms.length != animComp.boneIndexMap.size()) {
@@ -78,22 +82,24 @@ public class AnimationSystem extends System {
             Vector3f animScale = interpolateVector(boneAnim != null ? boneAnim.scale : null, animComp.currentTime, new Vector3f(1, 1, 1));
 
             // Bedrock rotation: rotation around pivot
-            // Transform = ParentWorldTransform * T(pivot) * R(anim) * R(bind) * T(-pivot) * T(anim)
-            // Wait, Bedrock is slightly different. Let's use:
-            // BoneLocal = T(pivot) * R(bind+anim) * S(anim) * T(-pivot) * T(animPos)
-            
+            // Transform = ParentWorldTransform * T(pivot) * R(anim) * R(bind) * T(-pivot) * T(animPos)
+            // If vertices are NOT relative to pivot:
+            // BoneLocal = T(animPos) * T(pivot) * R(bind) * R(anim) * S(anim) * T(-pivot)
+
+            transform.translate(animPos.x, animPos.y, animPos.z);
             transform.translate(px, py, pz);
-            
-            float rx = (bone.rotation != null ? bone.rotation.get(0) : 0) - animRot.x;
-            float ry = (bone.rotation != null ? bone.rotation.get(1) : 0) - animRot.y;
-            float rz = (bone.rotation != null ? bone.rotation.get(2) : 0) + animRot.z;
+
+            // Rotation is relative to bind pose
+            float bx = bone.rotation != null ? bone.rotation.get(0) : 0;
+            float by = bone.rotation != null ? bone.rotation.get(1) : 0;
+            float bz = bone.rotation != null ? bone.rotation.get(2) : 0;
+
             // Bedrock uses degrees and specific order
-            transform.rotateZYX((float) Math.toRadians(rz), (float) Math.toRadians(ry), (float) Math.toRadians(rx));
-            
+            transform.rotateZYX((float) Math.toRadians(bz + animRot.z), (float) Math.toRadians(by - animRot.y), (float) Math.toRadians(bx - animRot.x));
+
             transform.scale(animScale);
             transform.translate(-px, -py, -pz);
-            transform.translate(animPos.x, animPos.y, animPos.z);
-            
+
             localTransforms[i] = transform;
         }
 
@@ -106,7 +112,8 @@ public class AnimationSystem extends System {
                 while (parentName != null) {
                     Integer parentIdx = animComp.boneIndexMap.get(parentName);
                     if (parentIdx == null) break;
-                    worldTransform.mulLocal(localTransforms[parentIdx]); // Multiply by parent's local transform
+                    // Apply parent transform to the left: Parent * World
+                    worldTransform = new Matrix4f(localTransforms[parentIdx]).mul(worldTransform);
                     parentName = geoData.bones.get(parentIdx).parent;
                 }
 

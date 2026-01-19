@@ -4,7 +4,6 @@ import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribu
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
 import com.terminalvelocitycabbage.engine.client.renderer.model.DataMesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Vertex;
-import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -80,20 +79,21 @@ public class BedrockMesh extends DataMesh {
         float sz = getFloat(cube.size, 2);
         float inflate = cube.inflate;
 
+        //TODO figure out if we need these later
         // Bone pivot
         float bx = getFloat(bone.pivot, 0);
         float by = getFloat(bone.pivot, 1);
         float bz = getFloat(bone.pivot, 2);
 
         // Relative to bone pivot
-        float x0 = x - bx - inflate;
-        float y0 = y - by - inflate;
-        float z0 = z - bz - inflate;
+        float x0 = x - inflate;
+        float y0 = y - inflate;
+        float z0 = z - inflate;
         float x1 = x0 + sx + 2 * inflate;
         float y1 = y0 + sy + 2 * inflate;
         float z1 = z0 + sz + 2 * inflate;
 
-        Log.info("Cube: " + x0 + " " + y0 + " " + z0 + " size: " + sx + " " + sy + " " + sz + " inflate: " + inflate);
+        // Log.info("Cube: " + x0 + " " + y0 + " " + z0 + " size: " + sx + " " + sy + " " + sz + " inflate: " + inflate);
 
         // Vertices (8 corners)
         // We'll add 6 faces, each with 4 vertices
@@ -115,33 +115,33 @@ public class BedrockMesh extends DataMesh {
             addFace(new Vector3f(x1, y1, z1), new Vector3f(x1, y1, z0), new Vector3f(x1, y0, z0), new Vector3f(x1, y0, z1),
                     new Vector3f(1, 0, 0), boneIndex, cube.uv.get("east"), tw, th);
             // Up (+y)
-            addFace(new Vector3f(x0, y1, z1), new Vector3f(x0, y1, z0), new Vector3f(x1, y1, z0), new Vector3f(x1, y1, z1),
+            addFace(new Vector3f(x0, y1, z0), new Vector3f(x1, y1, z0), new Vector3f(x1, y1, z1), new Vector3f(x0, y1, z1),
                     new Vector3f(0, 1, 0), boneIndex, cube.uv.get("up"), tw, th);
             // Down (-y)
-            addFace(new Vector3f(x0, y0, z0), new Vector3f(x0, y0, z1), new Vector3f(x1, y0, z1), new Vector3f(x1, y0, z0),
+            addFace(new Vector3f(x1, y0, z0), new Vector3f(x0, y0, z0), new Vector3f(x0, y0, z1), new Vector3f(x1, y0, z1),
                     new Vector3f(0, -1, 0), boneIndex, cube.uv.get("down"), tw, th);
         } else if (cube.uv_list != null) {
             float u = getFloat(cube.uv_list, 0);
             float v = getFloat(cube.uv_list, 1);
 
             // Up (+y)
-            addFace(new Vector3f(x0, y1, z1), new Vector3f(x0, y1, z0), new Vector3f(x1, y1, z0), new Vector3f(x1, y1, z1),
+            addFace(new Vector3f(x0, y1, z0), new Vector3f(x1, y1, z0), new Vector3f(x1, y1, z1), new Vector3f(x0, y1, z1),
                     new Vector3f(0, 1, 0), boneIndex, u + sz, v, sx, sz, tw, th);
             // Down (-y)
-            addFace(new Vector3f(x0, y0, z0), new Vector3f(x0, y0, z1), new Vector3f(x1, y0, z1), new Vector3f(x1, y0, z0),
+            addFace(new Vector3f(x1, y0, z0), new Vector3f(x0, y0, z0), new Vector3f(x0, y0, z1), new Vector3f(x1, y0, z1),
                     new Vector3f(0, -1, 0), boneIndex, u + sz + sx, v, sx, sz, tw, th);
+            // West (-x)
+            addFace(new Vector3f(x0, y1, z0), new Vector3f(x0, y1, z1), new Vector3f(x0, y0, z1), new Vector3f(x0, y0, z0),
+                    new Vector3f(-1, 0, 0), boneIndex, u, v + sz, sz, sy, tw, th);
             // North (-z)
             addFace(new Vector3f(x1, y1, z0), new Vector3f(x0, y1, z0), new Vector3f(x0, y0, z0), new Vector3f(x1, y0, z0),
-                    new Vector3f(0, 0, -1), boneIndex, u + sz + sx, v + sz, sx, sy, tw, th);
+                    new Vector3f(0, 0, -1), boneIndex, u + sz, v + sz, sx, sy, tw, th);
             // East (+x)
             addFace(new Vector3f(x1, y1, z1), new Vector3f(x1, y1, z0), new Vector3f(x1, y0, z0), new Vector3f(x1, y0, z1),
-                    new Vector3f(1, 0, 0), boneIndex, u, v + sz, sz, sy, tw, th);
+                    new Vector3f(1, 0, 0), boneIndex, u + sz + sx, v + sz, sz, sy, tw, th);
             // South (+z)
             addFace(new Vector3f(x0, y1, z1), new Vector3f(x1, y1, z1), new Vector3f(x1, y0, z1), new Vector3f(x0, y0, z1),
                     new Vector3f(0, 0, 1), boneIndex, u + sz + sx + sz, v + sz, sx, sy, tw, th);
-            // West (-x)
-            addFace(new Vector3f(x0, y1, z0), new Vector3f(x0, y1, z1), new Vector3f(x0, y0, z1), new Vector3f(x0, y0, z0),
-                    new Vector3f(-1, 0, 0), boneIndex, u + sz, v + sz, sz, sy, tw, th);
         }
     }
 
@@ -156,20 +156,25 @@ public class BedrockMesh extends DataMesh {
 
         float u0 = u / tw;
         float v0 = v / th;
-        float duw = uw / tw;
-        float dvh = vh / th;
+        float u1 = (u + uw) / tw;
+        float v1 = (v + vh) / th;
 
-        VertexFormat format = VertexFormat.builder()
+        VertexFormat format = vertices.isEmpty() ? null : vertices.get(0).getFormat();
+        if (format == null) {
+            // This is a bit of a hack, but we need a format.
+            // In a real scenario, this should be passed in or managed better.
+            format = VertexFormat.builder()
                 .addElement(VertexAttribute.XYZ_POSITION)
                 .addElement(VertexAttribute.UV)
                 .addElement(VertexAttribute.XYZ_NORMAL)
                 .addElement(VertexAttribute.BONE_INDICES)
                 .build();
+        }
 
-        vertices.add(new Vertex(format).setXYZPosition(p0.x, p0.y, p0.z).setUV(u0 + duw, v0).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
-        vertices.add(new Vertex(format).setXYZPosition(p1.x, p1.y, p1.z).setUV(u0, v0).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
-        vertices.add(new Vertex(format).setXYZPosition(p2.x, p2.y, p2.z).setUV(u0, v0 + dvh).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
-        vertices.add(new Vertex(format).setXYZPosition(p3.x, p3.y, p3.z).setUV(u0 + duw, v0 + dvh).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
+        vertices.add(new Vertex(format).setXYZPosition(p0.x, p0.y, p0.z).setUV(u0, v0).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
+        vertices.add(new Vertex(format).setXYZPosition(p1.x, p1.y, p1.z).setUV(u1, v0).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
+        vertices.add(new Vertex(format).setXYZPosition(p2.x, p2.y, p2.z).setUV(u1, v1).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
+        vertices.add(new Vertex(format).setXYZPosition(p3.x, p3.y, p3.z).setUV(u0, v1).setXYZNormal(normal.x, normal.y, normal.z).setBoneIndices(boneIndex, 0, 0, 0));
 
         indices.add(baseIdx);
         indices.add(baseIdx + 1);
