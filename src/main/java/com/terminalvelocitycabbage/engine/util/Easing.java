@@ -43,7 +43,8 @@ public class Easing {
         CIRCULAR("circular"),
         BACK("back"),
         ELASTIC("elsatic"),
-        BOUNCE("bounce");
+        BOUNCE("bounce"),
+        CATMULLROM("catmullrom");
 
         private final String name;
 
@@ -82,6 +83,7 @@ public class Easing {
             case BACK -> easeInBack(progress);
             case ELASTIC -> easeInElastic(progress);
             case BOUNCE -> easeInBounce(progress);
+            case CATMULLROM -> easeInCatmullrom(progress);
         };
     }
 
@@ -99,6 +101,7 @@ public class Easing {
             case BACK -> easeOutBack(progress);
             case ELASTIC -> easeOutElastic(progress);
             case BOUNCE -> easeOutBounce(progress);
+            case CATMULLROM -> easeOutCatmullrom(progress);
         };
     }
 
@@ -116,6 +119,7 @@ public class Easing {
             case BACK -> easeInOutBack(progress);
             case ELASTIC -> easeInOutElastic(progress);
             case BOUNCE -> easeInOutBounce(progress);
+            case CATMULLROM -> easeInOutCatmullrom(progress);
         };
     }
 
@@ -271,6 +275,27 @@ public class Easing {
 
     public static float easeInOutBounce(float progress) {
         return progress < 0.5 ? (1 - easeOutBounce(1 - 2 * progress)) / 2 : (1 + easeOutBounce(2 * progress - 1)) / 2;
+    }
+
+    public static float easeInCatmullrom(float progress) {
+        return catmullRom(progress, 0, 0, 1, 1);
+    }
+
+    public static float easeOutCatmullrom(float progress) {
+        return catmullRom(progress, 0, 0, 1, 1);
+    }
+
+    public static float easeInOutCatmullrom(float progress) {
+        return catmullRom(progress, 0, 0, 1, 1);
+    }
+
+    public static float catmullRom(float t, float p0, float p1, float p2, float p3) {
+        return 0.5f * (
+                (2 * p1) +
+                (-p0 + p2) * t +
+                (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t +
+                (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t
+        );
     }
 
 }
