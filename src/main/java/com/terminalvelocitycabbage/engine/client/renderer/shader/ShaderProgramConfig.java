@@ -10,6 +10,8 @@ import java.util.*;
  */
 public class ShaderProgramConfig {
 
+    public static ShaderProgramConfig EMPTY = new ShaderProgramConfig(null, Collections.emptyList(), Collections.emptyMap());
+
     VertexFormat vertexFormat;
     List<Shader> shaders;
     Map<String, Uniform> uniforms;
@@ -61,6 +63,10 @@ public class ShaderProgramConfig {
             if (shader.shaderType.equals(Shader.Type.VERTEX)) return shader.validate(vertexFormat);
         }
         return true;
+    }
+
+    public boolean isEmpty() {
+        return shaders.isEmpty() && uniforms.isEmpty() && vertexFormat == null;
     }
 
     public static class Builder {
