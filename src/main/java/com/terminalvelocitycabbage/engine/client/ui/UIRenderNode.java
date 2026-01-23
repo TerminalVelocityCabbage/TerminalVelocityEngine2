@@ -30,13 +30,11 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     @Override
     public void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
-
         UIContext context = getUIContext();
-        context.beginFrame(properties.getWidth(), properties.getHeight());
+        context.beginFrame();
         
         // 1. Declare UI
         declareUI();
-        context.closeElement(); // Close the window root
         
         // 2. Layout
         UILayoutEngine layoutEngine = new UILayoutEngine(this);
@@ -77,7 +75,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     }
 
     private void renderContainer(long nvg, LayoutElement element) {
-
         ElementDeclaration decl = element.declaration();
         if (decl == null) return;
         
@@ -106,7 +103,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         try (MemoryStack stack = stackPush()) {
             nvgFontSize(nvg, config.fontSize());
             if (config.fontIdentifier() != null) {
-                ClientBase.getInstance().getFontRegistry().get(config.fontIdentifier()).getOrLoadFont(nvg);
                 nvgFontFace(nvg, config.fontIdentifier().toString());
             }
             nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP); // TODO: config alignment
@@ -126,7 +122,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         long nvg = ClientBase.getInstance().getNvgContext();
         nvgFontSize(nvg, config.fontSize());
         if (config.fontIdentifier() != null) {
-            ClientBase.getInstance().getFontRegistry().get(config.fontIdentifier()).getOrLoadFont(nvg);
             nvgFontFace(nvg, config.fontIdentifier().toString());
         }
         float[] bounds = new float[4];

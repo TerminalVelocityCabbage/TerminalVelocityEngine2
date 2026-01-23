@@ -3,7 +3,6 @@ package com.terminalvelocitycabbage.engine.client;
 import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
-import com.terminalvelocitycabbage.engine.client.renderer.Font;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
@@ -20,7 +19,6 @@ import com.terminalvelocitycabbage.engine.networking.SyncPacketRegistryPacket;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.templates.events.*;
-import com.terminalvelocitycabbage.templates.events.FontRegistrationEvent;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,7 +32,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     //Game loop stuff
     private final WindowManager windowManager;
     private final Registry<RenderGraph> renderGraphRegistry;
-    private final Registry<Font> fontRegistry;
 
     //Scene stuff
     protected final Registry<Mesh> meshRegistry;
@@ -59,7 +56,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         inputTickManager = new TickManager(200); //TODO verify if 200hz input polling is good
         windowManager = new WindowManager();
         renderGraphRegistry = new Registry<>();
-        fontRegistry = new Registry<>();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
         uiContext = new UIContext();
@@ -106,7 +102,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(configureTexturesEvent);
         textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures());
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
-        eventDispatcher.dispatchEvent(new FontRegistrationEvent(fontRegistry));
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
         eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelRegistry));
@@ -202,10 +197,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public Registry<RenderGraph> getRenderGraphRegistry() {
         return renderGraphRegistry;
-    }
-
-    public Registry<Font> getFontRegistry() {
-        return fontRegistry;
     }
 
     public WindowManager getWindowManager() {
