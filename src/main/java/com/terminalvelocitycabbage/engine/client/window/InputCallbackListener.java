@@ -86,6 +86,20 @@ public class InputCallbackListener {
     }
 
     /**
+     * @return The x position of the mouse
+     */
+    public double getMouseX() {
+        return lastMouseX;
+    }
+
+    /**
+     * @return The y position of the mouse
+     */
+    public double getMouseY() {
+        return lastMouseY;
+    }
+
+    /**
      * @return The float from 0 to 1 that defined the change in movement of the mouse this input frame upwards
      */
     public float getMouseUpwardDelta() {

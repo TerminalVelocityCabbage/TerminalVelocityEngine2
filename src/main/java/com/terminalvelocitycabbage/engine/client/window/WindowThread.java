@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.nanovg.NanoVGGL3.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class WindowThread extends Thread {
@@ -39,6 +40,9 @@ public class WindowThread extends Thread {
         //make this thread use this context for this new window
         glfwMakeContextCurrent(windowHandle);
         GLCapabilities capabilities = GL.createCapabilities();
+
+        long nvg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        ClientBase.getInstance().setNvgContext(nvg);
 
         glEnable(GL_DEPTH_TEST);
 
@@ -74,6 +78,7 @@ public class WindowThread extends Thread {
         windowManager.queueDestroyWindow(this);
 
         //Clear the gl capabilities from this window
+        nvgDelete(ClientBase.getInstance().getNvgContext());
         GL.setCapabilities(null);
     }
 

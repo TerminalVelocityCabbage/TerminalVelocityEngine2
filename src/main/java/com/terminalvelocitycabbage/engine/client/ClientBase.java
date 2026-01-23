@@ -7,6 +7,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
+import com.terminalvelocitycabbage.engine.client.ui.UIContext;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
@@ -45,6 +46,10 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     private final InputCallbackListener inputCallbackListener;
     private final TickManager inputTickManager;
 
+    //UI stuff
+    private final UIContext uiContext;
+    private long nvgContext;
+
     public ClientBase(String namespace, int ticksPerSecond) {
         super(namespace, ticksPerSecond);
         instance = this;
@@ -53,6 +58,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         renderGraphRegistry = new Registry<>();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
+        uiContext = new UIContext();
         meshRegistry = new Registry<>();
         modelRegistry = new Registry<>();
         client = new Client();
@@ -203,6 +209,18 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public InputHandler getInputHandler() {
         return inputHandler;
+    }
+
+    public UIContext getUIContext() {
+        return uiContext;
+    }
+
+    public long getNvgContext() {
+        return nvgContext;
+    }
+
+    public void setNvgContext(long nvgContext) {
+        this.nvgContext = nvgContext;
     }
 
     public Registry<Mesh> getMeshRegistry() {
