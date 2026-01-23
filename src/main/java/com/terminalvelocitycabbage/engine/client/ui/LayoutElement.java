@@ -2,6 +2,8 @@ package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ui.data.ElementDeclaration;
 import com.terminalvelocitycabbage.engine.client.ui.data.TextElementConfig;
+import org.joml.Vector2f;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +19,9 @@ public class LayoutElement {
     private final TextElementConfig textConfig;
 
     // Layout results
-    private float preferredWidth;
-    private float preferredHeight;
-    private float x, y, width, height;
+    private final Vector2f preferredSize = new Vector2f();
+    private final Vector2f position = new Vector2f();
+    private final Vector2f size = new Vector2f();
 
     public LayoutElement(int id, ElementDeclaration declaration, LayoutElement parent) {
         this(id, declaration, null, null, parent);
@@ -66,50 +68,58 @@ public class LayoutElement {
     }
 
     public float getPreferredWidth() {
-        return preferredWidth;
+        return preferredSize.x;
     }
 
     public void setPreferredWidth(float preferredWidth) {
-        this.preferredWidth = preferredWidth;
+        preferredSize.x = preferredWidth;
     }
 
     public float getPreferredHeight() {
-        return preferredHeight;
+        return preferredSize.y;
     }
 
     public void setPreferredHeight(float preferredHeight) {
-        this.preferredHeight = preferredHeight;
+        preferredSize.y = preferredHeight;
     }
 
     public float getX() {
-        return x;
+        return position.x;
     }
 
     public void setX(float x) {
-        this.x = x;
+        position.x = x;
     }
 
     public float getY() {
-        return y;
+        return position.y;
     }
 
     public void setY(float y) {
-        this.y = y;
+        position.y = y;
     }
 
     public float getWidth() {
-        return width;
+        return size.x;
     }
 
     public void setWidth(float width) {
-        this.width = width;
+        size.x = width;
     }
 
     public float getHeight() {
-        return height;
+        return size.y;
     }
 
     public void setHeight(float height) {
-        this.height = height;
+        size.y = height;
+    }
+
+    public Vector2f getPosition() {
+        return position;
+    }
+
+    public Vector2f getSize() {
+        return size;
     }
 }

@@ -1,10 +1,10 @@
 package com.terminalvelocitycabbage.engine.client.ui.data;
 
-import org.joml.Vector4f;
+import com.terminalvelocitycabbage.engine.util.Color;
 
 public record ElementDeclaration(
         LayoutConfig layout,
-        Vector4f backgroundColor,
+        Color backgroundColor,
         CornerRadius cornerRadius,
         AspectRatioElementConfig aspectRatio,
         ImageElementConfig image,
@@ -21,7 +21,7 @@ public record ElementDeclaration(
 
     public static class Builder {
         private LayoutConfig layout;
-        private Vector4f backgroundColor;
+        private Color backgroundColor;
         private CornerRadius cornerRadius;
         private AspectRatioElementConfig aspectRatio;
         private ImageElementConfig image;
@@ -36,7 +36,7 @@ public record ElementDeclaration(
             return this;
         }
 
-        public Builder backgroundColor(Vector4f backgroundColor) {
+        public Builder backgroundColor(Color backgroundColor) {
             this.backgroundColor = backgroundColor;
             return this;
         }

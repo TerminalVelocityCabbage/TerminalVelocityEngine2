@@ -1,9 +1,10 @@
 package com.terminalvelocitycabbage.engine.client.ui.data;
 
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import org.joml.Vector4f;
+import com.terminalvelocitycabbage.engine.util.Color;
+import org.joml.Vector2f;
 
-public record ImageElementConfig(Identifier imageIdentifier, Dimensions sourceDimensions, CornerRadius cornerRadius, Vector4f backgroundColor) {
+public record ImageElementConfig(Identifier imageIdentifier, Vector2f sourceDimensions, CornerRadius cornerRadius, Color backgroundColor) {
 
     public static Builder builder() {
         return new Builder();
@@ -11,16 +12,16 @@ public record ImageElementConfig(Identifier imageIdentifier, Dimensions sourceDi
 
     public static class Builder {
         private Identifier imageIdentifier;
-        private Dimensions sourceDimensions;
+        private Vector2f sourceDimensions;
         private CornerRadius cornerRadius;
-        private Vector4f backgroundColor;
+        private Color backgroundColor;
 
         public Builder imageIdentifier(Identifier imageIdentifier) {
             this.imageIdentifier = imageIdentifier;
             return this;
         }
 
-        public Builder sourceDimensions(Dimensions sourceDimensions) {
+        public Builder sourceDimensions(Vector2f sourceDimensions) {
             this.sourceDimensions = sourceDimensions;
             return this;
         }
@@ -30,7 +31,7 @@ public record ImageElementConfig(Identifier imageIdentifier, Dimensions sourceDi
             return this;
         }
 
-        public Builder backgroundColor(Vector4f backgroundColor) {
+        public Builder backgroundColor(Color backgroundColor) {
             this.backgroundColor = backgroundColor;
             return this;
         }

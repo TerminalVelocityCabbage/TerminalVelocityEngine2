@@ -1,4 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.ui.data;
 
-public record BoundingBox(float x, float y, float width, float height) {
+import org.joml.Vector2f;
+
+public record BoundingBox(Vector2f position, Vector2f size) {
 }

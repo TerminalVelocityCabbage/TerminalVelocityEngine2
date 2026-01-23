@@ -1,12 +1,14 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
+import org.joml.Vector2f;
+
 import java.util.List;
 
 public class UILayoutEngine {
 
     public interface TextMeasurer {
-        Dimensions measureText(String text, TextElementConfig config);
+        Vector2f measureText(String text, TextElementConfig config);
     }
 
     private final TextMeasurer textMeasurer;
@@ -31,9 +33,9 @@ public class UILayoutEngine {
 
     private void calculatePreferredSizes(LayoutElement element, float parentWidth, float parentHeight) {
         if (element.isText()) {
-            Dimensions size = textMeasurer.measureText(element.text(), element.textConfig());
-            element.setPreferredWidth(size.width());
-            element.setPreferredHeight(size.height());
+            Vector2f size = textMeasurer.measureText(element.text(), element.textConfig());
+            element.setPreferredWidth(size.x);
+            element.setPreferredHeight(size.y);
             return;
         }
 

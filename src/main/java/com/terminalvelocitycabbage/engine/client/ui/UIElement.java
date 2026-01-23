@@ -21,18 +21,18 @@ public class UIElement {
     }
 
     public float x() {
-        return boundingBox().x();
+        return boundingBox().position().x;
     }
 
     public float y() {
-        return boundingBox().y();
+        return boundingBox().position().y;
     }
 
     public float width() {
-        return boundingBox().width();
+        return boundingBox().size().x;
     }
 
     public float height() {
-        return boundingBox().height();
+        return boundingBox().size().y;
     }
 }

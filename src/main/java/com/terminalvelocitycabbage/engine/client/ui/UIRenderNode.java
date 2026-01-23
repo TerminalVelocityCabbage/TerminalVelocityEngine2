@@ -5,8 +5,10 @@ import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramCo
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
+import org.joml.Vector2f;
 import org.lwjgl.nanovg.NVGColor;
 import org.lwjgl.system.MemoryStack;
 
@@ -52,14 +54,15 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     private void collectElementData(LayoutElement element, Map<Integer, UIElementData> dataMap) {
         if (element == null) return;
-        dataMap.put(element.id(), new UIElementData(new BoundingBox(element.getX(), element.getY(), element.getWidth(), element.getHeight()), true));
+        dataMap.put(element.id(), new UIElementData(new BoundingBox(new Vector2f(element.getPosition()), new Vector2f(element.getSize())), true));
         for (LayoutElement child : element.children()) {
             collectElementData(child, dataMap);
         }
     }
 
     private void renderElement(long nvg, LayoutElement element) {
-        if (element == null) return;
+
+        Log.debug("Rendering element " + element.id());
         
         if (element.isText()) {
             renderText(nvg, element);
@@ -84,7 +87,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                     nvgRect(nvg, element.getX(), element.getY(), element.getWidth(), element.getHeight());
                 }
                 NVGColor color = NVGColor.malloc(stack);
-                nvgRGBAf(decl.backgroundColor().x, decl.backgroundColor().y, decl.backgroundColor().z, decl.backgroundColor().w, color);
+                nvgRGBAf(decl.backgroundColor().r(), decl.backgroundColor().g(), decl.backgroundColor().b(), decl.backgroundColor().a(), color);
                 nvgFillColor(nvg, color);
                 nvgFill(nvg);
             }
@@ -105,7 +108,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
             nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP); // TODO: config alignment
             NVGColor color = NVGColor.malloc(stack);
             if (config.textColor() != null) {
-                nvgRGBAf(config.textColor().x, config.textColor().y, config.textColor().z, config.textColor().w, color);
+                nvgRGBAf(config.textColor().r(), config.textColor().g(), config.textColor().b(), config.textColor().a(), color);
             } else {
                 nvgRGBAf(1, 1, 1, 1, color); // Default white
             }
@@ -115,7 +118,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     }
 
     @Override
-    public Dimensions measureText(String text, TextElementConfig config) {
+    public Vector2f measureText(String text, TextElementConfig config) {
         long nvg = ClientBase.getInstance().getNvgContext();
         nvgFontSize(nvg, config.fontSize());
         if (config.fontIdentifier() != null) {
@@ -123,7 +126,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         }
         float[] bounds = new float[4];
         nvgTextBounds(nvg, 0, 0, text, bounds);
-        return new Dimensions(bounds[2] - bounds[0], bounds[3] - bounds[1]);
+        return new Vector2f(bounds[2] - bounds[0], bounds[3] - bounds[1]);
     }
 
     protected UIContext getUIContext() {
@@ -208,7 +211,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         double mx = ClientBase.getInstance().getInputCallbackListener().getMouseX();
         double my = ClientBase.getInstance().getInputCallbackListener().getMouseY();
 
-        return mx >= bb.x() && mx <= bb.x() + bb.width() && my >= bb.y() && my <= bb.y() + bb.height();
+        return mx >= bb.position().x && mx <= bb.position().x + bb.size().x && my >= bb.position().y && my <= bb.position().y + bb.size().y;
     }
 
     /**

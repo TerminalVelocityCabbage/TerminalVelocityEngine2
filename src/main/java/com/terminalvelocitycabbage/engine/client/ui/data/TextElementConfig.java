@@ -3,16 +3,16 @@ package com.terminalvelocitycabbage.engine.client.ui.data;
 import com.terminalvelocitycabbage.engine.client.ui.TextAlignment;
 import com.terminalvelocitycabbage.engine.client.ui.TextWrapMode;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import org.joml.Vector4f;
+import com.terminalvelocitycabbage.engine.util.Color;
 
-public record TextElementConfig(Vector4f textColor, Identifier fontIdentifier, int fontSize, int letterSpacing, int lineHeight, TextWrapMode wrapMode, TextAlignment textAlignment) {
+public record TextElementConfig(Color textColor, Identifier fontIdentifier, int fontSize, int letterSpacing, int lineHeight, TextWrapMode wrapMode, TextAlignment textAlignment) {
 
     public static Builder builder() {
         return new Builder();
     }
 
     public static class Builder {
-        private Vector4f textColor;
+        private Color textColor;
         private Identifier fontIdentifier;
         private int fontSize;
         private int letterSpacing;
@@ -20,7 +20,7 @@ public record TextElementConfig(Vector4f textColor, Identifier fontIdentifier, i
         private TextWrapMode wrapMode;
         private TextAlignment textAlignment;
 
-        public Builder textColor(Vector4f textColor) {
+        public Builder textColor(Color textColor) {
             this.textColor = textColor;
             return this;
         }

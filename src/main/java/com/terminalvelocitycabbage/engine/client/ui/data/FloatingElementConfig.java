@@ -7,7 +7,7 @@ import org.joml.Vector2f;
 
 public record FloatingElementConfig(
         Vector2f offset,
-        Dimensions expand,
+        Vector2f expand,
         int zIndex,
         int parentId,
         FloatingAttachPoints attachPoints,
@@ -22,7 +22,7 @@ public record FloatingElementConfig(
 
     public static class Builder {
         private Vector2f offset;
-        private Dimensions expand;
+        private Vector2f expand;
         private int zIndex;
         private int parentId;
         private FloatingAttachPoints attachPoints;
@@ -35,7 +35,7 @@ public record FloatingElementConfig(
             return this;
         }
 
-        public Builder expand(Dimensions expand) {
+        public Builder expand(Vector2f expand) {
             this.expand = expand;
             return this;
         }
