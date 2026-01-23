@@ -62,12 +62,23 @@ public class UIContext {
         return hash;
     }
 
-    public void beginFrame() {
+    public void beginFrame(float width, float height) {
         idStack.clear();
         autoIdCounterStack.clear();
         autoIdCounterStack.push(0);
-        rootElement = null;
-        currentElement = null;
+
+        // Create an implicit root element that fills the window
+        int rootId = hashString("window_root", 0, 0);
+        ElementDeclaration rootDecl = ElementDeclaration.builder()
+                .layout(LayoutConfig.builder()
+                        .sizing(new Sizing(SizingAxis.fixed(width), SizingAxis.fixed(height)))
+                        .build())
+                .build();
+        rootElement = new LayoutElement(rootId, rootDecl, null);
+        rootElement.setWidth(width);
+        rootElement.setHeight(height);
+        currentElement = rootElement;
+        pushId(rootId);
     }
 
     public void openElement(int id, ElementDeclaration declaration) {
