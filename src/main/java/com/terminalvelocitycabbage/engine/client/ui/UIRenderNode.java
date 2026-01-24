@@ -183,8 +183,20 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
             renderText(nvg, element);
         } else {
             renderContainer(nvg, element);
+            
+            // Render non-floating children first
             for (LayoutElement child : element.children()) {
-                renderElement(nvg, child);
+                if (child.declaration() == null || child.declaration().floating() == null) {
+                    renderElement(nvg, child);
+                }
+            }
+            
+            // Then render floating children (effectively on top)
+            // TODO: Sort by zIndex if implemented in FloatingElementConfig
+            for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) {
+                    renderElement(nvg, child);
+                }
             }
         }
     }

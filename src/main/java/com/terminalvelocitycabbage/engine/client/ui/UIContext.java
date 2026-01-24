@@ -118,4 +118,8 @@ public class UIContext {
         lastFrameElementData.clear();
         lastFrameElementData.putAll(newFrameData);
     }
+
+    public LayoutElement getCurrentElement() {
+        return currentElement;
+    }
 }

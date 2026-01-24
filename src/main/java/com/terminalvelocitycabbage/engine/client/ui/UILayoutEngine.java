@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.FloatingElementConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import org.joml.Vector2f;
@@ -14,6 +15,7 @@ public class UILayoutEngine {
     }
 
     private final TextMeasurer textMeasurer;
+    private LayoutElement rootRef;
 
     public UILayoutEngine(TextMeasurer textMeasurer) {
         this.textMeasurer = textMeasurer;
@@ -21,6 +23,7 @@ public class UILayoutEngine {
 
     public void runLayout(LayoutElement root, float availableWidth, float availableHeight) {
         if (root == null) return;
+        this.rootRef = root;
         
         // Pass 1: Sizing
         calculatePreferredSizes(root, availableWidth, availableHeight);
@@ -31,6 +34,98 @@ public class UILayoutEngine {
         root.setWidth(root.getPreferredWidth());
         root.setHeight(root.getPreferredHeight());
         calculatePositions(root);
+
+        // Pass 3: Floating elements
+        calculateFloatingPositions(root);
+    }
+
+    private void calculateFloatingPositions(LayoutElement element) {
+        for (LayoutElement child : element.children()) {
+            ElementDeclaration decl = child.declaration();
+            if (decl != null && decl.floating() != null) {
+                applyFloatingPosition(child, decl.floating());
+            }
+            calculateFloatingPositions(child);
+        }
+    }
+
+    private void applyFloatingPosition(LayoutElement element, FloatingElementConfig config) {
+        LayoutElement target = null;
+        switch (config.attachTo()) {
+            case PARENT -> target = element.parent();
+            case ROOT -> {
+                target = element;
+                while (target.parent() != null) target = target.parent();
+            }
+            case ELEMENT_WITH_ID -> {
+                target = findElementById(rootRef, config.parentId());
+                if (target == null) target = element.parent();
+            }
+        }
+
+        if (target == null) return;
+
+        Vector2f targetPos = new Vector2f(target.getX(), target.getY());
+        Vector2f targetSize = new Vector2f(target.getWidth(), target.getHeight());
+        Vector2f elementSize = new Vector2f(element.getWidth(), element.getHeight());
+
+        // Calculate attachment point on target
+        Vector2f attachPointPos = calculateAttachPoint(targetPos, targetSize, config.attachPoints().parent());
+        // Calculate attachment point on element
+        Vector2f elementAttachPointOffset = calculateAttachPoint(new Vector2f(), elementSize, config.attachPoints().element());
+
+        float x = attachPointPos.x - elementAttachPointOffset.x + (config.offset() != null ? config.offset().x : 0);
+        float y = attachPointPos.y - elementAttachPointOffset.y + (config.offset() != null ? config.offset().y : 0);
+
+        element.setX(x);
+        element.setY(y);
+
+        // Apply expand if present
+        if (config.expand() != null) {
+            element.setWidth(element.getWidth() + config.expand().x);
+            element.setHeight(element.getHeight() + config.expand().y);
+        }
+    }
+
+    private Vector2f calculateAttachPoint(Vector2f pos, Vector2f size, UI.FloatingAttachPointType type) {
+        float x = pos.x;
+        float y = pos.y;
+
+        switch (type) {
+            case TOP_LEFT -> {}
+            case LEFT -> y += size.y / 2f;
+            case BOTTOM_LEFT -> y += size.y;
+            case TOP -> x += size.x / 2f;
+            case CENTER -> {
+                x += size.x / 2f;
+                y += size.y / 2f;
+            }
+            case BOTTOM -> {
+                x += size.x / 2f;
+                y += size.y;
+            }
+            case TOP_RIGHT -> x += size.x;
+            case RIGHT -> {
+                x += size.x;
+                y += size.y / 2f;
+            }
+            case BOTTOM_RIGHT -> {
+                x += size.x;
+                y += size.y;
+            }
+        }
+
+        return new Vector2f(x, y);
+    }
+
+    //TODO determine if this is super slow and if so we can just maintain a map of element ids to elements
+    private LayoutElement findElementById(LayoutElement root, int id) {
+        if (root.id() == id) return root;
+        for (LayoutElement child : root.children()) {
+            LayoutElement found = findElementById(child, id);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     private void calculatePreferredSizes(LayoutElement element, float parentWidth, float parentHeight) {
@@ -91,13 +186,19 @@ public class UILayoutEngine {
                         (!isWidth && layout.layoutDirection() == UI.LayoutDirection.TOP_TO_BOTTOM);
                 if (isMainAxis) {
                     for (LayoutElement child : children) {
+                        if (child.declaration() != null && child.declaration().floating() != null) continue;
                         size += isWidth ? child.getPreferredWidth() : child.getPreferredHeight();
                     }
-                    if (!children.isEmpty()) {
-                        size += layout.childGap() * (children.size() - 1);
+                    int nonFloatingChildren = 0;
+                    for (LayoutElement child : children) {
+                        if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildren++;
+                    }
+                    if (nonFloatingChildren > 0) {
+                        size += layout.childGap() * (nonFloatingChildren - 1);
                     }
                 } else {
                     for (LayoutElement child : children) {
+                        if (child.declaration() != null && child.declaration().floating() != null) continue;
                         size = Math.max(size, isWidth ? child.getPreferredWidth() : child.getPreferredHeight());
                     }
                 }
@@ -127,22 +228,34 @@ public class UILayoutEngine {
         float totalContentHeight = 0;
         if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
             for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) continue;
                 totalContentWidth += child.getWidth();
             }
-            if (!element.children().isEmpty()) {
-                totalContentWidth += layout.childGap() * (element.children().size() - 1);
+            int nonFloatingChildrenCount = 0;
+            for (LayoutElement child : element.children()) {
+                if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildrenCount++;
+            }
+            if (nonFloatingChildrenCount > 0) {
+                totalContentWidth += layout.childGap() * (nonFloatingChildrenCount - 1);
             }
             for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) continue;
                 totalContentHeight = Math.max(totalContentHeight, child.getHeight());
             }
         } else {
             for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) continue;
                 totalContentHeight += child.getHeight();
             }
-            if (!element.children().isEmpty()) {
-                totalContentHeight += layout.childGap() * (element.children().size() - 1);
+            int nonFloatingChildrenCount = 0;
+            for (LayoutElement child : element.children()) {
+                if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildrenCount++;
+            }
+            if (nonFloatingChildrenCount > 0) {
+                totalContentHeight += layout.childGap() * (nonFloatingChildrenCount - 1);
             }
             for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) continue;
                 totalContentWidth = Math.max(totalContentWidth, child.getWidth());
             }
         }
@@ -171,6 +284,11 @@ public class UILayoutEngine {
         float currentY = startY;
 
         for (LayoutElement child : element.children()) {
+            if (child.declaration() != null && child.declaration().floating() != null) {
+                calculatePositions(child); // Still need to recurse for children of floating elements
+                continue;
+            }
+
             float childX = currentX;
             float childY = currentY;
 
@@ -207,6 +325,7 @@ public class UILayoutEngine {
         boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
 
         for (LayoutElement child : element.children()) {
+            if (child.declaration() != null && child.declaration().floating() != null) continue;
             Sizing childSizing = getChildSizing(child);
             SizingAxis mainAxisSizing = isHorizontal ? childSizing.width() : childSizing.height();
             
@@ -216,14 +335,29 @@ public class UILayoutEngine {
             usedSpace += isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight();
         }
         
-        if (!element.children().isEmpty()) {
-            usedSpace += layout.childGap() * (element.children().size() - 1);
+        int nonFloatingChildrenCount = 0;
+        for (LayoutElement child : element.children()) {
+            if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildrenCount++;
+        }
+        if (nonFloatingChildrenCount > 0) {
+            usedSpace += layout.childGap() * (nonFloatingChildrenCount - 1);
         }
 
         float extraSpace = (isHorizontal ? innerWidth : innerHeight) - usedSpace;
         float spacePerGrow = growCount > 0 ? Math.max(0, extraSpace / growCount) : 0;
 
         for (LayoutElement child : element.children()) {
+            if (child.declaration() != null && child.declaration().floating() != null) {
+                // For floating elements, we still need to set their dimensions if they use GROW
+                // GROW for floating elements usually means filling the target?
+                // Actually Clay handles GROW for floating elements differently.
+                // For now let's just use preferred size for floating elements here
+                child.setWidth(child.getPreferredWidth());
+                child.setHeight(child.getPreferredHeight());
+                distributeSpace(child, child.getWidth(), child.getHeight(), 
+                    (child.declaration() != null && child.declaration().layout() != null) ? child.declaration().layout() : UIContext.DEFAULT_LAYOUT);
+                continue;
+            }
             Sizing childSizing = getChildSizing(child);
             
             float w = child.getPreferredWidth();
