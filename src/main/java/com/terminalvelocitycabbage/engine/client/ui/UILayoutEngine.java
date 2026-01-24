@@ -55,9 +55,30 @@ public class UILayoutEngine {
         }
 
         // Calculate this element's preferred width
-        element.setPreferredWidth(calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, element.children(), true, layout));
+        float preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, element.children(), true, layout);
         // Calculate this element's preferred height
-        element.setPreferredHeight(calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, element.children(), false, layout));
+        float preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, element.children(), false, layout);
+
+        // Apply aspect ratio if present
+        if (decl.aspectRatio() != null && decl.aspectRatio().aspectRatio() > 0) {
+            float ratio = decl.aspectRatio().aspectRatio();
+            boolean widthFixed = sizing.width().type() == UI.SizingType.FIXED || sizing.width().type() == UI.SizingType.PERCENT;
+            boolean heightFixed = sizing.height().type() == UI.SizingType.FIXED || sizing.height().type() == UI.SizingType.PERCENT;
+
+            if (widthFixed && !heightFixed) {
+                preferredHeight = preferredWidth / ratio;
+            } else if (heightFixed && !widthFixed) {
+                preferredWidth = preferredHeight * ratio;
+            } else if (!widthFixed && !heightFixed) {
+                // If neither is strictly fixed, we use the larger one to determine the other or follow some priority
+                // In Clay, aspect ratio usually works by calculating one from the other
+                // Let's assume width has priority if both are FIT/GROW for now
+                preferredHeight = preferredWidth / ratio;
+            }
+        }
+
+        element.setPreferredWidth(preferredWidth);
+        element.setPreferredHeight(preferredHeight);
     }
 
     private float calculateAxisPreferredSize(SizingAxis axis, float available, List<LayoutElement> children, boolean isWidth, LayoutConfig layout) {
@@ -205,29 +226,66 @@ public class UILayoutEngine {
         for (LayoutElement child : element.children()) {
             Sizing childSizing = getChildSizing(child);
             
+            float w = child.getPreferredWidth();
+            float h = child.getPreferredHeight();
+            ElementDeclaration childDecl = child.declaration();
+            float aspectRatio = (childDecl != null && childDecl.aspectRatio() != null) ? childDecl.aspectRatio().aspectRatio() : 0;
+
             if (isHorizontal) {
-                float w = child.getPreferredWidth();
                 if (childSizing.width().type() == UI.SizingType.GROW) {
                     w += spacePerGrow;
                 }
-                child.setWidth(w);
                 
-                float h = child.getPreferredHeight();
                 if (childSizing.height().type() == UI.SizingType.GROW) {
                     h = innerHeight;
                 }
+
+                // Apply aspect ratio if constrained
+                if (aspectRatio > 0) {
+                    if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() != UI.SizingType.GROW) {
+                        h = w / aspectRatio;
+                    } else if (childSizing.height().type() == UI.SizingType.GROW && childSizing.width().type() != UI.SizingType.GROW) {
+                        w = h * aspectRatio;
+                    } else if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() == UI.SizingType.GROW) {
+                        // Both GROW, adjust to fit within innerWidth/innerHeight while maintaining ratio
+                        if (w / aspectRatio > innerHeight) {
+                            h = innerHeight;
+                            w = h * aspectRatio;
+                        } else {
+                            h = w / aspectRatio;
+                        }
+                    }
+                }
+
+                child.setWidth(w);
                 child.setHeight(h);
             } else {
-                float h = child.getPreferredHeight();
                 if (childSizing.height().type() == UI.SizingType.GROW) {
                     h += spacePerGrow;
                 }
-                child.setHeight(h);
                 
-                float w = child.getPreferredWidth();
                 if (childSizing.width().type() == UI.SizingType.GROW) {
                     w = innerWidth;
                 }
+
+                // Apply aspect ratio if constrained
+                if (aspectRatio > 0) {
+                    if (childSizing.height().type() == UI.SizingType.GROW && childSizing.width().type() != UI.SizingType.GROW) {
+                        w = h * aspectRatio;
+                    } else if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() != UI.SizingType.GROW) {
+                        h = w / aspectRatio;
+                    } else if (childSizing.height().type() == UI.SizingType.GROW && childSizing.width().type() == UI.SizingType.GROW) {
+                        // Both GROW
+                        if (h * aspectRatio > innerWidth) {
+                            w = innerWidth;
+                            h = w / aspectRatio;
+                        } else {
+                            w = h * aspectRatio;
+                        }
+                    }
+                }
+
+                child.setHeight(h);
                 child.setWidth(w);
             }
         }
