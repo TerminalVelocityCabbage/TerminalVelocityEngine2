@@ -151,9 +151,9 @@ public class UILayoutEngine {
         }
 
         // Calculate this element's preferred width
-        float preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, element.children(), true, layout);
+        float preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, innerAvailableHeight, element.children(), true, layout);
         // Calculate this element's preferred height
-        float preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, element.children(), false, layout);
+        float preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, innerAvailableWidth, element.children(), false, layout);
 
         // Apply aspect ratio if present
         if (decl.aspectRatio() != null && decl.aspectRatio().aspectRatio() > 0) {
@@ -177,30 +177,62 @@ public class UILayoutEngine {
         element.setPreferredHeight(preferredHeight);
     }
 
-    private float calculateAxisPreferredSize(SizingAxis axis, float available, List<LayoutElement> children, boolean isWidth, LayoutConfig layout) {
+    private float calculateAxisPreferredSize(SizingAxis axis, float availableOnThisAxis, float availableOnOtherAxis, List<LayoutElement> children, boolean isWidth, LayoutConfig layout) {
         return switch (axis.type()) {
             case FIXED -> axis.min();
-            case PERCENT -> available * axis.percent();
+            case PERCENT -> availableOnThisAxis * axis.percent();
             case FIT -> {
                 float size = 0;
-                boolean isMainAxis = (isWidth && layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) ||
-                        (!isWidth && layout.layoutDirection() == UI.LayoutDirection.TOP_TO_BOTTOM);
-                if (isMainAxis) {
+                boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
+                boolean isMainAxis = (isWidth && isHorizontal) || (!isWidth && !isHorizontal);
+
+                if (layout.wrap()) {
+                    float mainAxisConstraint = isMainAxis ? availableOnThisAxis : availableOnOtherAxis;
+                    float currentLineMainSize = 0;
+                    float currentLineCrossSize = 0;
+                    float maxLineMainSize = 0;
+                    float totalCrossSize = 0;
+
                     for (LayoutElement child : children) {
                         if (child.declaration() != null && child.declaration().floating() != null) continue;
-                        size += isWidth ? child.getPreferredWidth() : child.getPreferredHeight();
+
+                        float childMainSize = isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight();
+                        float childCrossSize = isHorizontal ? child.getPreferredHeight() : child.getPreferredWidth();
+                        float gap = currentLineMainSize == 0 ? 0 : layout.childGap();
+
+                        if (currentLineMainSize + gap + childMainSize > mainAxisConstraint && currentLineMainSize > 0) {
+                            maxLineMainSize = Math.max(maxLineMainSize, currentLineMainSize);
+                            totalCrossSize += currentLineCrossSize + layout.childGap();
+                            currentLineMainSize = childMainSize;
+                            currentLineCrossSize = childCrossSize;
+                        } else {
+                            currentLineMainSize += gap + childMainSize;
+                            currentLineCrossSize = Math.max(currentLineCrossSize, childCrossSize);
+                        }
                     }
-                    int nonFloatingChildren = 0;
-                    for (LayoutElement child : children) {
-                        if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildren++;
+                    if (currentLineMainSize > 0) {
+                        maxLineMainSize = Math.max(maxLineMainSize, currentLineMainSize);
+                        totalCrossSize += currentLineCrossSize;
                     }
-                    if (nonFloatingChildren > 0) {
-                        size += layout.childGap() * (nonFloatingChildren - 1);
-                    }
+                    size = isMainAxis ? maxLineMainSize : totalCrossSize;
                 } else {
-                    for (LayoutElement child : children) {
-                        if (child.declaration() != null && child.declaration().floating() != null) continue;
-                        size = Math.max(size, isWidth ? child.getPreferredWidth() : child.getPreferredHeight());
+                    if (isMainAxis) {
+                        for (LayoutElement child : children) {
+                            if (child.declaration() != null && child.declaration().floating() != null) continue;
+                            size += isWidth ? child.getPreferredWidth() : child.getPreferredHeight();
+                        }
+                        int nonFloatingChildren = 0;
+                        for (LayoutElement child : children) {
+                            if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildren++;
+                        }
+                        if (nonFloatingChildren > 0) {
+                            size += layout.childGap() * (nonFloatingChildren - 1);
+                        }
+                    } else {
+                        for (LayoutElement child : children) {
+                            if (child.declaration() != null && child.declaration().floating() != null) continue;
+                            size = Math.max(size, isWidth ? child.getPreferredWidth() : child.getPreferredHeight());
+                        }
                     }
                 }
                 Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;

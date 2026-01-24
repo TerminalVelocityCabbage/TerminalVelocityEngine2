@@ -6,6 +6,12 @@ import com.terminalvelocitycabbage.engine.util.Color;
 
 public record TextElementConfig(Color textColor, Identifier fontIdentifier, int fontSize, int letterSpacing, int lineHeight, UI.TextWrapMode wrapMode, UI.TextAlignment textAlignment) {
 
+    public TextElementConfig {
+        if (fontSize == 0) fontSize = 16;
+        if (wrapMode == null) wrapMode = UI.TextWrapMode.NONE;
+        if (textAlignment == null) textAlignment = UI.TextAlignment.LEFT;
+    }
+
     public static Builder builder() {
         return new Builder();
     }

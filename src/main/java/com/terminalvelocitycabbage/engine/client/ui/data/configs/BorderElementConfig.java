@@ -5,6 +5,11 @@ import com.terminalvelocitycabbage.engine.util.Color;
 
 public record BorderElementConfig(Color color, BorderWidth width) {
 
+    public BorderElementConfig {
+        if (color == null) color = new Color(0, 0, 0, 255);
+        if (width == null) width = new BorderWidth();
+    }
+
     public static Builder builder() {
         return new Builder();
     }

@@ -4,8 +4,16 @@ import com.terminalvelocitycabbage.engine.client.ui.UI;
 import com.terminalvelocitycabbage.engine.client.ui.data.ChildAlignment;
 import com.terminalvelocitycabbage.engine.client.ui.data.Padding;
 import com.terminalvelocitycabbage.engine.client.ui.data.Sizing;
+import com.terminalvelocitycabbage.engine.client.ui.data.SizingAxis;
 
 public record LayoutConfig(Sizing sizing, Padding padding, int childGap, ChildAlignment childAlignment, UI.LayoutDirection layoutDirection, boolean wrap) {
+    
+    public LayoutConfig {
+        if (sizing == null) sizing = new Sizing(SizingAxis.fit(), SizingAxis.fit());
+        if (padding == null) padding = new Padding();
+        if (childAlignment == null) childAlignment = new ChildAlignment(UI.HorizontalAlignment.LEFT, UI.VerticalAlignment.TOP);
+        if (layoutDirection == null) layoutDirection = UI.LayoutDirection.LEFT_TO_RIGHT;
+    }
 
     public static Builder builder() {
         return new Builder();

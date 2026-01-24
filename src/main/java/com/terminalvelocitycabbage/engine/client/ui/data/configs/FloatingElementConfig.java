@@ -16,6 +16,13 @@ public record FloatingElementConfig(
         UI.FloatingClipToElement clipTo
 ) {
 
+    public FloatingElementConfig {
+        if (attachPoints == null) attachPoints = new FloatingAttachPoints(UI.FloatingAttachPointType.TOP_LEFT, UI.FloatingAttachPointType.TOP_LEFT);
+        if (pointerCaptureMode == null) pointerCaptureMode = UI.PointerCaptureMode.CAPTURE;
+        if (attachTo == null) attachTo = UI.FloatingAttachToElement.PARENT;
+        if (clipTo == null) clipTo = UI.FloatingClipToElement.NONE;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
