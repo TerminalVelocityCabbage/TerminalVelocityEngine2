@@ -26,17 +26,25 @@ public class UILayoutEngine {
         if (root == null) return;
         this.rootRef = root;
         
-        // Pass 1: Sizing
+        // Pass 1: Preferred Sizing
         calculatePreferredSizes(root, availableWidth, availableHeight);
         
-        // Pass 2: Positioning
+        // Initial root sizing
         root.setX(0);
         root.setY(0);
-        root.setWidth(root.getPreferredWidth());
-        root.setHeight(root.getPreferredHeight());
-        calculatePositions(root);
+        root.setWidth(availableWidth);
+        root.setHeight(availableHeight);
 
-        // Pass 3: Floating elements
+        // Pass 2: Layout (Determines child sizes and relative positions)
+        calculatePositions(root);
+        
+        // Pass 3: Sizing Update (Bottom-up update of FIT elements)
+        updateSizing(root);
+        
+        // Pass 4: Final alignment (Top-down)
+        applyAlignment(root);
+
+        // Pass 5: Floating elements
         calculateFloatingPositions(root);
     }
 
@@ -51,6 +59,12 @@ public class UILayoutEngine {
     }
 
     private void applyFloatingPosition(LayoutElement element, FloatingElementConfig config) {
+        // Initialize size for floating element (it was skipped in standard layout pass)
+        if (element.getWidth() == 0 && element.getHeight() == 0) {
+            element.setWidth(element.getPreferredWidth());
+            element.setHeight(element.getPreferredHeight());
+        }
+
         LayoutElement target = null;
         switch (config.attachTo()) {
             case PARENT -> target = element.parent();
@@ -150,10 +164,32 @@ public class UILayoutEngine {
             calculatePreferredSizes(child, innerAvailableWidth, innerAvailableHeight);
         }
 
-        // Calculate this element's preferred width
-        float preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, innerAvailableHeight, element.children(), true, layout);
-        // Calculate this element's preferred height
-        float preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, innerAvailableWidth, element.children(), false, layout);
+        float preferredWidth, preferredHeight;
+        if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
+            // Calculate main axis (width) first
+            preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, innerAvailableHeight, element.children(), true, layout);
+            
+            // Use calculated width as a constraint for height calculation (important for wrapping)
+            float crossConstraint = switch (sizing.width().type()) {
+                case FIXED -> sizing.width().min() - padding.left() - padding.right();
+                case PERCENT -> innerAvailableWidth * sizing.width().percent();
+                case FIT -> preferredWidth - padding.left() - padding.right();
+                case GROW -> innerAvailableWidth; // GROW can take full available
+            };
+            preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, crossConstraint, element.children(), false, layout);
+        } else {
+            // Calculate main axis (height) first
+            preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, innerAvailableWidth, element.children(), false, layout);
+            
+            // Use calculated height as a constraint for width calculation
+            float crossConstraint = switch (sizing.height().type()) {
+                case FIXED -> sizing.height().min() - padding.top() - padding.bottom();
+                case PERCENT -> innerAvailableHeight * sizing.height().percent();
+                case FIT -> preferredHeight - padding.top() - padding.bottom();
+                case GROW -> innerAvailableHeight;
+            };
+            preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, crossConstraint, element.children(), true, layout);
+        }
 
         // Apply aspect ratio if present
         if (decl.aspectRatio() != null && decl.aspectRatio().aspectRatio() > 0) {
@@ -180,7 +216,10 @@ public class UILayoutEngine {
     private float calculateAxisPreferredSize(SizingAxis axis, float availableOnThisAxis, float availableOnOtherAxis, List<LayoutElement> children, boolean isWidth, LayoutConfig layout) {
         return switch (axis.type()) {
             case FIXED -> axis.min();
-            case PERCENT -> availableOnThisAxis * axis.percent();
+            case PERCENT -> {
+                float size = availableOnThisAxis * axis.percent();
+                yield Math.max(axis.min(), Math.min(axis.max(), size));
+            }
             case FIT -> {
                 float size = 0;
                 boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
@@ -253,9 +292,6 @@ public class UILayoutEngine {
         float innerWidth = element.getWidth() - padding.left() - padding.right();
         float innerHeight = element.getHeight() - padding.top() - padding.bottom();
 
-        // 1. Distribute GROW space
-        distributeSpace(element, innerWidth, innerHeight, layout);
-
         if (layout.wrap()) {
             calculateWrappedPositions(element, innerWidth, innerHeight, layout, padding);
         } else {
@@ -264,216 +300,172 @@ public class UILayoutEngine {
     }
 
     private void calculateNonWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding) {
-        // 2. Calculate total content size
-        float totalContentWidth = 0;
-        float totalContentHeight = 0;
-        if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
-            for (LayoutElement child : element.children()) {
-                if (child.declaration() != null && child.declaration().floating() != null) continue;
-                totalContentWidth += child.getWidth();
+        boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
+        
+        List<LayoutElement> children = element.children().stream()
+                .filter(child -> child.declaration() == null || child.declaration().floating() == null)
+                .toList();
+        
+        if (children.isEmpty()) return;
+
+        // 1. Distribute Space (GROW)
+        int growCount = 0;
+        float usedMainSpace = 0;
+        for (LayoutElement child : children) {
+            usedMainSpace += isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight();
+            if (getChildSizing(child).main(isHorizontal).type() == UI.SizingType.GROW) growCount++;
+        }
+        usedMainSpace += layout.childGap() * (children.size() - 1);
+        
+        float extraMainSpace = Math.max(0, (isHorizontal ? innerWidth : innerHeight) - usedMainSpace);
+        float spacePerGrow = growCount > 0 ? extraMainSpace / growCount : 0;
+
+        // 2. Set child dimensions and recurse
+        float currentMainOffset = 0;
+        for (LayoutElement child : children) {
+            Sizing childSizing = getChildSizing(child);
+            float w = child.getPreferredWidth();
+            float h = child.getPreferredHeight();
+            
+            if (childSizing.main(isHorizontal).type() == UI.SizingType.GROW) {
+                float growAmount = spacePerGrow;
+                float currentMainSize = isHorizontal ? w : h;
+                float maxMainSize = childSizing.main(isHorizontal).max();
+                if (currentMainSize + growAmount > maxMainSize) {
+                    growAmount = Math.max(0, maxMainSize - currentMainSize);
+                }
+                if (isHorizontal) w += growAmount; else h += growAmount;
             }
-            int nonFloatingChildrenCount = 0;
-            for (LayoutElement child : element.children()) {
-                if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildrenCount++;
+            if (childSizing.cross(isHorizontal).type() == UI.SizingType.GROW) {
+                if (isHorizontal) h = Math.min(childSizing.height().max(), innerHeight);
+                else w = Math.min(childSizing.width().max(), innerWidth);
             }
-            if (nonFloatingChildrenCount > 0) {
-                totalContentWidth += layout.childGap() * (nonFloatingChildrenCount - 1);
+
+            // Apply Aspect Ratio
+            float ratio = getAspectRatio(child);
+            if (ratio > 0) {
+                if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() != UI.SizingType.GROW) h = w / ratio;
+                else if (childSizing.height().type() == UI.SizingType.GROW && childSizing.width().type() != UI.SizingType.GROW) w = h * ratio;
+                else if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() == UI.SizingType.GROW) {
+                    if (w / ratio > innerHeight) { h = innerHeight; w = h * ratio; } else h = w / ratio;
+                }
             }
-            for (LayoutElement child : element.children()) {
-                if (child.declaration() != null && child.declaration().floating() != null) continue;
-                totalContentHeight = Math.max(totalContentHeight, child.getHeight());
+            
+            child.setWidth(w);
+            child.setHeight(h);
+            
+            // Set relative position (alignment will be handled in Pass 4)
+            if (isHorizontal) {
+                child.setX(currentMainOffset);
+                child.setY(0);
+                currentMainOffset += w + layout.childGap();
+            } else {
+                child.setX(0);
+                child.setY(currentMainOffset);
+                currentMainOffset += h + layout.childGap();
             }
-        } else {
-            for (LayoutElement child : element.children()) {
-                if (child.declaration() != null && child.declaration().floating() != null) continue;
-                totalContentHeight += child.getHeight();
-            }
-            int nonFloatingChildrenCount = 0;
-            for (LayoutElement child : element.children()) {
-                if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildrenCount++;
-            }
-            if (nonFloatingChildrenCount > 0) {
-                totalContentHeight += layout.childGap() * (nonFloatingChildrenCount - 1);
-            }
-            for (LayoutElement child : element.children()) {
-                if (child.declaration() != null && child.declaration().floating() != null) continue;
-                totalContentWidth = Math.max(totalContentWidth, child.getWidth());
-            }
+            
+            calculatePositions(child);
         }
 
-        // 3. Align content
-        float startX = element.getX() + padding.left();
-        float startY = element.getY() + padding.top();
-        ChildAlignment alignment = layout.childAlignment() != null ? layout.childAlignment() : UIContext.DEFAULT_ALIGNMENT;
-
-        if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
-            startX += switch (alignment.x()) {
-                case LEFT -> 0;
-                case CENTER -> (innerWidth - totalContentWidth) / 2;
-                case RIGHT -> innerWidth - totalContentWidth;
-            };
-        } else {
-            startY += switch (alignment.y()) {
-                case TOP -> 0;
-                case CENTER -> (innerHeight - totalContentHeight) / 2;
-                case BOTTOM -> innerHeight - totalContentHeight;
-            };
-        }
-
-        // 4. Position children
-        float currentX = startX;
-        float currentY = startY;
-
+        // Handle floating children
         for (LayoutElement child : element.children()) {
             if (child.declaration() != null && child.declaration().floating() != null) {
-                calculatePositions(child); // Still need to recurse for children of floating elements
-                continue;
+                calculatePositions(child);
             }
-
-            float childX = currentX;
-            float childY = currentY;
-
-            if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
-                childY += switch (alignment.y()) {
-                    case TOP -> 0;
-                    case CENTER -> (innerHeight - child.getHeight()) / 2;
-                    case BOTTOM -> innerHeight - child.getHeight();
-                };
-            } else {
-                childX += switch (alignment.x()) {
-                    case LEFT -> 0;
-                    case CENTER -> (innerWidth - child.getWidth()) / 2;
-                    case RIGHT -> innerWidth - child.getWidth();
-                };
-            }
-
-            child.setX(childX);
-            child.setY(childY);
-
-            if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
-                currentX += child.getWidth() + layout.childGap();
-            } else {
-                currentY += child.getHeight() + layout.childGap();
-            }
-
-            calculatePositions(child);
         }
     }
 
     private void calculateWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding) {
-        // Implement wrapping logic
         boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
-        ChildAlignment alignment = layout.childAlignment() != null ? layout.childAlignment() : UIContext.DEFAULT_ALIGNMENT;
-
+        
         List<LayoutElement> children = element.children().stream()
                 .filter(child -> child.declaration() == null || child.declaration().floating() == null)
                 .toList();
 
         if (children.isEmpty()) return;
 
-        // Group children into lines
+        // 1. Group into lines
         List<List<LayoutElement>> lines = new ArrayList<>();
         List<LayoutElement> currentLine = new ArrayList<>();
-        float currentLineSize = 0;
-        float maxLineCrossSize = 0;
-        List<Float> lineCrossSizes = new ArrayList<>();
+        float currentLineMainSize = 0;
+        float mainConstraint = isHorizontal ? innerWidth : innerHeight;
 
         for (LayoutElement child : children) {
-            float childMainSize = isHorizontal ? child.getWidth() : child.getHeight();
+            float childMainSize = isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight();
             float gap = currentLine.isEmpty() ? 0 : layout.childGap();
 
-            if (currentLineSize + gap + childMainSize > (isHorizontal ? innerWidth : innerHeight) && !currentLine.isEmpty()) {
+            if (currentLineMainSize + gap + childMainSize > mainConstraint && !currentLine.isEmpty()) {
                 lines.add(currentLine);
-                lineCrossSizes.add(maxLineCrossSize);
                 currentLine = new ArrayList<>();
-                currentLineSize = 0;
-                maxLineCrossSize = 0;
+                currentLineMainSize = 0;
                 gap = 0;
             }
-
             currentLine.add(child);
-            currentLineSize += gap + childMainSize;
-            maxLineCrossSize = Math.max(maxLineCrossSize, isHorizontal ? child.getHeight() : child.getWidth());
+            currentLineMainSize += gap + childMainSize;
         }
         lines.add(currentLine);
-        lineCrossSizes.add(maxLineCrossSize);
 
-        float totalCrossSize = 0;
-        for (float size : lineCrossSizes) {
-            totalCrossSize += size;
-        }
-        totalCrossSize += layout.childGap() * (lines.size() - 1);
-
-        // Position lines
-        float startX = element.getX() + padding.left();
-        float startY = element.getY() + padding.top();
-
-        if (isHorizontal) {
-            startY += switch (alignment.y()) {
-                case TOP -> 0;
-                case CENTER -> (innerHeight - totalCrossSize) / 2;
-                case BOTTOM -> innerHeight - totalCrossSize;
-            };
-        } else {
-            startX += switch (alignment.x()) {
-                case LEFT -> 0;
-                case CENTER -> (innerWidth - totalCrossSize) / 2;
-                case RIGHT -> innerWidth - totalCrossSize;
-            };
-        }
-
-        float currentCrossOffset = isHorizontal ? startY : startX;
-
-        for (int i = 0; i < lines.size(); i++) {
-            List<LayoutElement> line = lines.get(i);
-            float lineCrossSize = lineCrossSizes.get(i);
-            float lineMainSize = 0;
-            for (int j = 0; j < line.size(); j++) {
-                lineMainSize += (isHorizontal ? line.get(j).getWidth() : line.get(j).getHeight());
-                if (j > 0) lineMainSize += layout.childGap();
-            }
-
-            float currentMainOffset;
-            if (isHorizontal) {
-                currentMainOffset = startX + switch (alignment.x()) {
-                    case LEFT -> 0;
-                    case CENTER -> (innerWidth - lineMainSize) / 2;
-                    case RIGHT -> innerWidth - lineMainSize;
-                };
-            } else {
-                currentMainOffset = startY + switch (alignment.y()) {
-                    case TOP -> 0;
-                    case CENTER -> (innerHeight - lineMainSize) / 2;
-                    case BOTTOM -> innerHeight - lineMainSize;
-                };
-            }
-
+        // 2. Process lines (Distribute GROW and calculate cross sizes)
+        float currentCrossOffset = 0;
+        for (List<LayoutElement> line : lines) {
+            float lineMainPreferredSize = 0;
+            int growCount = 0;
             for (LayoutElement child : line) {
+                lineMainPreferredSize += isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight();
+                if (getChildSizing(child).main(isHorizontal).type() == UI.SizingType.GROW) growCount++;
+            }
+            lineMainPreferredSize += layout.childGap() * (line.size() - 1);
+            float extraMainSpace = Math.max(0, mainConstraint - lineMainPreferredSize);
+            float spacePerGrow = growCount > 0 ? extraMainSpace / growCount : 0;
+
+            float maxLineCrossSize = 0;
+            for (LayoutElement child : line) {
+                Sizing childSizing = getChildSizing(child);
+                float w = child.getPreferredWidth();
+                float h = child.getPreferredHeight();
+                if (childSizing.main(isHorizontal).type() == UI.SizingType.GROW) {
+                    float growAmount = spacePerGrow;
+                    float currentMainSize = isHorizontal ? w : h;
+                    float maxMainSize = childSizing.main(isHorizontal).max();
+                    if (currentMainSize + growAmount > maxMainSize) {
+                        growAmount = Math.max(0, maxMainSize - currentMainSize);
+                    }
+                    if (isHorizontal) w += growAmount; else h += growAmount;
+                }
+                float ratio = getAspectRatio(child);
+                if (ratio > 0) {
+                    if (isHorizontal) h = w / ratio; else w = h * ratio;
+                }
+                child.setWidth(w);
+                child.setHeight(h);
+                maxLineCrossSize = Math.max(maxLineCrossSize, isHorizontal ? h : w);
+            }
+
+            // Align children in line cross-axis and set relative positions
+            float currentMainOffset = 0;
+            for (LayoutElement child : line) {
+                Sizing childSizing = getChildSizing(child);
+                if (childSizing.cross(isHorizontal).type() == UI.SizingType.GROW) {
+                    if (isHorizontal) child.setHeight(Math.min(childSizing.height().max(), maxLineCrossSize));
+                    else child.setWidth(Math.min(childSizing.width().max(), maxLineCrossSize));
+                }
+                
                 if (isHorizontal) {
-                    float childY = currentCrossOffset + switch (alignment.y()) {
-                        case TOP -> 0;
-                        case CENTER -> (lineCrossSize - child.getHeight()) / 2;
-                        case BOTTOM -> lineCrossSize - child.getHeight();
-                    };
                     child.setX(currentMainOffset);
-                    child.setY(childY);
+                    child.setY(currentCrossOffset);
                     currentMainOffset += child.getWidth() + layout.childGap();
                 } else {
-                    float childX = currentCrossOffset + switch (alignment.x()) {
-                        case LEFT -> 0;
-                        case CENTER -> (lineCrossSize - child.getWidth()) / 2;
-                        case RIGHT -> lineCrossSize - child.getWidth();
-                    };
-                    child.setX(childX);
+                    child.setX(currentCrossOffset);
                     child.setY(currentMainOffset);
                     currentMainOffset += child.getHeight() + layout.childGap();
                 }
                 calculatePositions(child);
             }
-            currentCrossOffset += lineCrossSize + layout.childGap();
+            currentCrossOffset += maxLineCrossSize + layout.childGap();
         }
 
-        // Handle floating elements separately
+        // Handle floating
         for (LayoutElement child : element.children()) {
             if (child.declaration() != null && child.declaration().floating() != null) {
                 calculatePositions(child);
@@ -481,108 +473,125 @@ public class UILayoutEngine {
         }
     }
 
-    private void distributeSpace(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout) {
-        int growCount = 0;
-        float usedSpace = 0;
-        boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
+    private float getAspectRatio(LayoutElement element) {
+        ElementDeclaration decl = element.declaration();
+        return (decl != null && decl.aspectRatio() != null) ? decl.aspectRatio().aspectRatio() : 0;
+    }
 
+    private void updateSizing(LayoutElement element) {
+        // Post-order traversal (bottom-up)
+        for (LayoutElement child : element.children()) {
+            updateSizing(child);
+        }
+
+        if (element.isText() || element == rootRef) return;
+
+        ElementDeclaration decl = element.declaration();
+        LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
+        Sizing sizing = layout.sizing() != null ? layout.sizing() : UIContext.DEFAULT_SIZING;
+        Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+
+        if (sizing.width().type() == UI.SizingType.FIT) {
+            float minX = Float.MAX_VALUE;
+            float maxX = -Float.MAX_VALUE;
+            boolean hasChildren = false;
+            for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) continue;
+                minX = Math.min(minX, child.getX());
+                maxX = Math.max(maxX, child.getX() + child.getWidth());
+                hasChildren = true;
+            }
+            if (hasChildren) {
+                element.setWidth(Math.max(sizing.width().min(), Math.min(sizing.width().max(), maxX - minX + padding.left() + padding.right())));
+            }
+        }
+
+        if (sizing.height().type() == UI.SizingType.FIT) {
+            float minY = Float.MAX_VALUE;
+            float maxY = -Float.MAX_VALUE;
+            boolean hasChildren = false;
+            for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) continue;
+                minY = Math.min(minY, child.getY());
+                maxY = Math.max(maxY, child.getY() + child.getHeight());
+                hasChildren = true;
+            }
+            if (hasChildren) {
+                element.setHeight(Math.max(sizing.height().min(), Math.min(sizing.height().max(), maxY - minY + padding.top() + padding.bottom())));
+            }
+        }
+
+        // Re-apply aspect ratio after FIT updates
+        if (decl.aspectRatio() != null && decl.aspectRatio().aspectRatio() > 0) {
+            float ratio = decl.aspectRatio().aspectRatio();
+            boolean widthFit = sizing.width().type() == UI.SizingType.FIT || sizing.width().type() == UI.SizingType.GROW;
+            boolean heightFit = sizing.height().type() == UI.SizingType.FIT || sizing.height().type() == UI.SizingType.GROW;
+
+            if (widthFit && !heightFit) {
+                element.setWidth(element.getHeight() * ratio);
+            } else if (heightFit && !widthFit) {
+                element.setHeight(element.getWidth() / ratio);
+            } else if (widthFit && heightFit) {
+                // If both are flexible, prioritize width as base for now
+                element.setHeight(element.getWidth() / ratio);
+            }
+        }
+    }
+
+    private void applyAlignment(LayoutElement element) {
+        if (element.isText() || element.children().isEmpty()) return;
+
+        ElementDeclaration decl = element.declaration();
+        LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
+        Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+        ChildAlignment alignment = layout.childAlignment() != null ? layout.childAlignment() : UIContext.DEFAULT_ALIGNMENT;
+
+        float innerWidth = element.getWidth() - padding.left() - padding.right();
+        float innerHeight = element.getHeight() - padding.top() - padding.bottom();
+
+        // Calculate bounding box of all non-floating children (they currently have relative positions)
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
+        boolean hasChildren = false;
         for (LayoutElement child : element.children()) {
             if (child.declaration() != null && child.declaration().floating() != null) continue;
-            Sizing childSizing = getChildSizing(child);
-            SizingAxis mainAxisSizing = isHorizontal ? childSizing.width() : childSizing.height();
-            
-            if (mainAxisSizing.type() == UI.SizingType.GROW) {
-                growCount++;
+            minX = Math.min(minX, child.getX());
+            minY = Math.min(minY, child.getY());
+            maxX = Math.max(maxX, child.getX() + child.getWidth());
+            maxY = Math.max(maxY, child.getY() + child.getHeight());
+            hasChildren = true;
+        }
+
+        if (hasChildren) {
+            float contentWidth = maxX - minX;
+            float contentHeight = maxY - minY;
+
+            float offsetX = padding.left();
+            offsetX += switch (alignment.x()) {
+                case LEFT -> -minX;
+                case CENTER -> (innerWidth - contentWidth) / 2f - minX;
+                case RIGHT -> (innerWidth - contentWidth) - minX;
+            };
+
+            float offsetY = padding.top();
+            offsetY += switch (alignment.y()) {
+                case TOP -> -minY;
+                case CENTER -> (innerHeight - contentHeight) / 2f - minY;
+                case BOTTOM -> (innerHeight - contentHeight) - minY;
+            };
+
+            for (LayoutElement child : element.children()) {
+                if (child.declaration() != null && child.declaration().floating() != null) continue;
+                child.setX(element.getX() + child.getX() + offsetX);
+                child.setY(element.getY() + child.getY() + offsetY);
+                applyAlignment(child);
             }
-            usedSpace += isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight();
         }
         
-        int nonFloatingChildrenCount = 0;
-        for (LayoutElement child : element.children()) {
-            if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildrenCount++;
-        }
-        if (nonFloatingChildrenCount > 0) {
-            usedSpace += layout.childGap() * (nonFloatingChildrenCount - 1);
-        }
-
-        float extraSpace = (isHorizontal ? innerWidth : innerHeight) - usedSpace;
-        float spacePerGrow = growCount > 0 ? Math.max(0, extraSpace / growCount) : 0;
-
+        // Handle floating children separately
         for (LayoutElement child : element.children()) {
             if (child.declaration() != null && child.declaration().floating() != null) {
-                // For floating elements, we still need to set their dimensions if they use GROW
-                // GROW for floating elements usually means filling the target?
-                // Actually Clay handles GROW for floating elements differently.
-                // For now let's just use preferred size for floating elements here
-                child.setWidth(child.getPreferredWidth());
-                child.setHeight(child.getPreferredHeight());
-                distributeSpace(child, child.getWidth(), child.getHeight(), 
-                    (child.declaration() != null && child.declaration().layout() != null) ? child.declaration().layout() : UIContext.DEFAULT_LAYOUT);
-                continue;
-            }
-            Sizing childSizing = getChildSizing(child);
-            
-            float w = child.getPreferredWidth();
-            float h = child.getPreferredHeight();
-            ElementDeclaration childDecl = child.declaration();
-            float aspectRatio = (childDecl != null && childDecl.aspectRatio() != null) ? childDecl.aspectRatio().aspectRatio() : 0;
-
-            if (isHorizontal) {
-                if (childSizing.width().type() == UI.SizingType.GROW) {
-                    w += spacePerGrow;
-                }
-                
-                if (childSizing.height().type() == UI.SizingType.GROW) {
-                    h = innerHeight;
-                }
-
-                // Apply aspect ratio if constrained
-                if (aspectRatio > 0) {
-                    if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() != UI.SizingType.GROW) {
-                        h = w / aspectRatio;
-                    } else if (childSizing.height().type() == UI.SizingType.GROW && childSizing.width().type() != UI.SizingType.GROW) {
-                        w = h * aspectRatio;
-                    } else if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() == UI.SizingType.GROW) {
-                        // Both GROW, adjust to fit within innerWidth/innerHeight while maintaining ratio
-                        if (w / aspectRatio > innerHeight) {
-                            h = innerHeight;
-                            w = h * aspectRatio;
-                        } else {
-                            h = w / aspectRatio;
-                        }
-                    }
-                }
-
-                child.setWidth(w);
-                child.setHeight(h);
-            } else {
-                if (childSizing.height().type() == UI.SizingType.GROW) {
-                    h += spacePerGrow;
-                }
-                
-                if (childSizing.width().type() == UI.SizingType.GROW) {
-                    w = innerWidth;
-                }
-
-                // Apply aspect ratio if constrained
-                if (aspectRatio > 0) {
-                    if (childSizing.height().type() == UI.SizingType.GROW && childSizing.width().type() != UI.SizingType.GROW) {
-                        w = h * aspectRatio;
-                    } else if (childSizing.width().type() == UI.SizingType.GROW && childSizing.height().type() != UI.SizingType.GROW) {
-                        h = w / aspectRatio;
-                    } else if (childSizing.height().type() == UI.SizingType.GROW && childSizing.width().type() == UI.SizingType.GROW) {
-                        // Both GROW
-                        if (h * aspectRatio > innerWidth) {
-                            w = innerWidth;
-                            h = w / aspectRatio;
-                        } else {
-                            w = h * aspectRatio;
-                        }
-                    }
-                }
-
-                child.setHeight(h);
-                child.setWidth(w);
+                applyAlignment(child);
             }
         }
     }

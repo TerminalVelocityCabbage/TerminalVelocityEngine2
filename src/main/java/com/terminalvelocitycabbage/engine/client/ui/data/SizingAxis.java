@@ -21,11 +21,11 @@ public record SizingAxis(float min, float max, float percent, UI.SizingType type
     }
 
     public static SizingAxis percent(float value) {
-        return new SizingAxis(0, 0, value, UI.SizingType.PERCENT);
+        return new SizingAxis(0, Float.MAX_VALUE, value, UI.SizingType.PERCENT);
     }
 
     public static SizingAxis percent(int value) {
-        return new SizingAxis(0, 0, value / 100f, UI.SizingType.PERCENT);
+        return new SizingAxis(0, Float.MAX_VALUE, value / 100f, UI.SizingType.PERCENT);
     }
 
     public static SizingAxis fixed(float value) {
