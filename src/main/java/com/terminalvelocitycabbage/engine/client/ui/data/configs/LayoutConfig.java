@@ -5,7 +5,7 @@ import com.terminalvelocitycabbage.engine.client.ui.data.ChildAlignment;
 import com.terminalvelocitycabbage.engine.client.ui.data.Padding;
 import com.terminalvelocitycabbage.engine.client.ui.data.Sizing;
 
-public record LayoutConfig(Sizing sizing, Padding padding, int childGap, ChildAlignment childAlignment, UI.LayoutDirection layoutDirection) {
+public record LayoutConfig(Sizing sizing, Padding padding, int childGap, ChildAlignment childAlignment, UI.LayoutDirection layoutDirection, boolean wrap) {
 
     public static Builder builder() {
         return new Builder();
@@ -17,6 +17,7 @@ public record LayoutConfig(Sizing sizing, Padding padding, int childGap, ChildAl
         private int childGap;
         private ChildAlignment childAlignment;
         private UI.LayoutDirection layoutDirection;
+        private boolean wrap;
 
         public Builder sizing(Sizing sizing) {
             this.sizing = sizing;
@@ -43,8 +44,13 @@ public record LayoutConfig(Sizing sizing, Padding padding, int childGap, ChildAl
             return this;
         }
 
+        public Builder wrap(boolean wrap) {
+            this.wrap = wrap;
+            return this;
+        }
+
         public LayoutConfig build() {
-            return new LayoutConfig(sizing, padding, childGap, childAlignment, layoutDirection);
+            return new LayoutConfig(sizing, padding, childGap, childAlignment, layoutDirection, wrap);
         }
     }
 }

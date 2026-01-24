@@ -6,6 +6,7 @@ import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import org.joml.Vector2f;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UILayoutEngine {
@@ -216,13 +217,21 @@ public class UILayoutEngine {
         ElementDeclaration decl = element.declaration();
         LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
         Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
-        
+
         float innerWidth = element.getWidth() - padding.left() - padding.right();
         float innerHeight = element.getHeight() - padding.top() - padding.bottom();
 
         // 1. Distribute GROW space
         distributeSpace(element, innerWidth, innerHeight, layout);
 
+        if (layout.wrap()) {
+            calculateWrappedPositions(element, innerWidth, innerHeight, layout, padding);
+        } else {
+            calculateNonWrappedPositions(element, innerWidth, innerHeight, layout, padding);
+        }
+    }
+
+    private void calculateNonWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding) {
         // 2. Calculate total content size
         float totalContentWidth = 0;
         float totalContentHeight = 0;
@@ -316,6 +325,127 @@ public class UILayoutEngine {
             }
 
             calculatePositions(child);
+        }
+    }
+
+    private void calculateWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding) {
+        // Implement wrapping logic
+        boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
+        ChildAlignment alignment = layout.childAlignment() != null ? layout.childAlignment() : UIContext.DEFAULT_ALIGNMENT;
+
+        List<LayoutElement> children = element.children().stream()
+                .filter(child -> child.declaration() == null || child.declaration().floating() == null)
+                .toList();
+
+        if (children.isEmpty()) return;
+
+        // Group children into lines
+        List<List<LayoutElement>> lines = new ArrayList<>();
+        List<LayoutElement> currentLine = new ArrayList<>();
+        float currentLineSize = 0;
+        float maxLineCrossSize = 0;
+        List<Float> lineCrossSizes = new ArrayList<>();
+
+        for (LayoutElement child : children) {
+            float childMainSize = isHorizontal ? child.getWidth() : child.getHeight();
+            float gap = currentLine.isEmpty() ? 0 : layout.childGap();
+
+            if (currentLineSize + gap + childMainSize > (isHorizontal ? innerWidth : innerHeight) && !currentLine.isEmpty()) {
+                lines.add(currentLine);
+                lineCrossSizes.add(maxLineCrossSize);
+                currentLine = new ArrayList<>();
+                currentLineSize = 0;
+                maxLineCrossSize = 0;
+                gap = 0;
+            }
+
+            currentLine.add(child);
+            currentLineSize += gap + childMainSize;
+            maxLineCrossSize = Math.max(maxLineCrossSize, isHorizontal ? child.getHeight() : child.getWidth());
+        }
+        lines.add(currentLine);
+        lineCrossSizes.add(maxLineCrossSize);
+
+        float totalCrossSize = 0;
+        for (float size : lineCrossSizes) {
+            totalCrossSize += size;
+        }
+        totalCrossSize += layout.childGap() * (lines.size() - 1);
+
+        // Position lines
+        float startX = element.getX() + padding.left();
+        float startY = element.getY() + padding.top();
+
+        if (isHorizontal) {
+            startY += switch (alignment.y()) {
+                case TOP -> 0;
+                case CENTER -> (innerHeight - totalCrossSize) / 2;
+                case BOTTOM -> innerHeight - totalCrossSize;
+            };
+        } else {
+            startX += switch (alignment.x()) {
+                case LEFT -> 0;
+                case CENTER -> (innerWidth - totalCrossSize) / 2;
+                case RIGHT -> innerWidth - totalCrossSize;
+            };
+        }
+
+        float currentCrossOffset = isHorizontal ? startY : startX;
+
+        for (int i = 0; i < lines.size(); i++) {
+            List<LayoutElement> line = lines.get(i);
+            float lineCrossSize = lineCrossSizes.get(i);
+            float lineMainSize = 0;
+            for (int j = 0; j < line.size(); j++) {
+                lineMainSize += (isHorizontal ? line.get(j).getWidth() : line.get(j).getHeight());
+                if (j > 0) lineMainSize += layout.childGap();
+            }
+
+            float currentMainOffset;
+            if (isHorizontal) {
+                currentMainOffset = startX + switch (alignment.x()) {
+                    case LEFT -> 0;
+                    case CENTER -> (innerWidth - lineMainSize) / 2;
+                    case RIGHT -> innerWidth - lineMainSize;
+                };
+            } else {
+                currentMainOffset = startY + switch (alignment.y()) {
+                    case TOP -> 0;
+                    case CENTER -> (innerHeight - lineMainSize) / 2;
+                    case BOTTOM -> innerHeight - lineMainSize;
+                };
+            }
+
+            for (LayoutElement child : line) {
+                if (isHorizontal) {
+                    float childY = currentCrossOffset + switch (alignment.y()) {
+                        case TOP -> 0;
+                        case CENTER -> (lineCrossSize - child.getHeight()) / 2;
+                        case BOTTOM -> lineCrossSize - child.getHeight();
+                    };
+                    child.setX(currentMainOffset);
+                    child.setY(childY);
+                    currentMainOffset += child.getWidth() + layout.childGap();
+                } else {
+                    float childX = currentCrossOffset + switch (alignment.x()) {
+                        case LEFT -> 0;
+                        case CENTER -> (lineCrossSize - child.getWidth()) / 2;
+                        case RIGHT -> lineCrossSize - child.getWidth();
+                    };
+                    child.setX(childX);
+                    child.setY(currentMainOffset);
+                    currentMainOffset += child.getHeight() + layout.childGap();
+                }
+                calculatePositions(child);
+            }
+            currentCrossOffset += lineCrossSize + layout.childGap();
+        }
+
+        // Handle floating elements separately
+        for (LayoutElement child : element.children()) {
+            if (child.declaration() != null && child.declaration().floating() != null) {
+                calculatePositions(child);
+            }
         }
     }
 
