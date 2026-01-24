@@ -10,26 +10,4 @@ public record Sizing(SizingAxis width, SizingAxis height) {
         return new Sizing(SizingAxis.fit(), SizingAxis.fit());
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private SizingAxis width;
-        private SizingAxis height;
-
-        public Builder width(SizingAxis width) {
-            this.width = width;
-            return this;
-        }
-
-        public Builder height(SizingAxis height) {
-            this.height = height;
-            return this;
-        }
-
-        public Sizing build() {
-            return new Sizing(width, height);
-        }
-    }
 }

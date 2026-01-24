@@ -1,8 +1,7 @@
-package com.terminalvelocitycabbage.engine.client.ui.data;
+package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 
-import com.terminalvelocitycabbage.engine.client.ui.FloatingAttachToElement;
-import com.terminalvelocitycabbage.engine.client.ui.FloatingClipToElement;
-import com.terminalvelocitycabbage.engine.client.ui.PointerCaptureMode;
+import com.terminalvelocitycabbage.engine.client.ui.UI;
+import com.terminalvelocitycabbage.engine.client.ui.data.FloatingAttachPoints;
 import org.joml.Vector2f;
 
 public record FloatingElementConfig(
@@ -11,9 +10,9 @@ public record FloatingElementConfig(
         int zIndex,
         int parentId,
         FloatingAttachPoints attachPoints,
-        PointerCaptureMode pointerCaptureMode,
-        FloatingAttachToElement attachTo,
-        FloatingClipToElement clipTo
+        UI.PointerCaptureMode pointerCaptureMode,
+        UI.FloatingAttachToElement attachTo,
+        UI.FloatingClipToElement clipTo
 ) {
 
     public static Builder builder() {
@@ -26,9 +25,9 @@ public record FloatingElementConfig(
         private int zIndex;
         private int parentId;
         private FloatingAttachPoints attachPoints;
-        private PointerCaptureMode pointerCaptureMode;
-        private FloatingAttachToElement attachTo;
-        private FloatingClipToElement clipTo;
+        private UI.PointerCaptureMode pointerCaptureMode;
+        private UI.FloatingAttachToElement attachTo;
+        private UI.FloatingClipToElement clipTo;
 
         public Builder offset(Vector2f offset) {
             this.offset = offset;
@@ -55,17 +54,17 @@ public record FloatingElementConfig(
             return this;
         }
 
-        public Builder pointerCaptureMode(PointerCaptureMode pointerCaptureMode) {
+        public Builder pointerCaptureMode(UI.PointerCaptureMode pointerCaptureMode) {
             this.pointerCaptureMode = pointerCaptureMode;
             return this;
         }
 
-        public Builder attachTo(FloatingAttachToElement attachTo) {
+        public Builder attachTo(UI.FloatingAttachToElement attachTo) {
             this.attachTo = attachTo;
             return this;
         }
 
-        public Builder clipTo(FloatingClipToElement clipTo) {
+        public Builder clipTo(UI.FloatingClipToElement clipTo) {
             this.clipTo = clipTo;
             return this;
         }

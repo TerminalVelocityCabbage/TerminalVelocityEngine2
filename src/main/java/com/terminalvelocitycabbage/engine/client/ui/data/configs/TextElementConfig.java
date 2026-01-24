@@ -1,11 +1,10 @@
-package com.terminalvelocitycabbage.engine.client.ui.data;
+package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 
-import com.terminalvelocitycabbage.engine.client.ui.TextAlignment;
-import com.terminalvelocitycabbage.engine.client.ui.TextWrapMode;
+import com.terminalvelocitycabbage.engine.client.ui.UI;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Color;
 
-public record TextElementConfig(Color textColor, Identifier fontIdentifier, int fontSize, int letterSpacing, int lineHeight, TextWrapMode wrapMode, TextAlignment textAlignment) {
+public record TextElementConfig(Color textColor, Identifier fontIdentifier, int fontSize, int letterSpacing, int lineHeight, UI.TextWrapMode wrapMode, UI.TextAlignment textAlignment) {
 
     public static Builder builder() {
         return new Builder();
@@ -17,8 +16,8 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
         private int fontSize;
         private int letterSpacing;
         private int lineHeight;
-        private TextWrapMode wrapMode;
-        private TextAlignment textAlignment;
+        private UI.TextWrapMode wrapMode;
+        private UI.TextAlignment textAlignment;
 
         public Builder textColor(Color textColor) {
             this.textColor = textColor;
@@ -45,12 +44,12 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
             return this;
         }
 
-        public Builder wrapMode(TextWrapMode wrapMode) {
+        public Builder wrapMode(UI.TextWrapMode wrapMode) {
             this.wrapMode = wrapMode;
             return this;
         }
 
-        public Builder textAlignment(TextAlignment textAlignment) {
+        public Builder textAlignment(UI.TextAlignment textAlignment) {
             this.textAlignment = textAlignment;
             return this;
         }

@@ -1,6 +1,8 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import org.joml.Vector2f;
 
 import java.util.List;
@@ -66,8 +68,8 @@ public class UILayoutEngine {
                 return available * axis.percent();
             case FIT:
                 float size = 0;
-                boolean isMainAxis = (isWidth && layout.layoutDirection() == LayoutDirection.LEFT_TO_RIGHT) ||
-                                     (!isWidth && layout.layoutDirection() == LayoutDirection.TOP_TO_BOTTOM);
+                boolean isMainAxis = (isWidth && layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) ||
+                                     (!isWidth && layout.layoutDirection() == UI.LayoutDirection.TOP_TO_BOTTOM);
                 if (isMainAxis) {
                     for (LayoutElement child : children) {
                         size += isWidth ? child.getPreferredWidth() : child.getPreferredHeight();
@@ -106,7 +108,7 @@ public class UILayoutEngine {
         // 2. Calculate total content size
         float totalContentWidth = 0;
         float totalContentHeight = 0;
-        if (layout.layoutDirection() == LayoutDirection.LEFT_TO_RIGHT) {
+        if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
             for (LayoutElement child : element.children()) {
                 totalContentWidth += child.getWidth();
             }
@@ -133,7 +135,7 @@ public class UILayoutEngine {
         float startY = element.getY() + padding.top();
         ChildAlignment alignment = layout.childAlignment() != null ? layout.childAlignment() : UIContext.DEFAULT_ALIGNMENT;
 
-        if (layout.layoutDirection() == LayoutDirection.LEFT_TO_RIGHT) {
+        if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
             startX += switch (alignment.x()) {
                 case LEFT -> 0;
                 case CENTER -> (innerWidth - totalContentWidth) / 2;
@@ -155,7 +157,7 @@ public class UILayoutEngine {
             float childX = currentX;
             float childY = currentY;
 
-            if (layout.layoutDirection() == LayoutDirection.LEFT_TO_RIGHT) {
+            if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
                 childY += switch (alignment.y()) {
                     case TOP -> 0;
                     case CENTER -> (innerHeight - child.getHeight()) / 2;
@@ -172,7 +174,7 @@ public class UILayoutEngine {
             child.setX(childX);
             child.setY(childY);
 
-            if (layout.layoutDirection() == LayoutDirection.LEFT_TO_RIGHT) {
+            if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
                 currentX += child.getWidth() + layout.childGap();
             } else {
                 currentY += child.getHeight() + layout.childGap();
@@ -185,13 +187,13 @@ public class UILayoutEngine {
     private void distributeSpace(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout) {
         int growCount = 0;
         float usedSpace = 0;
-        boolean isHorizontal = layout.layoutDirection() == LayoutDirection.LEFT_TO_RIGHT;
+        boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
 
         for (LayoutElement child : element.children()) {
             Sizing childSizing = getChildSizing(child);
             SizingAxis mainAxisSizing = isHorizontal ? childSizing.width() : childSizing.height();
             
-            if (mainAxisSizing.type() == SizingType.GROW) {
+            if (mainAxisSizing.type() == UI.SizingType.GROW) {
                 growCount++;
             }
             usedSpace += isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight();
@@ -209,25 +211,25 @@ public class UILayoutEngine {
             
             if (isHorizontal) {
                 float w = child.getPreferredWidth();
-                if (childSizing.width().type() == SizingType.GROW) {
+                if (childSizing.width().type() == UI.SizingType.GROW) {
                     w += spacePerGrow;
                 }
                 child.setWidth(w);
                 
                 float h = child.getPreferredHeight();
-                if (childSizing.height().type() == SizingType.GROW) {
+                if (childSizing.height().type() == UI.SizingType.GROW) {
                     h = innerHeight;
                 }
                 child.setHeight(h);
             } else {
                 float h = child.getPreferredHeight();
-                if (childSizing.height().type() == SizingType.GROW) {
+                if (childSizing.height().type() == UI.SizingType.GROW) {
                     h += spacePerGrow;
                 }
                 child.setHeight(h);
                 
                 float w = child.getPreferredWidth();
-                if (childSizing.width().type() == SizingType.GROW) {
+                if (childSizing.width().type() == UI.SizingType.GROW) {
                     w = innerWidth;
                 }
                 child.setWidth(w);

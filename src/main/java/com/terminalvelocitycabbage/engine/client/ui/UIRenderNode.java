@@ -4,6 +4,8 @@ import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.ImageElementConfig;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;

@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ui.data.ElementDeclaration;
-import com.terminalvelocitycabbage.engine.client.ui.data.TextElementConfig;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;

@@ -1,5 +1,6 @@
-package com.terminalvelocitycabbage.engine.client.ui.data;
+package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 
+import com.terminalvelocitycabbage.engine.client.ui.data.BorderWidth;
 import com.terminalvelocitycabbage.engine.util.Color;
 
 public record BorderElementConfig(Color color, BorderWidth width) {

@@ -1,5 +1,6 @@
-package com.terminalvelocitycabbage.engine.client.ui.data;
+package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 
+import com.terminalvelocitycabbage.engine.client.ui.data.CornerRadius;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Color;
 import org.joml.Vector2f;

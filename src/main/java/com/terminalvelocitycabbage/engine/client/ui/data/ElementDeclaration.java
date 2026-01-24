@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.ui.data;
 
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
 import com.terminalvelocitycabbage.engine.util.Color;
 
 public record ElementDeclaration(
@@ -14,6 +15,8 @@ public record ElementDeclaration(
         BorderElementConfig border,
         Object userData
 ) {
+
+    //TODO: add a way to create an element declaration from a string with tailwind like classes
 
     public static Builder builder() {
         return new Builder();

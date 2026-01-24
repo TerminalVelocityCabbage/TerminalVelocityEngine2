@@ -1,11 +1,11 @@
 package com.terminalvelocitycabbage.engine.client.ui.data;
 
-import com.terminalvelocitycabbage.engine.client.ui.SizingType;
+import com.terminalvelocitycabbage.engine.client.ui.UI;
 
-public record SizingAxis(SizingMinMax minMax, float percent, SizingType type) {
+public record SizingAxis(SizingMinMax minMax, float percent, UI.SizingType type) {
 
     public static SizingAxis fit(float min, float max) {
-        return new SizingAxis(new SizingMinMax(min, max), 0, SizingType.FIT);
+        return new SizingAxis(new SizingMinMax(min, max), 0, UI.SizingType.FIT);
     }
 
     public static SizingAxis fit() {
@@ -13,7 +13,7 @@ public record SizingAxis(SizingMinMax minMax, float percent, SizingType type) {
     }
 
     public static SizingAxis grow(float min, float max) {
-        return new SizingAxis(new SizingMinMax(min, max), 0, SizingType.GROW);
+        return new SizingAxis(new SizingMinMax(min, max), 0, UI.SizingType.GROW);
     }
 
     public static SizingAxis grow() {
@@ -21,11 +21,11 @@ public record SizingAxis(SizingMinMax minMax, float percent, SizingType type) {
     }
 
     public static SizingAxis percent(float value) {
-        return new SizingAxis(null, value, SizingType.PERCENT);
+        return new SizingAxis(null, value, UI.SizingType.PERCENT);
     }
 
     public static SizingAxis fixed(float value) {
-        return new SizingAxis(new SizingMinMax(value, value), 0, SizingType.FIXED);
+        return new SizingAxis(new SizingMinMax(value, value), 0, UI.SizingType.FIXED);
     }
 
     public static Builder builder() {
@@ -35,7 +35,7 @@ public record SizingAxis(SizingMinMax minMax, float percent, SizingType type) {
     public static class Builder {
         private SizingMinMax minMax;
         private float percent;
-        private SizingType type;
+        private UI.SizingType type;
 
         public Builder minMax(SizingMinMax minMax) {
             this.minMax = minMax;
@@ -47,7 +47,7 @@ public record SizingAxis(SizingMinMax minMax, float percent, SizingType type) {
             return this;
         }
 
-        public Builder type(SizingType type) {
+        public Builder type(UI.SizingType type) {
             this.type = type;
             return this;
         }

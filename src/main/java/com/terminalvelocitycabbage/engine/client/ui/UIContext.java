@@ -1,16 +1,19 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
 public class UIContext {
 
-    public static final Padding DEFAULT_PADDING = new Padding(0, 0, 0, 0);
+    public static final Padding DEFAULT_PADDING = new Padding();
     public static final Sizing DEFAULT_SIZING = new Sizing(SizingAxis.fit(), SizingAxis.fit());
-    public static final ChildAlignment DEFAULT_ALIGNMENT = new ChildAlignment(LayoutAlignmentX.LEFT, LayoutAlignmentY.TOP);
-    public static final LayoutConfig DEFAULT_LAYOUT = new LayoutConfig(DEFAULT_SIZING, DEFAULT_PADDING, 0, DEFAULT_ALIGNMENT, LayoutDirection.LEFT_TO_RIGHT);
+    public static final ChildAlignment DEFAULT_ALIGNMENT = new ChildAlignment(UI.HorizontalAlignment.LEFT, UI.VerticalAlignment.TOP);
+    public static final LayoutConfig DEFAULT_LAYOUT = new LayoutConfig(DEFAULT_SIZING, DEFAULT_PADDING, 0, DEFAULT_ALIGNMENT, UI.LayoutDirection.LEFT_TO_RIGHT);
 
     private final Map<Integer, UIElementData> lastFrameElementData = new HashMap<>();
     private final Stack<Integer> idStack = new Stack<>();

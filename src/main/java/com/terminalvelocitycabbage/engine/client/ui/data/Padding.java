@@ -1,43 +1,92 @@
 package com.terminalvelocitycabbage.engine.client.ui.data;
 
-public record Padding(int left, int right, int top, int bottom) {
+import java.util.Objects;
 
-    public static Padding all(int value) {
-        return new Padding(value, value, value, value);
+public final class Padding {
+
+    private int left;
+    private int right;
+    private int top;
+    private int bottom;
+
+    public Padding() {
+        this(0);
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public Padding(int value) {
+        this.left = value;
+        this.right = value;
+        this.top = value;
+        this.bottom = value;
     }
 
-    public static class Builder {
-        private int left;
-        private int right;
-        private int top;
-        private int bottom;
-
-        public Builder left(int left) {
-            this.left = left;
-            return this;
-        }
-
-        public Builder right(int right) {
-            this.right = right;
-            return this;
-        }
-
-        public Builder top(int top) {
-            this.top = top;
-            return this;
-        }
-
-        public Builder bottom(int bottom) {
-            this.bottom = bottom;
-            return this;
-        }
-
-        public Padding build() {
-            return new Padding(left, right, top, bottom);
-        }
+    public Padding all(int value) {
+        this.left = value;
+        this.right = value;
+        this.top = value;
+        this.bottom = value;
+        return this;
     }
+
+    public Padding left(int left) {
+        this.left = left;
+        return this;
+    }
+
+    public Padding right(int right) {
+        this.right = right;
+        return this;
+    }
+
+    public Padding top(int top) {
+        this.top = top;
+        return this;
+    }
+
+    public Padding bottom(int bottom) {
+        this.bottom = bottom;
+        return this;
+    }
+
+    public int left() {
+        return left;
+    }
+
+    public int right() {
+        return right;
+    }
+
+    public int top() {
+        return top;
+    }
+
+    public int bottom() {
+        return bottom;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Padding) obj;
+        return this.left == that.left &&
+                this.right == that.right &&
+                this.top == that.top &&
+                this.bottom == that.bottom;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(left, right, top, bottom);
+    }
+
+    @Override
+    public String toString() {
+        return "Padding[" +
+                "left=" + left + ", " +
+                "right=" + right + ", " +
+                "top=" + top + ", " +
+                "bottom=" + bottom + ']';
+    }
+
 }

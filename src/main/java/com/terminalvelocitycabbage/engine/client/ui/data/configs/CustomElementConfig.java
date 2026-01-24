@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.engine.client.ui.data;
+package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 
 public record CustomElementConfig(Object customData) {
 
