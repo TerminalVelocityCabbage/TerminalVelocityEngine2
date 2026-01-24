@@ -56,6 +56,117 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         nvgEndFrame(nvg);
     }
 
+    /**
+     * Hook for users to define the UI structure.
+     */
+    protected abstract void declareUI();
+
+    //TODO implement tailwind style declarations
+    protected UIElement container(String declaration, Runnable children) {
+        //TODO replace null with string constructor of ElementDeclaration
+        return container(getUIContext().generateAutoId(), (ElementDeclaration) null, children);
+    }
+
+    //TODO implement tailwind style declarations
+    protected UIElement container(int id, String declaration, Runnable children) {
+        //TODO replace null with string constructor of ElementDeclaration
+        return container(id, (ElementDeclaration) null, children);
+    }
+
+    /**
+     * Starts an element declaration with the given configuration and child elements.
+     * @param declaration The configuration for this element.
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
+    protected UIElement container(ElementDeclaration declaration, Runnable children) {
+        return container(getUIContext().generateAutoId(), declaration, children);
+    }
+
+    /**
+     * Starts an element declaration with a specific ID.
+     * @param id The ID for this element, typically generated via {@link #id(String)}.
+     * @param declaration The configuration for this element.
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
+    protected UIElement container(int id, ElementDeclaration declaration, Runnable children) {
+        getUIContext().openElement(id, declaration);
+        if (children != null) {
+            children.run();
+        }
+        getUIContext().closeElement();
+        return new UIElement(id, getUIContext());
+    }
+
+    //TODO implement tailwind style declarations
+    protected UIElement text(String text, String config) {
+        //TODO replace null config passed to string constructor of TextElementConfig
+        return text(text, (TextElementConfig) null);
+    }
+
+    /**
+     * Declares a text element.
+     * @param text The string to display.
+     * @param config The configuration for the text.
+     * @return A handle to the declared element.
+     */
+    protected UIElement text(String text, TextElementConfig config) {
+        int id = getUIContext().generateAutoId();
+        getUIContext().addTextElement(id, text, config);
+        return new UIElement(id, getUIContext());
+    }
+
+    //TODO implement tailwind style declarations
+    protected UIElement image(String config) {
+        //TODO replace null config passed to string constructor of ImageElementConfig
+        return image((ImageElementConfig) null);
+    }
+
+    /**
+     * Declares an image element.
+     * @param config The configuration for the image.
+     * @return A handle to the declared element.
+     */
+    protected UIElement image(ImageElementConfig config) {
+        return container(ElementDeclaration.builder().image(config).build(), null);
+    }
+
+    /**
+     * Generates a stable integer ID from a string label.
+     * @param label The label to hash.
+     * @return A hashed ID.
+     */
+    protected int id(String label) {
+        return getUIContext().hashString(label);
+    }
+
+    /**
+     * Checks if the element with the given ID is currently hovered by the pointer.
+     * @param id The ID of the element to check.
+     * @return true if hovered, false otherwise.
+     */
+    protected boolean isHovered(int id) {
+        UIElementData data = getUIContext().getElementData(id);
+        if (!data.found()) return false;
+
+        BoundingBox bb = data.boundingBox();
+        double mx = ClientBase.getInstance().getInputCallbackListener().getMouseX();
+        double my = ClientBase.getInstance().getInputCallbackListener().getMouseY();
+
+        return mx >= bb.position().x && mx <= bb.position().x + bb.size().x && my >= bb.position().y && my <= bb.position().y + bb.size().y;
+    }
+
+    /**
+     * Checks if the element with the given ID was clicked this frame.
+     * @param id The ID of the element to check.
+     * @return true if clicked, false otherwise.
+     */
+    protected boolean isClicked(int id) {
+        // TODO implementation - needs integration with InputHandler button states
+        return isHovered(id) && false; // placeholder
+    }
+
     private void collectElementData(LayoutElement element, Map<Integer, UIElementData> dataMap) {
         if (element == null) return;
         dataMap.put(element.id(), new UIElementData(new BoundingBox(new Vector2f(element.getPosition()), new Vector2f(element.getSize())), true));
@@ -67,7 +178,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     private void renderElement(long nvg, LayoutElement element) {
 
         Log.debug("Rendering element " + element.id());
-        
+
         if (element.isText()) {
             renderText(nvg, element);
         } else {
@@ -82,7 +193,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
         ElementDeclaration decl = element.declaration();
         if (decl == null) return;
-        
+
         if (decl.backgroundColor() != null) {
             try (MemoryStack stack = stackPush()) {
                 nvgBeginPath(nvg);
@@ -97,14 +208,14 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 nvgFill(nvg);
             }
         }
-        
+
         // TODO: render borders, images, etc.
     }
 
     private void renderText(long nvg, LayoutElement element) {
         TextElementConfig config = element.textConfig();
         if (config == null) return;
-        
+
         try (MemoryStack stack = stackPush()) {
             nvgFontSize(nvg, config.fontSize());
             if (config.fontIdentifier() != null) {
@@ -138,97 +249,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     protected UIContext getUIContext() {
         return ClientBase.getInstance().getUIContext();
-    }
-
-    /**
-     * Hook for users to define the UI structure.
-     */
-    protected abstract void declareUI();
-
-    // --- UI Declaration API ---
-
-    /**
-     * Starts an element declaration with the given configuration and child elements.
-     * @param declaration The configuration for this element.
-     * @param children A Runnable that declares the child elements.
-     * @return A handle to the declared element.
-     */
-    protected UIElement container(ElementDeclaration declaration, Runnable children) {
-        return container(getUIContext().generateAutoId(), declaration, children);
-    }
-
-    /**
-     * Starts an element declaration with a specific ID.
-     * @param id The ID for this element, typically generated via {@link #id(String)}.
-     * @param declaration The configuration for this element.
-     * @param children A Runnable that declares the child elements.
-     * @return A handle to the declared element.
-     */
-    protected UIElement container(int id, ElementDeclaration declaration, Runnable children) {
-        getUIContext().openElement(id, declaration);
-        if (children != null) {
-            children.run();
-        }
-        getUIContext().closeElement();
-        return new UIElement(id, getUIContext());
-    }
-
-    /**
-     * Declares a text element.
-     * @param text The string to display.
-     * @param config The configuration for the text.
-     * @return A handle to the declared element.
-     */
-    protected UIElement text(String text, TextElementConfig config) {
-        int id = getUIContext().generateAutoId();
-        getUIContext().addTextElement(id, text, config);
-        return new UIElement(id, getUIContext());
-    }
-
-    /**
-     * Declares an image element.
-     * @param config The configuration for the image.
-     * @return A handle to the declared element.
-     */
-    protected UIElement image(ImageElementConfig config) {
-        return container(ElementDeclaration.builder().image(config).build(), null);
-    }
-
-    /**
-     * Generates a stable integer ID from a string label.
-     * @param label The label to hash.
-     * @return A hashed ID.
-     */
-    protected int id(String label) {
-        return getUIContext().hashString(label);
-    }
-
-    // --- Query API ---
-
-    /**
-     * Checks if the element with the given ID is currently hovered by the pointer.
-     * @param id The ID of the element to check.
-     * @return true if hovered, false otherwise.
-     */
-    protected boolean isHovered(int id) {
-        UIElementData data = getUIContext().getElementData(id);
-        if (!data.found()) return false;
-
-        BoundingBox bb = data.boundingBox();
-        double mx = ClientBase.getInstance().getInputCallbackListener().getMouseX();
-        double my = ClientBase.getInstance().getInputCallbackListener().getMouseY();
-
-        return mx >= bb.position().x && mx <= bb.position().x + bb.size().x && my >= bb.position().y && my <= bb.position().y + bb.size().y;
-    }
-
-    /**
-     * Checks if the element with the given ID was clicked this frame.
-     * @param id The ID of the element to check.
-     * @return true if clicked, false otherwise.
-     */
-    protected boolean isClicked(int id) {
-        // TODO implementation - needs integration with InputHandler button states
-        return isHovered(id) && false; // placeholder
     }
 
 }
