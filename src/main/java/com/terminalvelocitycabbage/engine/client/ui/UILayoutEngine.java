@@ -61,15 +61,13 @@ public class UILayoutEngine {
     }
 
     private float calculateAxisPreferredSize(SizingAxis axis, float available, List<LayoutElement> children, boolean isWidth, LayoutConfig layout) {
-        switch (axis.type()) {
-            case FIXED:
-                return axis.minMax().min();
-            case PERCENT:
-                return available * axis.percent();
-            case FIT:
+        return switch (axis.type()) {
+            case FIXED -> axis.min();
+            case PERCENT -> available * axis.percent();
+            case FIT -> {
                 float size = 0;
                 boolean isMainAxis = (isWidth && layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) ||
-                                     (!isWidth && layout.layoutDirection() == UI.LayoutDirection.TOP_TO_BOTTOM);
+                        (!isWidth && layout.layoutDirection() == UI.LayoutDirection.TOP_TO_BOTTOM);
                 if (isMainAxis) {
                     for (LayoutElement child : children) {
                         size += isWidth ? child.getPreferredWidth() : child.getPreferredHeight();
@@ -84,12 +82,10 @@ public class UILayoutEngine {
                 }
                 Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
                 size += isWidth ? (padding.left() + padding.right()) : (padding.top() + padding.bottom());
-                return Math.max(axis.minMax().min(), Math.min(axis.minMax().max(), size));
-            case GROW:
-                return axis.minMax().min();
-            default:
-                return 0;
-        }
+                yield Math.max(axis.min(), Math.min(axis.max(), size));
+            }
+            case GROW -> axis.min();
+        };
     }
 
     private void calculatePositions(LayoutElement element) {

@@ -10,10 +10,8 @@ public record ElementDeclaration(
         AspectRatioElementConfig aspectRatio,
         ImageElementConfig image,
         FloatingElementConfig floating,
-        CustomElementConfig custom,
         ClipElementConfig clip,
-        BorderElementConfig border,
-        Object userData
+        BorderElementConfig border
 ) {
 
     //TODO: add a way to create an element declaration from a string with tailwind like classes
@@ -29,10 +27,8 @@ public record ElementDeclaration(
         private AspectRatioElementConfig aspectRatio;
         private ImageElementConfig image;
         private FloatingElementConfig floating;
-        private CustomElementConfig custom;
         private ClipElementConfig clip;
         private BorderElementConfig border;
-        private Object userData;
 
         public Builder layout(LayoutConfig layout) {
             this.layout = layout;
@@ -64,11 +60,6 @@ public record ElementDeclaration(
             return this;
         }
 
-        public Builder custom(CustomElementConfig custom) {
-            this.custom = custom;
-            return this;
-        }
-
         public Builder clip(ClipElementConfig clip) {
             this.clip = clip;
             return this;
@@ -79,13 +70,8 @@ public record ElementDeclaration(
             return this;
         }
 
-        public Builder userData(Object userData) {
-            this.userData = userData;
-            return this;
-        }
-
         public ElementDeclaration build() {
-            return new ElementDeclaration(layout, backgroundColor, cornerRadius, aspectRatio, image, floating, custom, clip, border, userData);
+            return new ElementDeclaration(layout, backgroundColor, cornerRadius, aspectRatio, image, floating, clip, border);
         }
     }
 }
