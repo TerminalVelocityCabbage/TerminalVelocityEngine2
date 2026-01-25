@@ -12,7 +12,7 @@ import java.util.List;
 public class UILayoutEngine {
 
     public interface TextMeasurer {
-        Vector2f measureText(String text, TextElementConfig config);
+        Vector2f measureText(String text, TextElementConfig config, float maxWidth);
     }
 
     private final TextMeasurer textMeasurer;
@@ -145,7 +145,7 @@ public class UILayoutEngine {
 
     private void calculatePreferredSizes(LayoutElement element, float parentWidth, float parentHeight) {
         if (element.isText()) {
-            Vector2f size = textMeasurer.measureText(element.text(), element.textConfig());
+            Vector2f size = textMeasurer.measureText(element.text(), element.textConfig(), parentWidth);
             element.setPreferredWidth(size.x);
             element.setPreferredHeight(size.y);
             return;
@@ -156,39 +156,48 @@ public class UILayoutEngine {
         Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
         Sizing sizing = layout.sizing() != null ? layout.sizing() : UIContext.DEFAULT_SIZING;
 
-        float innerAvailableWidth = parentWidth - padding.left() - padding.right();
-        float innerAvailableHeight = parentHeight - padding.top() - padding.bottom();
+        // Determine constraints for children (Space available for content)
+        float contentConstraintW = switch (sizing.width().type()) {
+            case FIXED -> sizing.width().min() - padding.left() - padding.right();
+            case PERCENT -> parentWidth * sizing.width().percent() - padding.left() - padding.right();
+            default -> parentWidth - padding.left() - padding.right();
+        };
+        float contentConstraintH = switch (sizing.height().type()) {
+            case FIXED -> sizing.height().min() - padding.top() - padding.bottom();
+            case PERCENT -> parentHeight * sizing.height().percent() - padding.top() - padding.bottom();
+            default -> parentHeight - padding.top() - padding.bottom();
+        };
 
-        // Calculate children preferred sizes first
+        // Calculate children preferred sizes with their respective constraints
         for (LayoutElement child : element.children()) {
-            calculatePreferredSizes(child, innerAvailableWidth, innerAvailableHeight);
+            calculatePreferredSizes(child, contentConstraintW, contentConstraintH);
         }
 
         float preferredWidth, preferredHeight;
         if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
-            // Calculate main axis (width) first
-            preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, innerAvailableHeight, element.children(), true, layout);
+            // Main axis (Width)
+            preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, parentHeight, element.children(), true, layout);
             
-            // Use calculated width as a constraint for height calculation (important for wrapping)
+            // Cross axis (Height). The constraint is either the parent's space or the resolved width of this element.
             float crossConstraint = switch (sizing.width().type()) {
-                case FIXED -> sizing.width().min() - padding.left() - padding.right();
-                case PERCENT -> innerAvailableWidth * sizing.width().percent();
-                case FIT -> preferredWidth - padding.left() - padding.right();
-                case GROW -> innerAvailableWidth; // GROW can take full available
+                case FIXED -> sizing.width().min();
+                case PERCENT -> parentWidth * sizing.width().percent();
+                case FIT -> preferredWidth;
+                case GROW -> parentWidth;
             };
-            preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, crossConstraint, element.children(), false, layout);
+            preferredHeight = calculateAxisPreferredSize(sizing.height(), parentHeight, crossConstraint, element.children(), false, layout);
         } else {
-            // Calculate main axis (height) first
-            preferredHeight = calculateAxisPreferredSize(sizing.height(), innerAvailableHeight, innerAvailableWidth, element.children(), false, layout);
+            // Main axis (Height)
+            preferredHeight = calculateAxisPreferredSize(sizing.height(), parentHeight, parentWidth, element.children(), false, layout);
             
-            // Use calculated height as a constraint for width calculation
+            // Cross axis (Width)
             float crossConstraint = switch (sizing.height().type()) {
-                case FIXED -> sizing.height().min() - padding.top() - padding.bottom();
-                case PERCENT -> innerAvailableHeight * sizing.height().percent();
-                case FIT -> preferredHeight - padding.top() - padding.bottom();
-                case GROW -> innerAvailableHeight;
+                case FIXED -> sizing.height().min();
+                case PERCENT -> parentHeight * sizing.height().percent();
+                case FIT -> preferredHeight;
+                case GROW -> parentHeight;
             };
-            preferredWidth = calculateAxisPreferredSize(sizing.width(), innerAvailableWidth, crossConstraint, element.children(), true, layout);
+            preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, crossConstraint, element.children(), true, layout);
         }
 
         // Apply aspect ratio if present
@@ -202,9 +211,7 @@ public class UILayoutEngine {
             } else if (heightFixed && !widthFixed) {
                 preferredWidth = preferredHeight * ratio;
             } else if (!widthFixed && !heightFixed) {
-                // If neither is strictly fixed, we use the larger one to determine the other or follow some priority
-                // In Clay, aspect ratio usually works by calculating one from the other
-                // Let's assume width has priority if both are FIT/GROW for now
+                // Default to width priority
                 preferredHeight = preferredWidth / ratio;
             }
         }
@@ -226,7 +233,10 @@ public class UILayoutEngine {
                 boolean isMainAxis = (isWidth && isHorizontal) || (!isWidth && !isHorizontal);
 
                 if (layout.wrap()) {
-                    float mainAxisConstraint = isMainAxis ? availableOnThisAxis : availableOnOtherAxis;
+                    Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+                    float paddingMain = isHorizontal ? (padding.left() + padding.right()) : (padding.top() + padding.bottom());
+                    float mainAxisConstraint = (isMainAxis ? availableOnThisAxis : availableOnOtherAxis) - paddingMain;
+                    
                     float currentLineMainSize = 0;
                     float currentLineCrossSize = 0;
                     float maxLineMainSize = 0;

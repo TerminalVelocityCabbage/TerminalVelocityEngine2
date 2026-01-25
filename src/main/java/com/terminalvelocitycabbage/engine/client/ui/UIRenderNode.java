@@ -230,11 +230,22 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
         try (MemoryStack stack = stackPush()) {
             nvgFontSize(nvg, config.fontSize());
+            nvgTextLetterSpacing(nvg, config.letterSpacing());
+            nvgTextLineHeight(nvg, config.lineHeight() > 0 ? config.lineHeight() / (float) config.fontSize() : 1.0f);
+
             if (config.fontIdentifier() != null) {
                 ClientBase.getInstance().getFontRegistry().get(config.fontIdentifier()).getOrLoadFont(nvg);
                 nvgFontFace(nvg, config.fontIdentifier().toString());
             }
-            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP); // TODO: config alignment
+
+            int align = NVG_ALIGN_TOP;
+            align |= switch (config.textAlignment()) {
+                case LEFT -> NVG_ALIGN_LEFT;
+                case CENTER -> NVG_ALIGN_CENTER;
+                case RIGHT -> NVG_ALIGN_RIGHT;
+            };
+            nvgTextAlign(nvg, align);
+
             NVGColor color = NVGColor.malloc(stack);
             if (config.textColor() != null) {
                 nvgRGBAf(config.textColor().r(), config.textColor().g(), config.textColor().b(), config.textColor().a(), color);
@@ -242,20 +253,44 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 nvgRGBAf(1, 1, 1, 1, color); // Default white
             }
             nvgFillColor(nvg, color);
-            nvgText(nvg, element.getX(), element.getY(), element.text());
+
+            float x = element.getX();
+            if (config.wrapMode() == UI.TextWrapMode.NONE) {
+                if (config.textAlignment() == UI.TextAlignment.CENTER) {
+                    x += element.getWidth() / 2f;
+                } else if (config.textAlignment() == UI.TextAlignment.RIGHT) {
+                    x += element.getWidth();
+                }
+                nvgText(nvg, x, element.getY(), element.text());
+            } else {
+                nvgTextBox(nvg, x, element.getY(), element.getWidth(), element.text());
+            }
         }
     }
 
     @Override
-    public Vector2f measureText(String text, TextElementConfig config) {
+    public Vector2f measureText(String text, TextElementConfig config, float maxWidth) {
         long nvg = ClientBase.getInstance().getNvgContext();
         nvgFontSize(nvg, config.fontSize());
+        nvgTextLetterSpacing(nvg, config.letterSpacing());
+        nvgTextLineHeight(nvg, config.lineHeight() > 0 ? config.lineHeight() / (float) config.fontSize() : 1.0f);
+        int align = NVG_ALIGN_TOP;
+        align |= switch (config.textAlignment()) {
+            case LEFT -> NVG_ALIGN_LEFT;
+            case CENTER -> NVG_ALIGN_CENTER;
+            case RIGHT -> NVG_ALIGN_RIGHT;
+        };
+        nvgTextAlign(nvg, align);
         if (config.fontIdentifier() != null) {
             ClientBase.getInstance().getFontRegistry().get(config.fontIdentifier()).getOrLoadFont(nvg);
             nvgFontFace(nvg, config.fontIdentifier().toString());
         }
         float[] bounds = new float[4];
-        nvgTextBounds(nvg, 0, 0, text, bounds);
+        if (config.wrapMode() != UI.TextWrapMode.NONE) {
+            nvgTextBoxBounds(nvg, 0, 0, maxWidth, text, bounds);
+        } else {
+            nvgTextBounds(nvg, 0, 0, text, bounds);
+        }
         return new Vector2f(bounds[2] - bounds[0], bounds[3] - bounds[1]);
     }
 
