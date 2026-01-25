@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ui.data.BoundingBox;
+import org.joml.Vector2f;
 
 public class UIElement {
 
@@ -18,6 +19,18 @@ public class UIElement {
 
     public BoundingBox boundingBox() {
         return context.getElementData(id).boundingBox();
+    }
+
+    public Vector2f preferredSize() {
+        return context.getElementData(id).preferredSize();
+    }
+
+    public float preferredWidth() {
+        return preferredSize().x;
+    }
+
+    public float preferredHeight() {
+        return preferredSize().y;
     }
 
     public float x() {

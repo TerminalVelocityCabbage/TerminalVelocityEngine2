@@ -557,13 +557,19 @@ public class UILayoutEngine {
             float contentHeight = maxY - minY;
 
             float offsetX = padding.left() + border.left();
+            float offsetY = padding.top() + border.top();
+
+            if (decl.clip() != null && decl.clip().childOffset() != null) {
+                offsetX -= decl.clip().childOffset().x;
+                offsetY -= decl.clip().childOffset().y;
+            }
+
             offsetX += switch (alignment.x()) {
                 case LEFT -> -minX;
                 case CENTER -> (innerWidth - contentWidth) / 2f - minX;
                 case RIGHT -> (innerWidth - contentWidth) - minX;
             };
 
-            float offsetY = padding.top() + border.top();
             offsetY += switch (alignment.y()) {
                 case TOP -> -minY;
                 case CENTER -> (innerHeight - contentHeight) / 2f - minY;

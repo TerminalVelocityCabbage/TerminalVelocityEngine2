@@ -204,6 +204,111 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     }
 
     /**
+     * Declares a scrollable container.
+     * @param containerDecl The configuration for the container itself.
+     * @param scrollbarDecl The configuration for the scrollbar (width, background, etc.).
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
+    protected UIElement scrollableContainer(ElementDeclaration containerDecl, ElementDeclaration scrollbarDecl, Runnable children) {
+        return scrollableContainer(getUIContext().generateAutoId(), containerDecl, scrollbarDecl, children);
+    }
+
+    /**
+     * Declares a scrollable container with a specific ID label.
+     * @param idLabel The label to hash for this element's ID.
+     * @param containerDecl The configuration for the container itself.
+     * @param scrollbarDecl The configuration for the scrollbar (width, background, etc.).
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
+    protected UIElement scrollableContainer(String idLabel, ElementDeclaration containerDecl, ElementDeclaration scrollbarDecl, Runnable children) {
+        return scrollableContainer(id(idLabel), containerDecl, scrollbarDecl, children);
+    }
+
+    /**
+     * Declares a scrollable container with a specific ID.
+     * @param id The ID for this element.
+     * @param containerDecl The configuration for the container itself.
+     * @param scrollbarDecl The configuration for the scrollbar (width, background, etc.).
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
+    protected UIElement scrollableContainer(int id, ElementDeclaration containerDecl, ElementDeclaration scrollbarDecl, Runnable children) {
+        State<Float> scrollPct = useState(id + "_scroll_pct", 0.0f);
+
+        UIElement element = new UIElement(id, getUIContext());
+        float containerHeight = element.height();
+        float contentHeight = element.preferredHeight();
+
+        // Handle scroll input
+        float scrollAmount = 0f;
+        for (Event event : heardEvents(id, UIScrollEvent.EVENT)) {
+            if (event instanceof UIScrollEvent scrollEvent) {
+                scrollAmount += scrollEvent.getDelta().y;
+            }
+        }
+
+        float scrollbarHeight = calculateScrollbarHeight(containerHeight, contentHeight);
+        float minScrollPosition = 0f;
+        float maxScrollPosition = containerHeight - scrollbarHeight;
+
+        scrollAmount = Math.max(minScrollPosition, Math.min(maxScrollPosition, scrollAmount));
+
+        var finalContainerDecl = new ElementDeclaration(
+                containerDecl.layout(),
+                containerDecl.backgroundColor(),
+                containerDecl.cornerRadius(),
+                containerDecl.aspectRatio(),
+                containerDecl.image(),
+                containerDecl.floating(),
+                ClipElementConfig.builder()
+                        .vertical(true)
+                        .childOffset(new Vector2f(0, scrollAmount))
+                        .build(),
+                containerDecl.border()
+        );
+
+        var contentContainerDecl = ElementDeclaration.builder()
+                .layout(LayoutConfig.builder().sizing(new Sizing(SizingAxis.grow(), SizingAxis.fixed(contentHeight))).build())
+                .build();
+
+        var finalScrollbarDecl = new ElementDeclaration(
+                new LayoutConfig(
+                        new Sizing(scrollbarDecl.layout().sizing().width(), SizingAxis.fixed(scrollbarHeight)),
+                        scrollbarDecl.layout().padding(),
+                        scrollbarDecl.layout().childGap(),
+                        scrollbarDecl.layout().childAlignment(),
+                        scrollbarDecl.layout().layoutDirection(),
+                        scrollbarDecl.layout().wrap()
+                ),
+                scrollbarDecl.backgroundColor(),
+                scrollbarDecl.cornerRadius(),
+                scrollbarDecl.aspectRatio(),
+                scrollbarDecl.image(),
+                FloatingElementConfig.builder()
+                        .offset(new Vector2f(0, scrollAmount))
+                        .expand(scrollbarDecl.floating() != null ? scrollbarDecl.floating().expand() : null)
+                        .zIndex(scrollbarDecl.floating() != null ? scrollbarDecl.floating().zIndex() : null)
+                        .attachTo(UI.FloatingAttachToElement.ELEMENT_WITH_ID, id)
+                        .attachPoints(new FloatingAttachPoints(UI.FloatingAttachPointType.TOP_RIGHT, UI.FloatingAttachPointType.TOP_RIGHT))
+                        .pointerCaptureMode(UI.PointerCaptureMode.CAPTURE)
+                        .build(),
+                scrollbarDecl.clip(),
+                scrollbarDecl.border()
+        );
+
+        return container(id, finalContainerDecl, () -> {
+            container(id + "_scroll_container", contentContainerDecl, children);
+            container(id + "_scrollbar", finalScrollbarDecl, () -> {});
+        });
+    }
+
+    private float calculateScrollbarHeight(float containerHeight, float contentHeight) {
+        return containerHeight * (containerHeight / contentHeight);
+    }
+
+    /**
      * Generates a stable integer ID from a string label.
      * @param label The label to hash.
      * @return A hashed ID.
@@ -329,7 +434,10 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     private void collectElementData(LayoutElement element, Map<Integer, UIElementData> dataMap) {
         if (element == null) return;
-        dataMap.put(element.id(), new UIElementData(new BoundingBox(new Vector2f(element.getPosition()), new Vector2f(element.getSize())), true));
+        dataMap.put(element.id(), new UIElementData(
+                new BoundingBox(new Vector2f(element.getPosition()), new Vector2f(element.getSize())),
+                new Vector2f(element.getPreferredWidth(), element.getPreferredHeight()),
+                true));
         for (LayoutElement child : element.children()) {
             collectElementData(child, dataMap);
         }
@@ -343,6 +451,12 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
             renderText(nvg, element);
         } else {
             renderContainer(nvg, element);
+
+            boolean clipping = element.declaration() != null && element.declaration().clip() != null && (element.declaration().clip().horizontal() || element.declaration().clip().vertical());
+            if (clipping) {
+                nvgSave(nvg);
+                nvgIntersectScissor(nvg, element.getX(), element.getY(), element.getWidth(), element.getHeight());
+            }
             
             // Render non-floating children first
             for (LayoutElement child : element.children()) {
@@ -357,6 +471,10 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 if (child.declaration() != null && child.declaration().floating() != null) {
                     renderElement(nvg, child);
                 }
+            }
+
+            if (clipping) {
+                nvgRestore(nvg);
             }
         }
     }
