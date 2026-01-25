@@ -4,6 +4,7 @@ import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.FloatingElementConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
@@ -65,20 +66,13 @@ public class UILayoutEngine {
             element.setHeight(element.getPreferredHeight());
         }
 
-        LayoutElement target = null;
-        switch (config.attachTo()) {
-            case PARENT -> target = element.parent();
-            case ROOT -> {
-                target = element;
-                while (target.parent() != null) target = target.parent();
-            }
-            case ELEMENT_WITH_ID -> {
-                target = findElementById(rootRef, config.parentId());
-                if (target == null) target = element.parent();
-            }
-        }
+        LayoutElement target = switch (config.attachTo()) {
+            case PARENT -> element.parent();
+            case ROOT -> rootRef;
+            case ELEMENT_WITH_ID -> findElementById(rootRef, config.parentId());
+        };
 
-        if (target == null) return;
+        if (target == null) Log.crash("UI Target not found for element: " + element.id());
 
         Vector2f targetPos = new Vector2f(target.getX(), target.getY());
         Vector2f targetSize = new Vector2f(target.getWidth(), target.getHeight());
@@ -89,11 +83,8 @@ public class UILayoutEngine {
         // Calculate attachment point on element
         Vector2f elementAttachPointOffset = calculateAttachPoint(new Vector2f(), elementSize, config.attachPoints().element());
 
-        float x = attachPointPos.x - elementAttachPointOffset.x + (config.offset() != null ? config.offset().x : 0);
-        float y = attachPointPos.y - elementAttachPointOffset.y + (config.offset() != null ? config.offset().y : 0);
-
-        element.setX(x);
-        element.setY(y);
+        element.setX(attachPointPos.x - elementAttachPointOffset.x + (config.offset() != null ? config.offset().x : 0));
+        element.setY(attachPointPos.y - elementAttachPointOffset.y + (config.offset() != null ? config.offset().y : 0));
 
         // Apply expand if present
         if (config.expand() != null) {
@@ -103,34 +94,18 @@ public class UILayoutEngine {
     }
 
     private Vector2f calculateAttachPoint(Vector2f pos, Vector2f size, UI.FloatingAttachPointType type) {
-        float x = pos.x;
-        float y = pos.y;
 
-        switch (type) {
-            case TOP_LEFT -> {}
-            case LEFT -> y += size.y / 2f;
-            case BOTTOM_LEFT -> y += size.y;
-            case TOP -> x += size.x / 2f;
-            case CENTER -> {
-                x += size.x / 2f;
-                y += size.y / 2f;
-            }
-            case BOTTOM -> {
-                x += size.x / 2f;
-                y += size.y;
-            }
-            case TOP_RIGHT -> x += size.x;
-            case RIGHT -> {
-                x += size.x;
-                y += size.y / 2f;
-            }
-            case BOTTOM_RIGHT -> {
-                x += size.x;
-                y += size.y;
-            }
-        }
-
-        return new Vector2f(x, y);
+        return switch (type) {
+            case TOP_LEFT ->        new Vector2f(pos.x, pos.y);
+            case LEFT ->            new Vector2f(pos.x, pos.y + size.y / 2f);
+            case BOTTOM_LEFT ->     new Vector2f(pos.x, pos.y + size.y);
+            case TOP ->             new Vector2f(pos.x + size.x / 2f, pos.y);
+            case CENTER ->          new Vector2f(pos.x + size.x / 2f, pos.y + size.y / 2f);
+            case BOTTOM ->          new Vector2f(pos.x + size.x / 2f, pos.y + size.y);
+            case TOP_RIGHT ->       new Vector2f(pos.x + size.x, pos.y);
+            case RIGHT ->           new Vector2f(pos.x + size.x, pos.y + size.y / 2f);
+            case BOTTOM_RIGHT ->    new Vector2f(pos.x + size.x, pos.y + size.y);
+        };
     }
 
     //TODO determine if this is super slow and if so we can just maintain a map of element ids to elements
@@ -140,6 +115,7 @@ public class UILayoutEngine {
             LayoutElement found = findElementById(child, id);
             if (found != null) return found;
         }
+        Log.warn("Could not find ui element by id: " + id);
         return null;
     }
 
