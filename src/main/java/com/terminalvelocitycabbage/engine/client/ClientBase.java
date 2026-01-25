@@ -178,6 +178,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     public void update() {
         //Update the tick timer
         deltaTime = tickClock.getDeltaTime();
+        runtime += deltaTime;
         tickClock.now();
         //Update the input handlers for use in game logic
         inputTickManager.update();

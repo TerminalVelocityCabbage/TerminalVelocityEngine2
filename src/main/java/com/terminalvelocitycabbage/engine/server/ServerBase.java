@@ -50,6 +50,8 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
     @Override
     public void init() {
 
+        tickClock.now();
+
         server = new Server();
 
         server.onConnect(client -> {
@@ -88,6 +90,8 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
 
         //As long as the server should run we run it
         while (!shouldStop) {
+            deltaTime = tickClock.getDeltaTime();
+            runtime += deltaTime;
             //Adds the current elapsed time to the tick manager
             tickManager.update();
             //Execute all remaining ticks
