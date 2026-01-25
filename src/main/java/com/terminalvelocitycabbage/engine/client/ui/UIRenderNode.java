@@ -241,19 +241,30 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         float containerHeight = element.height();
         float contentHeight = element.preferredHeight();
 
+        float scrollableRange = Math.max(0, contentHeight - containerHeight);
+
         // Handle scroll input
-        float scrollAmount = 0f;
-        for (Event event : heardEvents(id, UIScrollEvent.EVENT)) {
-            if (event instanceof UIScrollEvent scrollEvent) {
-                scrollAmount += scrollEvent.getDelta().y;
+        if (scrollableRange > 0) {
+            float totalDelta = 0;
+            for (Event event : heardEvents(id, UIScrollEvent.EVENT)) {
+                if (event instanceof UIScrollEvent scrollEvent) {
+                    totalDelta += scrollEvent.getDelta().y;
+                }
             }
+            if (totalDelta != 0) {
+                float deltaPct = totalDelta / scrollableRange;
+                scrollPct.setValue(Math.max(0f, Math.min(1f, scrollPct.getValue() - deltaPct)));
+            }
+        } else {
+            scrollPct.setValue(0f);
         }
 
-        float scrollbarHeight = calculateScrollbarHeight(containerHeight, contentHeight);
-        float minScrollPosition = 0f;
-        float maxScrollPosition = containerHeight - scrollbarHeight;
+        float contentOffset = scrollPct.getValue() * scrollableRange;
 
-        scrollAmount = Math.max(minScrollPosition, Math.min(maxScrollPosition, scrollAmount));
+        float scrollbarHeight = contentHeight > 0 ? (containerHeight * (containerHeight / contentHeight)) : containerHeight;
+        scrollbarHeight = Math.max(Math.min(containerHeight, 20f), Math.min(containerHeight, scrollbarHeight));
+
+        float scrollbarOffset = scrollPct.getValue() * (containerHeight - scrollbarHeight);
 
         var finalContainerDecl = new ElementDeclaration(
                 containerDecl.layout(),
@@ -264,13 +275,19 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 containerDecl.floating(),
                 ClipElementConfig.builder()
                         .vertical(true)
-                        .childOffset(new Vector2f(0, scrollAmount))
+                        .childOffset(new Vector2f(0, contentOffset))
                         .build(),
                 containerDecl.border()
         );
 
         var contentContainerDecl = ElementDeclaration.builder()
-                .layout(LayoutConfig.builder().sizing(new Sizing(SizingAxis.grow(), SizingAxis.fixed(contentHeight))).build())
+                .layout(LayoutConfig.builder()
+                        .sizing(new Sizing(SizingAxis.grow(), SizingAxis.fit()))
+                        .layoutDirection(containerDecl.layout().layoutDirection())
+                        .wrap(containerDecl.layout().wrap())
+                        .childGap(containerDecl.layout().childGap())
+                        .childAlignment(containerDecl.layout().childAlignment())
+                        .build())
                 .build();
 
         var finalScrollbarDecl = new ElementDeclaration(
@@ -287,9 +304,8 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 scrollbarDecl.aspectRatio(),
                 scrollbarDecl.image(),
                 FloatingElementConfig.builder()
-                        .offset(new Vector2f(0, scrollAmount))
+                        .offset(new Vector2f(0, scrollbarOffset))
                         .expand(scrollbarDecl.floating() != null ? scrollbarDecl.floating().expand() : null)
-                        .zIndex(scrollbarDecl.floating() != null ? scrollbarDecl.floating().zIndex() : null)
                         .attachTo(UI.FloatingAttachToElement.ELEMENT_WITH_ID, id)
                         .attachPoints(new FloatingAttachPoints(UI.FloatingAttachPointType.TOP_RIGHT, UI.FloatingAttachPointType.TOP_RIGHT))
                         .pointerCaptureMode(UI.PointerCaptureMode.CAPTURE)
@@ -300,13 +316,13 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
         return container(id, finalContainerDecl, () -> {
             container(id + "_scroll_container", contentContainerDecl, children);
-            container(id + "_scrollbar", finalScrollbarDecl, () -> {});
+            // Only show scrollbar if content is larger than container
+            if (scrollableRange > 0) {
+                container(id + "_scrollbar", finalScrollbarDecl, () -> {});
+            }
         });
     }
 
-    private float calculateScrollbarHeight(float containerHeight, float contentHeight) {
-        return containerHeight * (containerHeight / contentHeight);
-    }
 
     /**
      * Generates a stable integer ID from a string label.

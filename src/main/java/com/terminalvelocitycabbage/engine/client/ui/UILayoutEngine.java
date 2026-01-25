@@ -394,9 +394,31 @@ public class UILayoutEngine {
         }
         lines.add(currentLine);
 
-        // 2. Process lines (Distribute GROW and calculate cross sizes)
-        float currentCrossOffset = 0;
+        // 2. Initial line cross-size calculation
+        List<Float> lineCrossSizes = new ArrayList<>();
+        float totalLinesCrossSize = 0;
         for (List<LayoutElement> line : lines) {
+            float maxLineCrossSize = 0;
+            for (LayoutElement child : line) {
+                maxLineCrossSize = Math.max(maxLineCrossSize, isHorizontal ? child.getPreferredHeight() : child.getPreferredWidth());
+            }
+            lineCrossSizes.add(maxLineCrossSize);
+            totalLinesCrossSize += maxLineCrossSize;
+        }
+        if (lines.size() > 1) {
+            totalLinesCrossSize += layout.childGap() * (lines.size() - 1);
+        }
+
+        // 3. Distribute extra cross space among lines (Align-content: stretch)
+        float extraCrossSpace = Math.max(0, (isHorizontal ? innerHeight : innerWidth) - totalLinesCrossSize);
+        float extraCrossPerLine = extraCrossSpace / lines.size();
+
+        // 4. Process lines
+        float currentCrossOffset = 0;
+        for (int i = 0; i < lines.size(); i++) {
+            List<LayoutElement> line = lines.get(i);
+            float lineCrossSize = lineCrossSizes.get(i) + extraCrossPerLine;
+
             float lineMainPreferredSize = 0;
             int growCount = 0;
             for (LayoutElement child : line) {
@@ -407,7 +429,6 @@ public class UILayoutEngine {
             float extraMainSpace = Math.max(0, mainConstraint - lineMainPreferredSize);
             float spacePerGrow = growCount > 0 ? extraMainSpace / growCount : 0;
 
-            float maxLineCrossSize = 0;
             for (LayoutElement child : line) {
                 Sizing childSizing = getChildSizing(child);
                 float w = child.getPreferredWidth();
@@ -427,7 +448,6 @@ public class UILayoutEngine {
                 }
                 child.setWidth(w);
                 child.setHeight(h);
-                maxLineCrossSize = Math.max(maxLineCrossSize, isHorizontal ? h : w);
             }
 
             // Align children in line cross-axis and set relative positions
@@ -435,8 +455,8 @@ public class UILayoutEngine {
             for (LayoutElement child : line) {
                 Sizing childSizing = getChildSizing(child);
                 if (childSizing.cross(isHorizontal).type() == UI.SizingType.GROW) {
-                    if (isHorizontal) child.setHeight(Math.min(childSizing.height().max(), maxLineCrossSize));
-                    else child.setWidth(Math.min(childSizing.width().max(), maxLineCrossSize));
+                    if (isHorizontal) child.setHeight(Math.min(childSizing.height().max(), lineCrossSize));
+                    else child.setWidth(Math.min(childSizing.width().max(), lineCrossSize));
                 }
                 
                 if (isHorizontal) {
@@ -450,7 +470,7 @@ public class UILayoutEngine {
                 }
                 calculatePositions(child);
             }
-            currentCrossOffset += maxLineCrossSize + layout.childGap();
+            currentCrossOffset += lineCrossSize + layout.childGap();
         }
 
         // Handle floating
