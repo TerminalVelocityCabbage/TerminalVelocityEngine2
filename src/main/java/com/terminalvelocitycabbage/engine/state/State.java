@@ -1,41 +1,17 @@
 package com.terminalvelocitycabbage.engine.state;
 
-public class State {
+public class State<T> {
+    T value;
 
-    boolean enabled;
-    boolean wasEnabledLastTick;
-
-    public State(boolean enabled) {
-        this.enabled = enabled;
-        this.wasEnabledLastTick = false;
+    public State(T value) {
+        this.value = value;
     }
 
-    public boolean toggle() {
-        enabled = !enabled;
-        return enabled;
+    public T getValue() {
+        return value;
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public boolean isDisabled() {
-        return !enabled;
-    }
-
-    public void enable() {
-        enabled = true;
-    }
-
-    public void disable() {
-        enabled = false;
-    }
-
-    protected void tick() {
-        wasEnabledLastTick = enabled;
-    }
-
-    public boolean wasEnabledLastTick() {
-        return wasEnabledLastTick;
+    public void setValue(T value) {
+        this.value = value;
     }
 }

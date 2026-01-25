@@ -17,12 +17,12 @@ public class GameStateRegistrationEvent extends Event {
     }
 
     public Identifier registerState(Identifier stateIdentifier) {
-        stateHandler.addState(stateIdentifier);
+        stateHandler.addState(stateIdentifier, false);
         return stateIdentifier;
     }
 
-    public Identifier registerState(Identifier stateIdentifier, boolean enabled) {
-        stateHandler.addState(stateIdentifier, enabled);
+    public Identifier registerState(Identifier stateIdentifier, Object value) {
+        stateHandler.addState(stateIdentifier, value);
         return stateIdentifier;
     }
 }

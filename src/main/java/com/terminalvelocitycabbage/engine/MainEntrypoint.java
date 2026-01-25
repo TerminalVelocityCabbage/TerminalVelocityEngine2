@@ -50,7 +50,7 @@ public abstract class MainEntrypoint extends Entrypoint {
         manager = new Manager();
         scheduler = new Scheduler(identifierOf("default"), 4); //TODO expose this somehow or make it relative to available threads or something
         tickClock = MutableInstant.ofNow();
-        stateHandler = new StateHandler();
+        stateHandler = new StateHandler(eventDispatcher);
         modRegistry = new Registry<>();
         fileSystem = new GameFileSystem();
         routineRegistry = new Registry<>();
@@ -64,7 +64,6 @@ public abstract class MainEntrypoint extends Entrypoint {
      * This is mainly used for networking tasks, most things for clients should happen every frame
      */
     public void tick() {
-        stateHandler.tick();
     }
 
     @Override
