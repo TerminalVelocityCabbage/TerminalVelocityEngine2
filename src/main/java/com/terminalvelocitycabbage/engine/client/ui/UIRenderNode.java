@@ -3,19 +3,23 @@ package com.terminalvelocitycabbage.engine.client.ui;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
+import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Color;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
+import com.terminalvelocitycabbage.templates.events.UIClickEvent;
+import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 import org.joml.Vector2f;
 import org.lwjgl.nanovg.NVGColor;
 import org.lwjgl.system.MemoryStack;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -29,6 +33,20 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     public UIRenderNode(ShaderProgramConfig shaderProgramConfig) {
         super(shaderProgramConfig);
     }
+
+    @Override
+    public void init(RenderGraph renderGraph) {
+        super.init(renderGraph);
+        for (Identifier eventId : getInterestedEvents()) {
+            getUIContext().listenTo(eventId);
+        }
+    }
+
+    /**
+     * @return The list of event identifiers that this render node is interested in.
+     *         By default, includes click and scroll events.
+     */
+    protected abstract Identifier[] getInterestedEvents();
 
     @Override
     public void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
@@ -147,23 +165,90 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return true if hovered, false otherwise.
      */
     protected boolean isHovered(int id) {
-        UIElementData data = getUIContext().getElementData(id);
-        if (!data.found()) return false;
-
-        BoundingBox bb = data.boundingBox();
-        Vector2f mousePos = getUIContext().getInputState().getMousePosition();
-
-        return mousePos.x >= bb.position().x && mousePos.x <= bb.position().x + bb.size().x &&
-               mousePos.y >= bb.position().y && mousePos.y <= bb.position().y + bb.size().y;
+        return isPositionInside(getUIContext().getInputState().getMousePosition(), id);
     }
 
     /**
-     * Checks if the element with the given ID was clicked this frame.
-     * @param id The ID of the element to check.
-     * @return true if clicked, false otherwise.
+     * Checks if the given position is inside the element with the given ID.
+     * @param pos The position to check.
+     * @param elementId The ID of the element.
+     * @return true if inside, false otherwise.
      */
-    protected boolean isClicked(int id) {
-        return isHovered(id) && getUIContext().getInputState().isLeftMouseClicked();
+    protected boolean isPositionInside(Vector2f pos, int elementId) {
+        UIElementData data = getUIContext().getElementData(elementId);
+        if (!data.found()) return false;
+
+        BoundingBox bb = data.boundingBox();
+        return pos.x >= bb.position().x && pos.x <= bb.position().x + bb.size().x &&
+                pos.y >= bb.position().y && pos.y <= bb.position().y + bb.size().y;
+    }
+
+    /**
+     * Checks if an event of the given type targeting the specified element occurred this frame.
+     * @param elementId The ID of the element to check.
+     * @param eventType The identifier of the event type.
+     * @return The Event if heard, null otherwise.
+     */
+    protected Event heardEvent(int elementId, Identifier eventType) {
+        for (Event event : getUIContext().getInputState().getEvents()) {
+            if (event.getId().equals(eventType) && isEventTargetingElement(event, elementId)) {
+                return event;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks if a global event of the given type occurred this frame.
+     * @param eventType The identifier of the event type.
+     * @return The Event if heard, null otherwise.
+     */
+    protected Event heardEvent(Identifier eventType) {
+        for (Event event : getUIContext().getInputState().getEvents()) {
+            if (event.getId().equals(eventType)) {
+                return event;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param elementId The ID of the element to check.
+     * @param eventType The identifier of the event type.
+     * @return A list of all events of the given type that targeted the specified element this frame.
+     */
+    protected List<Event> heardEvents(int elementId, Identifier eventType) {
+        List<Event> results = new ArrayList<>();
+        for (Event event : getUIContext().getInputState().getEvents()) {
+            if (event.getId().equals(eventType) && isEventTargetingElement(event, elementId)) {
+                results.add(event);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * @param eventType The identifier of the event type.
+     * @return A list of all global events of the given type that occurred this frame.
+     */
+    protected List<Event> heardEvents(Identifier eventType) {
+        List<Event> results = new ArrayList<>();
+        for (Event event : getUIContext().getInputState().getEvents()) {
+            if (event.getId().equals(eventType)) {
+                results.add(event);
+            }
+        }
+        return results;
+    }
+
+    private boolean isEventTargetingElement(Event event, int elementId) {
+        if (event instanceof UIClickEvent clickEvent) {
+            return isPositionInside(clickEvent.getPosition(), elementId);
+        } else if (event instanceof UIScrollEvent) {
+            return isHovered(elementId);
+        }
+        // TODO: Handle other event types (e.g. keyboard events for focused elements)
+        return false;
     }
 
     private void collectElementData(LayoutElement element, Map<Integer, UIElementData> dataMap) {

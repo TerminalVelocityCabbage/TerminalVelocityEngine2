@@ -4,13 +4,12 @@ import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
-import com.terminalvelocitycabbage.engine.client.input.types.MouseInput;
+import com.terminalvelocitycabbage.engine.event.Event;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 public class UIContext {
 
@@ -24,6 +23,7 @@ public class UIContext {
     private final Map<Integer, UIElementData> lastFrameElementData = new HashMap<>();
     private final Stack<Integer> idStack = new Stack<>();
     private final Stack<Integer> autoIdCounterStack = new Stack<>();
+    private final Set<Identifier> registeredEvents = new HashSet<>();
 
     private final UIInputState currentInputState = new UIInputState();
     private final UIInputState pendingInputState = new UIInputState();
@@ -33,25 +33,16 @@ public class UIContext {
 
     public UIContext() {
         autoIdCounterStack.push(0);
-        registerListeners();
     }
 
-    private void registerListeners() {
-        var dispatcher = ClientBase.getInstance().getEventDispatcher();
-        dispatcher.listenToEvent(UIClickEvent.EVENT, event -> {
-            UIClickEvent clickEvent = (UIClickEvent) event;
-            synchronized (pendingInputState) {
-                if (clickEvent.getButton() == MouseInput.Button.LEFT_CLICK) {
-                    pendingInputState.setLeftMouseClicked(true);
+    public void listenTo(Identifier eventId) {
+        if (registeredEvents.add(eventId)) {
+            ClientBase.getInstance().getEventDispatcher().listenToEvent(eventId, event -> {
+                synchronized (pendingInputState) {
+                    pendingInputState.getEvents().add(event);
                 }
-            }
-        });
-        dispatcher.listenToEvent(UIScrollEvent.EVENT, event -> {
-            UIScrollEvent scrollEvent = (UIScrollEvent) event;
-            synchronized (pendingInputState) {
-                pendingInputState.getScrollDelta().add(scrollEvent.getDelta());
-            }
-        });
+            });
+        }
     }
 
     public UIElementData getElementData(int id) {
@@ -106,7 +97,6 @@ public class UIContext {
         // Update continuous state
         var listener = ClientBase.getInstance().getInputCallbackListener();
         currentInputState.getMousePosition().set((float)listener.getMouseX(), (float)listener.getMouseY());
-        currentInputState.setLeftMouseDown(com.terminalvelocitycabbage.engine.client.input.util.MouseInputUtil.isLeftMouseButtonPressed(ClientBase.getInstance().getWindowManager().getMousedOverWindow()));
 
         idStack.clear();
         autoIdCounterStack.clear();
