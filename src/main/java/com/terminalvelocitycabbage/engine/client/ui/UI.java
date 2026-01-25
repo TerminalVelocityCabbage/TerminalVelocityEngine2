@@ -38,6 +38,7 @@ public class UI {
         CENTER
     }
 
+    //TODO add right to left and bottom to top
     public enum LayoutDirection {
         LEFT_TO_RIGHT,
         TOP_TO_BOTTOM

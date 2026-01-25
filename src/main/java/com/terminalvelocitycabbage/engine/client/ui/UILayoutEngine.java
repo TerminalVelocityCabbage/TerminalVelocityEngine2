@@ -115,15 +115,13 @@ public class UILayoutEngine {
             LayoutElement found = findElementById(child, id);
             if (found != null) return found;
         }
-        Log.warn("Could not find ui element by id: " + id);
         return null;
     }
 
     private void calculatePreferredSizes(LayoutElement element, float parentWidth, float parentHeight) {
+
         if (element.isText()) {
-            Vector2f size = textMeasurer.measureText(element.text(), element.textConfig(), parentWidth);
-            element.setPreferredWidth(size.x);
-            element.setPreferredHeight(size.y);
+            element.setPreferredSize(textMeasurer.measureText(element.text(), element.textConfig(), parentWidth));
             return;
         }
 
@@ -151,6 +149,7 @@ public class UILayoutEngine {
         }
 
         float preferredWidth, preferredHeight;
+        //TODO add right to left and bottom to top layout directions
         if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
             // Main axis (Width)
             preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, parentHeight, element.children(), true, layout, border);

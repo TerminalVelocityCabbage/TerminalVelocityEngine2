@@ -67,6 +67,10 @@ public class LayoutElement {
         return text != null;
     }
 
+    public void setPreferredSize(Vector2f preferredSize) {
+        this.preferredSize.set(preferredSize);
+    }
+
     public float getPreferredWidth() {
         return preferredSize.x;
     }

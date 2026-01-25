@@ -151,10 +151,10 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         if (!data.found()) return false;
 
         BoundingBox bb = data.boundingBox();
-        double mx = ClientBase.getInstance().getInputCallbackListener().getMouseX();
-        double my = ClientBase.getInstance().getInputCallbackListener().getMouseY();
+        Vector2f mousePos = getUIContext().getInputState().getMousePosition();
 
-        return mx >= bb.position().x && mx <= bb.position().x + bb.size().x && my >= bb.position().y && my <= bb.position().y + bb.size().y;
+        return mousePos.x >= bb.position().x && mousePos.x <= bb.position().x + bb.size().x &&
+               mousePos.y >= bb.position().y && mousePos.y <= bb.position().y + bb.size().y;
     }
 
     /**
@@ -163,8 +163,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return true if clicked, false otherwise.
      */
     protected boolean isClicked(int id) {
-        // TODO implementation - needs integration with InputHandler button states
-        return isHovered(id) && false; // placeholder
+        return isHovered(id) && getUIContext().getInputState().isLeftMouseClicked();
     }
 
     private void collectElementData(LayoutElement element, Map<Integer, UIElementData> dataMap) {
