@@ -11,6 +11,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.state.State;
 import com.terminalvelocitycabbage.engine.util.Color;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 import com.terminalvelocitycabbage.templates.events.UIClickEvent;
@@ -102,6 +103,17 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     }
 
     /**
+     * Starts an element declaration with a specific ID label.
+     * @param idLabel The label to hash for this element's ID.
+     * @param declaration The configuration for this element.
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
+    protected UIElement container(String idLabel, ElementDeclaration declaration, Runnable children) {
+        return container(id(idLabel), declaration, children);
+    }
+
+    /**
      * Starts an element declaration with a specific ID.
      * @param id The ID for this element, typically generated via {@link #id(String)}.
      * @param declaration The configuration for this element.
@@ -130,7 +142,28 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return A handle to the declared element.
      */
     protected UIElement text(String text, TextElementConfig config) {
-        int id = getUIContext().generateAutoId();
+        return text(getUIContext().generateAutoId(), text, config);
+    }
+
+    /**
+     * Declares a text element with a specific ID label.
+     * @param idLabel The label to hash for this element's ID.
+     * @param text The string to display.
+     * @param config The configuration for the text.
+     * @return A handle to the declared element.
+     */
+    protected UIElement text(String idLabel, String text, TextElementConfig config) {
+        return text(id(idLabel), text, config);
+    }
+
+    /**
+     * Declares a text element with a specific ID.
+     * @param id The ID for this element.
+     * @param text The string to display.
+     * @param config The configuration for the text.
+     * @return A handle to the declared element.
+     */
+    protected UIElement text(int id, String text, TextElementConfig config) {
         getUIContext().addTextElement(id, text, config);
         return new UIElement(id, getUIContext());
     }
@@ -147,7 +180,27 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return A handle to the declared element.
      */
     protected UIElement image(ImageElementConfig config) {
-        return container(ElementDeclaration.builder().image(config).build(), null);
+        return image(getUIContext().generateAutoId(), config);
+    }
+
+    /**
+     * Declares an image element with a specific ID label.
+     * @param idLabel The label to hash for this element's ID.
+     * @param config The configuration for the image.
+     * @return A handle to the declared element.
+     */
+    protected UIElement image(String idLabel, ImageElementConfig config) {
+        return image(id(idLabel), config);
+    }
+
+    /**
+     * Declares an image element with a specific ID.
+     * @param id The ID for this element.
+     * @param config The configuration for the image.
+     * @return A handle to the declared element.
+     */
+    protected UIElement image(int id, ImageElementConfig config) {
+        return container(id, ElementDeclaration.builder().image(config).build(), null);
     }
 
     /**
@@ -157,6 +210,29 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      */
     protected int id(String label) {
         return getUIContext().hashString(label);
+    }
+
+    /**
+     * Retrieves or creates a persistent state object tied to the current element's declaration order.
+     * @param initialValue The value to initialize the state with if it doesn't exist.
+     * @param <T> The type of the state value.
+     * @return The persistent State object.
+     */
+    protected <T> State<T> useState(T initialValue) {
+        int stateId = getUIContext().getNextHookId();
+        return getUIContext().getOrCreatePersistentState(stateId, initialValue);
+    }
+
+    /**
+     * Retrieves or creates a persistent state object tied to a specific key within the current element.
+     * @param key A unique key for this state within the current element.
+     * @param initialValue The value to initialize the state with if it doesn't exist.
+     * @param <T> The type of the state value.
+     * @return The persistent State object.
+     */
+    protected <T> State<T> useState(String key, T initialValue) {
+        int stateId = getUIContext().getHookId(key);
+        return getUIContext().getOrCreatePersistentState(stateId, initialValue);
     }
 
     /**

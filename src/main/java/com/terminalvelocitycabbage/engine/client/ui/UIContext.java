@@ -6,6 +6,7 @@ import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.state.State;
 import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 
@@ -23,16 +24,21 @@ public class UIContext {
     private final Map<Integer, UIElementData> lastFrameElementData = new HashMap<>();
     private final Stack<Integer> idStack = new Stack<>();
     private final Stack<Integer> autoIdCounterStack = new Stack<>();
+    private final Stack<Integer> hookIndexStack = new Stack<>();
     private final Set<Identifier> registeredEvents = new HashSet<>();
 
     private final UIInputState currentInputState = new UIInputState();
     private final UIInputState pendingInputState = new UIInputState();
+
+    private final Map<Integer, Object> persistentStates = new HashMap<>();
+    private final Set<Integer> accessedStatesThisFrame = new HashSet<>();
 
     private LayoutElement rootElement;
     private LayoutElement currentElement;
 
     public UIContext() {
         autoIdCounterStack.push(0);
+        hookIndexStack.push(0);
     }
 
     public void listenTo(Identifier eventId) {
@@ -56,11 +62,32 @@ public class UIContext {
     public void pushId(int id) {
         idStack.push(id);
         autoIdCounterStack.push(0);
+        hookIndexStack.push(0);
     }
 
     public void popId() {
         idStack.pop();
         autoIdCounterStack.pop();
+        hookIndexStack.pop();
+    }
+
+    public <T> State<T> getOrCreatePersistentState(int stateId, T defaultValue) {
+        accessedStatesThisFrame.add(stateId);
+        if (!persistentStates.containsKey(stateId)) {
+            persistentStates.put(stateId, new State<>(defaultValue));
+        }
+        return (State<T>) persistentStates.get(stateId);
+    }
+
+    public int getNextHookId() {
+        int index = hookIndexStack.pop();
+        int nextIndex = index + 1;
+        hookIndexStack.push(nextIndex);
+        return hashString("hook", index, idStack.isEmpty() ? 0 : idStack.peek());
+    }
+
+    public int getHookId(String key) {
+        return hashString("hook_" + key, 0, idStack.isEmpty() ? 0 : idStack.peek());
     }
 
     public int generateAutoId() {
@@ -77,14 +104,14 @@ public class UIContext {
     }
 
     public int hashString(String label, int offset, int baseId) {
-        int hash = 0;
+        int hash = 7;
         if (label != null) {
             for (int i = 0; i < label.length(); i++) {
-                hash = hash * 33 + label.charAt(i);
+                hash = hash * 31 + label.charAt(i);
             }
         }
-        hash += offset;
-        hash += baseId;
+        hash = hash * 31 + offset;
+        hash = hash * 31 + baseId;
         return hash;
     }
 
@@ -101,6 +128,9 @@ public class UIContext {
         idStack.clear();
         autoIdCounterStack.clear();
         autoIdCounterStack.push(0);
+        hookIndexStack.clear();
+        hookIndexStack.push(0);
+        accessedStatesThisFrame.clear();
 
         // Create an implicit root element that fills the window
         int rootId = hashString("window_root", 0, 0);
@@ -149,6 +179,9 @@ public class UIContext {
     public void endFrame(Map<Integer, UIElementData> newFrameData) {
         lastFrameElementData.clear();
         lastFrameElementData.putAll(newFrameData);
+
+        // Cleanup stale states
+        persistentStates.keySet().removeIf(id -> !accessedStatesThisFrame.contains(id));
     }
 
     public LayoutElement getCurrentElement() {
