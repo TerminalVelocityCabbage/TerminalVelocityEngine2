@@ -4,11 +4,11 @@ import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
-import com.terminalvelocitycabbage.engine.client.ui.data.configs.ImageElementConfig;
-import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
+import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
+import com.terminalvelocitycabbage.engine.util.Color;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 import org.joml.Vector2f;
 import org.lwjgl.nanovg.NVGColor;
@@ -206,14 +206,18 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         ElementDeclaration decl = element.declaration();
         if (decl == null) return;
 
+        float x = element.getX();
+        float y = element.getY();
+        float w = element.getWidth();
+        float h = element.getHeight();
+
+        CornerRadius cr = decl.cornerRadius() != null ? decl.cornerRadius() : UIContext.DEFAULT_CORNER_RADIUS;
+
+        // 1. Background
         if (decl.backgroundColor() != null) {
             try (MemoryStack stack = stackPush()) {
                 nvgBeginPath(nvg);
-                if (decl.cornerRadius() != null) {
-                    nvgRoundedRect(nvg, element.getX(), element.getY(), element.getWidth(), element.getHeight(), decl.cornerRadius().topLeft()); // TODO: individual corners
-                } else {
-                    nvgRect(nvg, element.getX(), element.getY(), element.getWidth(), element.getHeight());
-                }
+                nvgRoundedRectVarying(nvg, x, y, w, h, cr.topLeft(), cr.topRight(), cr.bottomRight(), cr.bottomLeft());
                 NVGColor color = NVGColor.malloc(stack);
                 nvgRGBAf(decl.backgroundColor().r(), decl.backgroundColor().g(), decl.backgroundColor().b(), decl.backgroundColor().a(), color);
                 nvgFillColor(nvg, color);
@@ -221,7 +225,65 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
             }
         }
 
-        // TODO: render borders, images, etc.
+        // 2. Borders
+        if (decl.border() != null) {
+            BorderElementConfig border = decl.border();
+            BorderWidth bw = border.width();
+            Color bc = border.color();
+
+            try (MemoryStack stack = stackPush()) {
+                NVGColor color = NVGColor.malloc(stack);
+                nvgRGBAf(bc.r(), bc.g(), bc.b(), bc.a(), color);
+
+                // If all border widths are equal, we can use a single stroke
+                if (bw.left() == bw.right() && bw.left() == bw.top() && bw.left() == bw.bottom() && bw.left() > 0) {
+                    float strokeWidth = bw.left();
+                    nvgBeginPath(nvg);
+                    // Inset the path by half the stroke width to make it an "inside" border
+                    float inset = strokeWidth / 2f;
+                    nvgRoundedRectVarying(nvg, x + inset, y + inset, w - strokeWidth, h - strokeWidth,
+                            Math.max(0, cr.topLeft() - inset),
+                            Math.max(0, cr.topRight() - inset),
+                            Math.max(0, cr.bottomRight() - inset),
+                            Math.max(0, cr.bottomLeft() - inset));
+                    nvgStrokeColor(nvg, color);
+                    nvgStrokeWidth(nvg, strokeWidth);
+                    nvgStroke(nvg);
+                } else {
+                    // Non-uniform borders: Draw as individual rectangles
+                    // Top
+                    if (bw.top() > 0) {
+                        nvgBeginPath(nvg);
+                        nvgRect(nvg, x, y, w, bw.top());
+                        nvgFillColor(nvg, color);
+                        nvgFill(nvg);
+                    }
+                    // Bottom
+                    if (bw.bottom() > 0) {
+                        nvgBeginPath(nvg);
+                        nvgRect(nvg, x, y + h - bw.bottom(), w, bw.bottom());
+                        nvgFillColor(nvg, color);
+                        nvgFill(nvg);
+                    }
+                    // Left
+                    if (bw.left() > 0) {
+                        nvgBeginPath(nvg);
+                        nvgRect(nvg, x, y, bw.left(), h);
+                        nvgFillColor(nvg, color);
+                        nvgFill(nvg);
+                    }
+                    // Right
+                    if (bw.right() > 0) {
+                        nvgBeginPath(nvg);
+                        nvgRect(nvg, x + w - bw.right(), y, bw.right(), h);
+                        nvgFillColor(nvg, color);
+                        nvgFill(nvg);
+                    }
+                }
+            }
+        }
+
+        // TODO: render images, etc.
     }
 
     private void renderText(long nvg, LayoutElement element) {

@@ -154,18 +154,19 @@ public class UILayoutEngine {
         ElementDeclaration decl = element.declaration();
         LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
         Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+        BorderWidth border = (decl.border() != null) ? decl.border().width() : UIContext.DEFAULT_BORDER_WIDTH;
         Sizing sizing = layout.sizing() != null ? layout.sizing() : UIContext.DEFAULT_SIZING;
 
         // Determine constraints for children (Space available for content)
         float contentConstraintW = switch (sizing.width().type()) {
-            case FIXED -> sizing.width().min() - padding.left() - padding.right();
-            case PERCENT -> parentWidth * sizing.width().percent() - padding.left() - padding.right();
-            default -> parentWidth - padding.left() - padding.right();
+            case FIXED -> sizing.width().min() - padding.left() - padding.right() - border.left() - border.right();
+            case PERCENT -> parentWidth * sizing.width().percent() - padding.left() - padding.right() - border.left() - border.right();
+            default -> parentWidth - padding.left() - padding.right() - border.left() - border.right();
         };
         float contentConstraintH = switch (sizing.height().type()) {
-            case FIXED -> sizing.height().min() - padding.top() - padding.bottom();
-            case PERCENT -> parentHeight * sizing.height().percent() - padding.top() - padding.bottom();
-            default -> parentHeight - padding.top() - padding.bottom();
+            case FIXED -> sizing.height().min() - padding.top() - padding.bottom() - border.top() - border.bottom();
+            case PERCENT -> parentHeight * sizing.height().percent() - padding.top() - padding.bottom() - border.top() - border.bottom();
+            default -> parentHeight - padding.top() - padding.bottom() - border.top() - border.bottom();
         };
 
         // Calculate children preferred sizes with their respective constraints
@@ -176,7 +177,7 @@ public class UILayoutEngine {
         float preferredWidth, preferredHeight;
         if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
             // Main axis (Width)
-            preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, parentHeight, element.children(), true, layout);
+            preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, parentHeight, element.children(), true, layout, border);
             
             // Cross axis (Height). The constraint is either the parent's space or the resolved width of this element.
             float crossConstraint = switch (sizing.width().type()) {
@@ -185,10 +186,10 @@ public class UILayoutEngine {
                 case FIT -> preferredWidth;
                 case GROW -> parentWidth;
             };
-            preferredHeight = calculateAxisPreferredSize(sizing.height(), parentHeight, crossConstraint, element.children(), false, layout);
+            preferredHeight = calculateAxisPreferredSize(sizing.height(), parentHeight, crossConstraint, element.children(), false, layout, border);
         } else {
             // Main axis (Height)
-            preferredHeight = calculateAxisPreferredSize(sizing.height(), parentHeight, parentWidth, element.children(), false, layout);
+            preferredHeight = calculateAxisPreferredSize(sizing.height(), parentHeight, parentWidth, element.children(), false, layout, border);
             
             // Cross axis (Width)
             float crossConstraint = switch (sizing.height().type()) {
@@ -197,7 +198,7 @@ public class UILayoutEngine {
                 case FIT -> preferredHeight;
                 case GROW -> parentHeight;
             };
-            preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, crossConstraint, element.children(), true, layout);
+            preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, crossConstraint, element.children(), true, layout, border);
         }
 
         // Apply aspect ratio if present
@@ -220,7 +221,7 @@ public class UILayoutEngine {
         element.setPreferredHeight(preferredHeight);
     }
 
-    private float calculateAxisPreferredSize(SizingAxis axis, float availableOnThisAxis, float availableOnOtherAxis, List<LayoutElement> children, boolean isWidth, LayoutConfig layout) {
+    private float calculateAxisPreferredSize(SizingAxis axis, float availableOnThisAxis, float availableOnOtherAxis, List<LayoutElement> children, boolean isWidth, LayoutConfig layout, BorderWidth border) {
         return switch (axis.type()) {
             case FIXED -> axis.min();
             case PERCENT -> {
@@ -235,7 +236,8 @@ public class UILayoutEngine {
                 if (layout.wrap()) {
                     Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
                     float paddingMain = isHorizontal ? (padding.left() + padding.right()) : (padding.top() + padding.bottom());
-                    float mainAxisConstraint = (isMainAxis ? availableOnThisAxis : availableOnOtherAxis) - paddingMain;
+                    float borderMain = isHorizontal ? (border.left() + border.right()) : (border.top() + border.bottom());
+                    float mainAxisConstraint = (isMainAxis ? availableOnThisAxis : availableOnOtherAxis) - paddingMain - borderMain;
                     
                     float currentLineMainSize = 0;
                     float currentLineCrossSize = 0;
@@ -285,7 +287,7 @@ public class UILayoutEngine {
                     }
                 }
                 Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
-                size += isWidth ? (padding.left() + padding.right()) : (padding.top() + padding.bottom());
+                size += isWidth ? (padding.left() + padding.right() + border.left() + border.right()) : (padding.top() + padding.bottom() + border.top() + border.bottom());
                 yield Math.max(axis.min(), Math.min(axis.max(), size));
             }
             case GROW -> axis.min();
@@ -298,18 +300,19 @@ public class UILayoutEngine {
         ElementDeclaration decl = element.declaration();
         LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
         Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+        BorderWidth border = (decl.border() != null) ? decl.border().width() : UIContext.DEFAULT_BORDER_WIDTH;
 
-        float innerWidth = element.getWidth() - padding.left() - padding.right();
-        float innerHeight = element.getHeight() - padding.top() - padding.bottom();
+        float innerWidth = element.getWidth() - padding.left() - padding.right() - border.left() - border.right();
+        float innerHeight = element.getHeight() - padding.top() - padding.bottom() - border.top() - border.bottom();
 
         if (layout.wrap()) {
-            calculateWrappedPositions(element, innerWidth, innerHeight, layout, padding);
+            calculateWrappedPositions(element, innerWidth, innerHeight, layout, padding, border);
         } else {
-            calculateNonWrappedPositions(element, innerWidth, innerHeight, layout, padding);
+            calculateNonWrappedPositions(element, innerWidth, innerHeight, layout, padding, border);
         }
     }
 
-    private void calculateNonWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding) {
+    private void calculateNonWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding, BorderWidth border) {
         boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
         
         List<LayoutElement> children = element.children().stream()
@@ -386,7 +389,7 @@ public class UILayoutEngine {
         }
     }
 
-    private void calculateWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding) {
+    private void calculateWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding, BorderWidth border) {
         boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
         
         List<LayoutElement> children = element.children().stream()
@@ -500,6 +503,7 @@ public class UILayoutEngine {
         LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
         Sizing sizing = layout.sizing() != null ? layout.sizing() : UIContext.DEFAULT_SIZING;
         Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+        BorderWidth border = (decl.border() != null) ? decl.border().width() : UIContext.DEFAULT_BORDER_WIDTH;
 
         if (sizing.width().type() == UI.SizingType.FIT) {
             float minX = Float.MAX_VALUE;
@@ -512,7 +516,7 @@ public class UILayoutEngine {
                 hasChildren = true;
             }
             if (hasChildren) {
-                element.setWidth(Math.max(sizing.width().min(), Math.min(sizing.width().max(), maxX - minX + padding.left() + padding.right())));
+                element.setWidth(Math.max(sizing.width().min(), Math.min(sizing.width().max(), maxX - minX + padding.left() + padding.right() + border.left() + border.right())));
             }
         }
 
@@ -527,7 +531,7 @@ public class UILayoutEngine {
                 hasChildren = true;
             }
             if (hasChildren) {
-                element.setHeight(Math.max(sizing.height().min(), Math.min(sizing.height().max(), maxY - minY + padding.top() + padding.bottom())));
+                element.setHeight(Math.max(sizing.height().min(), Math.min(sizing.height().max(), maxY - minY + padding.top() + padding.bottom() + border.top() + border.bottom())));
             }
         }
 
@@ -554,10 +558,11 @@ public class UILayoutEngine {
         ElementDeclaration decl = element.declaration();
         LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
         Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+        BorderWidth border = (decl.border() != null) ? decl.border().width() : UIContext.DEFAULT_BORDER_WIDTH;
         ChildAlignment alignment = layout.childAlignment() != null ? layout.childAlignment() : UIContext.DEFAULT_ALIGNMENT;
 
-        float innerWidth = element.getWidth() - padding.left() - padding.right();
-        float innerHeight = element.getHeight() - padding.top() - padding.bottom();
+        float innerWidth = element.getWidth() - padding.left() - padding.right() - border.left() - border.right();
+        float innerHeight = element.getHeight() - padding.top() - padding.bottom() - border.top() - border.bottom();
 
         // Calculate bounding box of all non-floating children (they currently have relative positions)
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
@@ -576,14 +581,14 @@ public class UILayoutEngine {
             float contentWidth = maxX - minX;
             float contentHeight = maxY - minY;
 
-            float offsetX = padding.left();
+            float offsetX = padding.left() + border.left();
             offsetX += switch (alignment.x()) {
                 case LEFT -> -minX;
                 case CENTER -> (innerWidth - contentWidth) / 2f - minX;
                 case RIGHT -> (innerWidth - contentWidth) - minX;
             };
 
-            float offsetY = padding.top();
+            float offsetY = padding.top() + border.top();
             offsetY += switch (alignment.y()) {
                 case TOP -> -minY;
                 case CENTER -> (innerHeight - contentHeight) / 2f - minY;

@@ -11,6 +11,8 @@ import java.util.Stack;
 public class UIContext {
 
     public static final Padding DEFAULT_PADDING = new Padding();
+    public static final BorderWidth DEFAULT_BORDER_WIDTH = new BorderWidth();
+    public static final CornerRadius DEFAULT_CORNER_RADIUS = new CornerRadius();
     public static final Sizing DEFAULT_SIZING = new Sizing(SizingAxis.fit(), SizingAxis.fit());
     public static final ChildAlignment DEFAULT_ALIGNMENT = new ChildAlignment(UI.HorizontalAlignment.LEFT, UI.VerticalAlignment.TOP);
     public static final LayoutConfig DEFAULT_LAYOUT = new LayoutConfig(DEFAULT_SIZING, DEFAULT_PADDING, 0, DEFAULT_ALIGNMENT, UI.LayoutDirection.LEFT_TO_RIGHT, false);
