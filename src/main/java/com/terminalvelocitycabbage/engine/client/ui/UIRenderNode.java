@@ -237,18 +237,23 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     protected UIElement scrollableContainer(int id, ElementDeclaration containerDecl, ElementDeclaration scrollbarDecl, Runnable children) {
         State<Float> scrollPct = useState(id + "_scroll_pct", 0.0f);
 
-        UIElement element = new UIElement(id, getUIContext());
-        float containerHeight = element.height();
-        float contentHeight = element.preferredHeight();
+        int contentContainerId = getUIContext().hashString(id + "_scroll_container", 0, id);
+        UIElement containerElement = new UIElement(id, getUIContext());
+        UIElement contentElement = new UIElement(contentContainerId, getUIContext());
+
+        float containerHeight = containerElement.height();
+        float contentHeight = contentElement.preferredHeight();
 
         float scrollableRange = Math.max(0, contentHeight - containerHeight);
+
+        final float SCROLL_SPEED = 20f;
 
         // Handle scroll input
         if (scrollableRange > 0) {
             float totalDelta = 0;
             for (Event event : heardEvents(id, UIScrollEvent.EVENT)) {
                 if (event instanceof UIScrollEvent scrollEvent) {
-                    totalDelta += scrollEvent.getDelta().y;
+                    totalDelta += scrollEvent.getDelta().y * SCROLL_SPEED;
                 }
             }
             if (totalDelta != 0) {
