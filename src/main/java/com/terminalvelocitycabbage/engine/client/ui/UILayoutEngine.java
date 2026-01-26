@@ -158,8 +158,8 @@ public class UILayoutEngine {
         }
 
         float preferredWidth, preferredHeight;
-        //TODO add right to left and bottom to top layout directions
-        if (layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT) {
+        UI.LayoutDirection direction = layout.layoutDirection();
+        if (direction == UI.LayoutDirection.LEFT_TO_RIGHT || direction == UI.LayoutDirection.RIGHT_TO_LEFT) {
             // Main axis (Width)
             preferredWidth = calculateAxisPreferredSize(sizing.width(), parentWidth, parentHeight, element.children(), true, layout, border);
             
@@ -214,7 +214,8 @@ public class UILayoutEngine {
             }
             case FIT -> {
                 float size = 0;
-                boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
+                UI.LayoutDirection direction = layout.layoutDirection();
+                boolean isHorizontal = direction == UI.LayoutDirection.LEFT_TO_RIGHT || direction == UI.LayoutDirection.RIGHT_TO_LEFT;
                 boolean isMainAxis = (isWidth && isHorizontal) || (!isWidth && !isHorizontal);
 
                 if (layout.wrap()) {
@@ -305,7 +306,9 @@ public class UILayoutEngine {
     }
 
     private void calculateNonWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding, BorderWidth border) {
-        boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
+        UI.LayoutDirection direction = layout.layoutDirection();
+        boolean isHorizontal = direction == UI.LayoutDirection.LEFT_TO_RIGHT || direction == UI.LayoutDirection.RIGHT_TO_LEFT;
+        boolean isReversed = direction == UI.LayoutDirection.RIGHT_TO_LEFT || direction == UI.LayoutDirection.BOTTOM_TO_TOP;
         
         List<LayoutElement> children = element.children().stream()
                 .filter(child -> child.declaration() == null || child.declaration().floating() == null)
@@ -361,12 +364,12 @@ public class UILayoutEngine {
             
             // Set relative position (alignment will be handled in Pass 4)
             if (isHorizontal) {
-                child.setX(currentMainOffset);
+                child.setX(isReversed ? -currentMainOffset - w : currentMainOffset);
                 child.setY(0);
                 currentMainOffset += w + layout.childGap();
             } else {
                 child.setX(0);
-                child.setY(currentMainOffset);
+                child.setY(isReversed ? -currentMainOffset - h : currentMainOffset);
                 currentMainOffset += h + layout.childGap();
             }
             
@@ -382,7 +385,9 @@ public class UILayoutEngine {
     }
 
     private void calculateWrappedPositions(LayoutElement element, float innerWidth, float innerHeight, LayoutConfig layout, Padding padding, BorderWidth border) {
-        boolean isHorizontal = layout.layoutDirection() == UI.LayoutDirection.LEFT_TO_RIGHT;
+        UI.LayoutDirection direction = layout.layoutDirection();
+        boolean isHorizontal = direction == UI.LayoutDirection.LEFT_TO_RIGHT || direction == UI.LayoutDirection.RIGHT_TO_LEFT;
+        boolean isReversed = direction == UI.LayoutDirection.RIGHT_TO_LEFT || direction == UI.LayoutDirection.BOTTOM_TO_TOP;
         
         List<LayoutElement> children = element.children().stream()
                 .filter(child -> child.declaration() == null || child.declaration().floating() == null)
@@ -477,12 +482,12 @@ public class UILayoutEngine {
                 }
                 
                 if (isHorizontal) {
-                    child.setX(currentMainOffset);
+                    child.setX(isReversed ? -currentMainOffset - child.getWidth() : currentMainOffset);
                     child.setY(currentCrossOffset);
                     currentMainOffset += child.getWidth() + layout.childGap();
                 } else {
                     child.setX(currentCrossOffset);
-                    child.setY(currentMainOffset);
+                    child.setY(isReversed ? -currentMainOffset - child.getHeight() : currentMainOffset);
                     currentMainOffset += child.getHeight() + layout.childGap();
                 }
                 calculatePositions(child);

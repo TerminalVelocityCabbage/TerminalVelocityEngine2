@@ -38,10 +38,11 @@ public class UI {
         CENTER
     }
 
-    //TODO add right to left and bottom to top
     public enum LayoutDirection {
         LEFT_TO_RIGHT,
-        TOP_TO_BOTTOM
+        RIGHT_TO_LEFT,
+        TOP_TO_BOTTOM,
+        BOTTOM_TO_TOP
     }
 
     public enum PointerCaptureMode {

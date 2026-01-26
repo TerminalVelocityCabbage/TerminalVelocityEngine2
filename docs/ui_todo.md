@@ -1,7 +1,5 @@
 **Functional/Structural Features:**
-*   **Z-Index / Layering**: Floating elements currently render in declaration order. Sorting them by `zIndex` is necessary for complex overlays or tooltips.
-*   **Pointer Capture Mode**: Implementing whether an element (especially a floating one) blocks input from reaching elements behind it.
-*   **Right-to-Left (RTL) / Bottom-to-Top**: Support for alternative layout directions in the engine.
+*   **Margins**: similar to padding, but applied to the outside of an element's bounding box.
 
 **Advanced Visuals (NanoVG Strengths):**
 *   **Images & Vector Graphics**: (Pending) Data structures exist, but the NanoVG `nvgImagePattern` and path rendering logic are not yet implemented in `renderElement`.
