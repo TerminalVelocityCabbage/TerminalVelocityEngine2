@@ -32,6 +32,9 @@ import static org.lwjgl.system.MemoryStack.stackPush;
  */
 public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.TextMeasurer {
 
+    private List<LayoutElement> sortedFloatingCache;
+    private Map<Integer, Integer> declarationOrderCache;
+
     public UIRenderNode(ShaderProgramConfig shaderProgramConfig) {
         super(shaderProgramConfig);
     }
@@ -52,6 +55,9 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     @Override
     public void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
+
+        sortedFloatingCache = null;
+        declarationOrderCache = null;
 
         UIContext context = getUIContext();
         context.beginFrame(properties.getWidth(), properties.getHeight());
@@ -455,25 +461,60 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     private boolean isEventCapturedByHigherFloatingElement(Vector2f pos, int elementId) {
 
-        var element = findElementById(getUIContext().getRootElement(), elementId);
+        var root = getUIContext().getLastFrameRootElement();
+        if (root == null) return false;
 
-        ArrayList<LayoutElement> floatingElements = new ArrayList<>();
-        collectCapturingFloatingElements(getUIContext().getRootElement(), floatingElements);
+        var element = findElementById(root, elementId);
+        if (pos == null || element == null) return false;
 
-        if (pos == null || element == null || floatingElements.isEmpty()) return false;
+        if (sortedFloatingCache == null) {
+            List<LayoutElement> allFloating = new ArrayList<>();
+            collectCapturingFloatingElements(root, allFloating);
+            
+            List<LayoutElement> allElements = new ArrayList<>();
+            collectAllElements(root, allElements);
+            
+            declarationOrderCache = new HashMap<>();
+            for (int i = 0; i < allElements.size(); i++) {
+                declarationOrderCache.put(allElements.get(i).id(), i);
+            }
 
-        for (LayoutElement floatingElement : floatingElements) {
-            if (element.declaration() == null) return false;
-            if (elementId == floatingElement.id()) continue;
-            if (floatingElement.declaration().floating() != null) continue;
-            if (floatingElement.declaration().floating().pointerCaptureMode() != UI.PointerCaptureMode.CAPTURE) continue;
-            if (!isPositionInside(pos, floatingElement.id())) continue;
-            if (floatingElement.declaration().floating().zIndex() > element.declaration().floating().zIndex()) {
-                return true;
+            allFloating.sort((e1, e2) -> {
+                int z1 = e1.declaration().floating().zIndex();
+                int z2 = e2.declaration().floating().zIndex();
+                if (z1 != z2) return Integer.compare(z2, z1); // Higher z-index first
+                return Integer.compare(declarationOrderCache.get(e2.id()), declarationOrderCache.get(e1.id())); // Later declaration first
+            });
+            
+            sortedFloatingCache = allFloating;
+        }
+
+        boolean targetIsFloating = element.declaration() != null && element.declaration().floating() != null;
+        int targetZ = targetIsFloating ? element.declaration().floating().zIndex() : Integer.MIN_VALUE;
+        int targetDeclIndex = declarationOrderCache.get(elementId);
+
+        for (LayoutElement floatingElement : sortedFloatingCache) {
+            if (floatingElement.id() == elementId) break; // Reached the element itself
+
+            // Does this floating element capture input and cover the position?
+            if (floatingElement.declaration().floating().pointerCaptureMode() == UI.PointerCaptureMode.CAPTURE &&
+                isPositionInside(pos, floatingElement.id())) {
+                
+                int fZ = floatingElement.declaration().floating().zIndex();
+                if (fZ > targetZ) return true;
+                if (fZ == targetZ && declarationOrderCache.get(floatingElement.id()) > targetDeclIndex) return true;
             }
         }
 
         return false;
+    }
+
+    private void collectAllElements(LayoutElement element, List<LayoutElement> results) {
+        if (element == null) return;
+        results.add(element);
+        for (LayoutElement child : element.children()) {
+            collectAllElements(child, results);
+        }
     }
 
     private LayoutElement findElementById(LayoutElement root, int id) {

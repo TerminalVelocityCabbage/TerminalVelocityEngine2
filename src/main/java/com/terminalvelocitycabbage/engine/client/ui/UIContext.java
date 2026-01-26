@@ -34,6 +34,7 @@ public class UIContext {
     private final Set<Integer> accessedStatesThisFrame = new HashSet<>();
 
     private LayoutElement rootElement;
+    private LayoutElement lastFrameRootElement;
     private LayoutElement currentElement;
 
     public UIContext() {
@@ -116,6 +117,7 @@ public class UIContext {
     }
 
     public void beginFrame(float width, float height) {
+        lastFrameRootElement = rootElement;
 
         // Snapshot input
         currentInputState.copyFrom(pendingInputState);
@@ -174,6 +176,10 @@ public class UIContext {
 
     public LayoutElement getRootElement() {
         return rootElement;
+    }
+
+    public LayoutElement getLastFrameRootElement() {
+        return lastFrameRootElement;
     }
 
     public void endFrame(Map<Integer, UIElementData> newFrameData) {
