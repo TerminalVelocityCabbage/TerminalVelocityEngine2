@@ -1,26 +1,27 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
-import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
-import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.state.State;
 import com.terminalvelocitycabbage.engine.util.Color;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
-import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 import org.joml.Vector2f;
 import org.lwjgl.nanovg.NVGColor;
 import org.lwjgl.system.MemoryStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -367,7 +368,11 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return true if hovered, false otherwise.
      */
     protected boolean isHovered(int id) {
-        return isPositionInside(getUIContext().getInputState().getMousePosition(), id);
+        Vector2f mousePos = getUIContext().getInputState().getMousePosition();
+        if (isEventCapturedByHigherFloatingElement(mousePos, id)) {
+            return false;
+        }
+        return isPositionInside(mousePos, id);
     }
 
     /**
@@ -393,7 +398,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      */
     protected Event heardEvent(int elementId, Identifier eventType) {
         for (Event event : getUIContext().getInputState().getEvents()) {
-            if (event.getId().equals(eventType) && isEventTargetingElement(event, elementId)) {
+            if (event.getId().equals(eventType) && isEventTargetingElement(elementId)) {
                 return event;
             }
         }
@@ -422,11 +427,16 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     protected List<Event> heardEvents(int elementId, Identifier eventType) {
         List<Event> results = new ArrayList<>();
         for (Event event : getUIContext().getInputState().getEvents()) {
-            if (event.getId().equals(eventType) && isEventTargetingElement(event, elementId)) {
+            if (event.getId().equals(eventType) && isEventTargetingElement(elementId)) {
                 results.add(event);
             }
         }
         return results;
+    }
+
+    private boolean isEventTargetingElement(int elementId) {
+        var mousePos = getUIContext().getInputState().getMousePosition();
+        return isPositionInside(mousePos, elementId);
     }
 
     /**
@@ -443,14 +453,47 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         return results;
     }
 
-    private boolean isEventTargetingElement(Event event, int elementId) {
-        if (event instanceof UIClickEvent clickEvent) {
-            return isPositionInside(clickEvent.getPosition(), elementId);
-        } else if (event instanceof UIScrollEvent) {
-            return isHovered(elementId);
+    private boolean isEventCapturedByHigherFloatingElement(Vector2f pos, int elementId) {
+
+        if (pos == null) return false;
+
+        var element = findElementById(getUIContext().getRootElement(), elementId);
+
+        ArrayList<LayoutElement> floatingElements = new ArrayList<>();
+        collectCapturingFloatingElements(getUIContext().getRootElement(), floatingElements);
+
+        for (LayoutElement floatingElement : floatingElements) {
+            if (element != null &&
+                    element.declaration() != null && elementId != floatingElement.id() &&
+                    floatingElement.declaration().floating() != null &&
+                    floatingElement.declaration().floating().pointerCaptureMode() == UI.PointerCaptureMode.CAPTURE &&
+                    isPositionInside(pos, floatingElement.id()) &&
+                    floatingElement.declaration().floating().zIndex() > element.declaration().floating().zIndex()
+            ) {
+                return true;
+            }
         }
-        // TODO: Handle other event types (e.g. keyboard events for focused elements)
+
         return false;
+    }
+
+    private LayoutElement findElementById(LayoutElement root, int id) {
+        if (root.id() == id) return root;
+        for (LayoutElement child : root.children()) {
+            LayoutElement found = findElementById(child, id);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private void collectCapturingFloatingElements(LayoutElement element, List<LayoutElement> results) {
+        if (element == null) return;
+        if (element.declaration() != null && element.declaration().floating() != null) {
+            results.add(element);
+        }
+        for (LayoutElement child : element.children()) {
+            collectCapturingFloatingElements(child, results);
+        }
     }
 
     private void collectElementData(LayoutElement element, Map<Integer, UIElementData> dataMap) {
@@ -466,8 +509,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     private void renderElement(long nvg, LayoutElement element) {
 
-        Log.debug("Rendering element " + element.id());
-
         if (element.isText()) {
             renderText(nvg, element);
         } else {
@@ -478,20 +519,29 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 nvgSave(nvg);
                 nvgIntersectScissor(nvg, element.getX(), element.getY(), element.getWidth(), element.getHeight());
             }
-            
+
             // Render non-floating children first
             for (LayoutElement child : element.children()) {
                 if (child.declaration() == null || child.declaration().floating() == null) {
                     renderElement(nvg, child);
                 }
             }
-            
-            // Then render floating children (effectively on top)
-            // TODO: Sort by zIndex if implemented in FloatingElementConfig
+
+            // Then render floating children (effectively on top) sorted by zIndex
+            List<LayoutElement> floatingChildren = new ArrayList<>();
             for (LayoutElement child : element.children()) {
                 if (child.declaration() != null && child.declaration().floating() != null) {
-                    renderElement(nvg, child);
+                    floatingChildren.add(child);
                 }
+            }
+            // Sort by zIndex, then by declaration order
+            floatingChildren.sort((e1, e2) -> {
+                int zDiff = Integer.compare(e1.declaration().floating().zIndex(), e2.declaration().floating().zIndex());
+                if (zDiff != 0) return zDiff;
+                return Integer.compare(element.children().indexOf(e1), element.children().indexOf(e2));
+            });
+            for (LayoutElement floatingChild : floatingChildren) {
+                renderElement(nvg, floatingChild);
             }
 
             if (clipping) {

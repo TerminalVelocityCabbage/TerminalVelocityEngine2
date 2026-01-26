@@ -54,6 +54,8 @@ public class UILayoutEngine {
             ElementDeclaration decl = child.declaration();
             if (decl != null && decl.floating() != null) {
                 applyFloatingPosition(child, decl.floating());
+                // After positioning the floating element, we MUST recalculate its children's absolute positions
+                applyAlignment(child);
             }
             calculateFloatingPositions(child);
         }
@@ -61,10 +63,17 @@ public class UILayoutEngine {
 
     private void applyFloatingPosition(LayoutElement element, FloatingElementConfig config) {
         // Initialize size for floating element (it was skipped in standard layout pass)
+        // Note: we check both width and height to be 0, but fit/fixed might have set them already
+        // However, standard layout pass skips floating elements completely in calculatePositions,
+        // so we must ensure they have their final sizes here before positioning.
         if (element.getWidth() == 0 && element.getHeight() == 0) {
             element.setWidth(element.getPreferredWidth());
             element.setHeight(element.getPreferredHeight());
         }
+
+        // Before positioning children, we must ensure they have their sizes and relative positions calculated
+        // calculatePositions(element) was skipped for floating elements in Pass 2
+        calculatePositions(element);
 
         LayoutElement target = switch (config.attachTo()) {
             case PARENT -> element.parent();
@@ -270,7 +279,15 @@ public class UILayoutEngine {
     }
 
     private void calculatePositions(LayoutElement element) {
-        if (element.isText() || element.children().isEmpty()) return;
+        if (element.isText()) return;
+
+        // Ensure we calculate positions for floating children too if they were skipped
+        // Standard layout pass skips floating elements in children list within calculate(Non)WrappedPositions
+        // but we need to recurse into them.
+        
+        // Note: we don't return early if children is empty because updateSizing might still need to run
+        // but here we are calculating child positions, so if there are no children, there's nothing to do
+        if (element.children().isEmpty()) return;
 
         ElementDeclaration decl = element.declaration();
         LayoutConfig layout = decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
