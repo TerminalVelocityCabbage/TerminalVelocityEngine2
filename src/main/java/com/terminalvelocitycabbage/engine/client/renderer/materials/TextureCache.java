@@ -18,9 +18,11 @@ public class TextureCache {
 
     private final Map<Identifier, Resource> singleTextures;
     private final Map<Identifier, Texture> generatedTextures;
+    private final Map<Identifier, Atlas> generatedAtlases;
 
     public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures) {
         this.generatedTextures = new HashMap<>();
+        this.generatedAtlases = new HashMap<>();
         this.texturesToCompileToAtlas = texturesToCompileToAtlas;
         this.singleTextures = singleTextures;
     }
@@ -28,8 +30,9 @@ public class TextureCache {
     public void generateAtlas(Identifier atlasIdentifier) {
         var textures = texturesToCompileToAtlas.get(atlasIdentifier);
         var atlas = new Atlas(textures);
+        this.generatedAtlases.put(atlasIdentifier, atlas);
         for (Identifier textureId : textures.keySet()) {
-            Log.info("Generating texture " + textureId + " for atlas " + atlasIdentifier);
+            Log.debug("Generating texture " + textureId + " for atlas " + atlasIdentifier);
             this.generatedTextures.put(textureId, atlas);
         }
     }
@@ -54,17 +57,30 @@ public class TextureCache {
     }
 
     /**
+     * @param texture The identifier for the texture you wish to retrieve from this cache
+     * @param atlasIdentifier The identifier for the atlas you wish to retrieve from this cache
+     * @return The requested texture or null (in the future this will return a default texture)
+     */
+    public Texture getTexture(Identifier texture, Identifier atlasIdentifier) {
+        if (atlasIdentifier == null) return getTexture(texture);
+
+        Atlas atlas = generatedAtlases.get(atlasIdentifier);
+        if (atlas != null && atlas.getTextureInfo(texture) != null) {
+            return atlas;
+        }
+
+        return getTexture(texture);
+    }
+
+    /**
      * Cleans up the given atlas (frees all memory associated from the gpu)
      * @param atlasIdentifier The atlas that needs to be cleaned up
      */
     public void cleanupAtlas(Identifier atlasIdentifier) {
-        boolean clean = false;
-        for (Identifier textureId : texturesToCompileToAtlas.get(atlasIdentifier).keySet()) {
-            if (!clean) {
-                generatedTextures.get(textureId).cleanup();
-                clean = true;
-            }
-            generatedTextures.remove(textureId);
+        Atlas atlas = generatedAtlases.remove(atlasIdentifier);
+        if (atlas != null) {
+            atlas.cleanup();
+            generatedTextures.entrySet().removeIf(entry -> entry.getValue() == atlas);
         }
     }
 
