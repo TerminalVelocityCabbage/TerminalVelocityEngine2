@@ -31,4 +31,12 @@ public record SizingAxis(float min, float max, float percent, UI.SizingType type
     public static SizingAxis fixed(float value) {
         return new SizingAxis(value, value, 0, UI.SizingType.FIXED);
     }
+
+    public SizingAxis withMin(float min) {
+        return new SizingAxis(min, max, percent, type);
+    }
+
+    public SizingAxis withMax(float max) {
+        return new SizingAxis(min, max, percent, type);
+    }
 }

@@ -4,11 +4,8 @@ import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
-import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.state.State;
-import com.terminalvelocitycabbage.templates.events.UIClickEvent;
-import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 
 import java.util.*;
 
@@ -20,7 +17,7 @@ public class UIContext {
     public static final CornerRadius DEFAULT_CORNER_RADIUS = new CornerRadius();
     public static final Sizing DEFAULT_SIZING = new Sizing(SizingAxis.fit(), SizingAxis.fit());
     public static final ChildAlignment DEFAULT_ALIGNMENT = new ChildAlignment(UI.HorizontalAlignment.LEFT, UI.VerticalAlignment.TOP);
-    public static final LayoutConfig DEFAULT_LAYOUT = new LayoutConfig(DEFAULT_SIZING, DEFAULT_PADDING, DEFAULT_MARGIN, 0, DEFAULT_ALIGNMENT, UI.LayoutDirection.LEFT_TO_RIGHT, false);
+    public static final LayoutConfig DEFAULT_LAYOUT = new LayoutConfig(DEFAULT_SIZING, DEFAULT_PADDING, DEFAULT_MARGIN, 0, DEFAULT_ALIGNMENT, UI.LayoutDirection.LEFT_TO_RIGHT, false, 0.0f);
 
     private final Map<Integer, UIElementData> lastFrameElementData = new HashMap<>();
     private final Stack<Integer> idStack = new Stack<>();
@@ -138,9 +135,7 @@ public class UIContext {
         // Create an implicit root element that fills the window
         int rootId = hashString("window_root", 0, 0);
         ElementDeclaration rootDecl = ElementDeclaration.builder()
-                .layout(LayoutConfig.builder()
-                        .sizing(new Sizing(SizingAxis.fixed(width), SizingAxis.fixed(height)))
-                        .build())
+                .layout(LayoutConfig.builder().sizing(new Sizing(SizingAxis.fixed(width), SizingAxis.fixed(height))))
                 .build();
         rootElement = new LayoutElement(rootId, rootDecl, null);
         rootElement.setWidth(width);

@@ -163,9 +163,11 @@ aspect-[(rat)]
 ### Clip:
 Allows the element to clip overflow elements (scrolling containers do this behind the scenes, but also add a scrollbar to manage it)
 ```terminaloutput
-clip-[(axis)]           clips the specified axis
-clip-offset-x[(dim)]    offsets the elements inside the clip bounds by the offset in the x direction
-clip-offset-y[(dim)]    offsets the elements inside the clip bounds by the offset in the y direction
+clip                     clips the element on both axes
+clip-x                   clips the element to the y axis
+clip-y                   clips the element to the x axis
+clip-offset-x-[(dim)]    offsets the elements inside the clip bounds by the offset in the x direction
+clip-offset-y-[(dim)]    offsets the elements inside the clip bounds by the offset in the y direction
 ```
 
 ### Sizing:
@@ -224,7 +226,43 @@ float-element-[(id)]    tells the layout engine that this element is floating re
 attach-[(apt)]          attaches this element based on the point specified
 to-[(apt)]              attaches the attachement point to the parent's attachment point specified (parent refers to root/parent/element whatever float type is specified)
 
-float-offset-[(dim)]    offsets the element by the dim relative to the attachment point
+float-offset-x-[(dim)]  offsets the element by the dim relative to the attachment point in the x direction
+float-offset-y-[(dim)]  offsets the element by the dim relative to the attachment point in the y direction
+float-expand-x-[(dim)]  expands the element by the dim in the x direction
+float-expand-y-[(dim)]  expands the element by the dim in the y direction
+
+z-[(int)]               sets the z-index of the floating element
+
+pointer-capture         sets the pointer capture mode to capture (default)
+pointer-passthrough     sets the pointer capture mode to passthrough
+
+clip-to-none            does not clip the floating element to anything (default)
+clip-to-parent          clips the floating element to its attached parent
+```
+
+## Images
+Configures an image to be rendered in the background of this element
+```terminaloutput
+img-[(id)]              sets the image identifier to be rendered
+atlas-[(id)]            sets the atlas identifier for the image
+img-rounded-[(dim)]     sets the corner radius for the image background
+img-bg-[(col)]          sets the background color for the image
+```
+
+## Text
+Configures a text element
+```terminaloutput
+text-color-[(col)]      sets the color of the text
+font-[(id)]             sets the font identifier for the text
+text-size-[(int)]       sets the font size
+letter-spacing-[(int)]  sets the letter spacing
+line-height-[(int)]     sets the line height
+text-wrap-none          sets the text wrap mode to none (default)
+text-wrap-words         sets the text wrap mode to wrap on words
+text-wrap-newlines      sets the text wrap mode to wrap on newlines
+text-left               aligns the text to the left (default)
+text-center             aligns the text to the center
+text-right              aligns the text to the right
 ```
 
 ## Wrapping

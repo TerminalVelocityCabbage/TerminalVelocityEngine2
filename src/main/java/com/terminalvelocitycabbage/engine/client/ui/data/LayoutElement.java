@@ -1,6 +1,5 @@
-package com.terminalvelocitycabbage.engine.client.ui;
+package com.terminalvelocitycabbage.engine.client.ui.data;
 
-import com.terminalvelocitycabbage.engine.client.ui.data.ElementDeclaration;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import org.joml.Vector2f;
 

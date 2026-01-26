@@ -37,9 +37,17 @@ public record FloatingElementConfig(
         private UI.FloatingAttachToElement attachTo = UI.FloatingAttachToElement.PARENT;
         private UI.FloatingClipToElement clipTo;
 
+        public Vector2f offset() {
+            return offset;
+        }
+
         public Builder offset(Vector2f offset) {
             this.offset = offset;
             return this;
+        }
+
+        public Vector2f expand() {
+            return expand;
         }
 
         public Builder expand(Vector2f expand) {
@@ -47,9 +55,21 @@ public record FloatingElementConfig(
             return this;
         }
 
+        public int zIndex() {
+            return zIndex;
+        }
+
         public Builder zIndex(int zIndex) {
             this.zIndex = zIndex;
             return this;
+        }
+
+        public int parentId() {
+            return parentId;
+        }
+
+        public FloatingAttachPoints attachPoints() {
+            return attachPoints;
         }
 
         public Builder attachPoints(FloatingAttachPoints attachPoints) {
@@ -57,9 +77,17 @@ public record FloatingElementConfig(
             return this;
         }
 
+        public UI.PointerCaptureMode pointerCaptureMode() {
+            return pointerCaptureMode;
+        }
+
         public Builder pointerCaptureMode(UI.PointerCaptureMode pointerCaptureMode) {
             this.pointerCaptureMode = pointerCaptureMode;
             return this;
+        }
+
+        public UI.FloatingAttachToElement attachTo() {
+            return attachTo;
         }
 
         public Builder attachTo(UI.FloatingAttachToElement attachTo) {
@@ -90,6 +118,10 @@ public record FloatingElementConfig(
                 }
                 case ROOT, PARENT -> throw new IllegalArgumentException("Element id not required for " + attachTo + " attachment type");
             };
+        }
+
+        public UI.FloatingClipToElement clipTo() {
+            return clipTo;
         }
 
         public Builder clipTo(UI.FloatingClipToElement clipTo) {

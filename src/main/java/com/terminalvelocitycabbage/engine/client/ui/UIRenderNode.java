@@ -117,16 +117,12 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      */
     protected abstract void declareUI();
 
-    //TODO implement tailwind style declarations
-    protected UIElement container(String declaration, Runnable children) {
-        //TODO replace null with string constructor of ElementDeclaration
-        return container(getUIContext().generateAutoId(), (ElementDeclaration) null, children);
+    protected UIElement container(String props, Runnable children) {
+        return container(getUIContext().generateAutoId(), ElementDeclaration.of(props), children);
     }
 
-    //TODO implement tailwind style declarations
-    protected UIElement container(int id, String declaration, Runnable children) {
-        //TODO replace null with string constructor of ElementDeclaration
-        return container(id, (ElementDeclaration) null, children);
+    protected UIElement container(int id, String props, Runnable children) {
+        return container(id, ElementDeclaration.of(props), children);
     }
 
     /**
@@ -166,108 +162,104 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         return new UIElement(id, getUIContext());
     }
 
-    //TODO implement tailwind style declarations
-    protected UIElement text(String text, String config) {
-        //TODO replace null config passed to string constructor of TextElementConfig
-        return text(text, (TextElementConfig) null);
+    protected UIElement text(String text, String props) {
+        return text(text, TextElementConfig.of(props));
     }
 
     /**
      * Declares a text element.
      * @param text The string to display.
-     * @param config The configuration for the text.
+     * @param props The configuration properties for the text.
      * @return A handle to the declared element.
      */
-    protected UIElement text(String text, TextElementConfig config) {
-        return text(getUIContext().generateAutoId(), text, config);
+    protected UIElement text(String text, TextElementConfig props) {
+        return text(getUIContext().generateAutoId(), text, props);
     }
 
     /**
      * Declares a text element with a specific ID label.
      * @param idLabel The label to hash for this element's ID.
      * @param text The string to display.
-     * @param config The configuration for the text.
+     * @param props The configuration properties for the text.
      * @return A handle to the declared element.
      */
-    protected UIElement text(String idLabel, String text, TextElementConfig config) {
-        return text(id(idLabel), text, config);
+    protected UIElement text(String idLabel, String text, TextElementConfig props) {
+        return text(id(idLabel), text, props);
     }
 
     /**
      * Declares a text element with a specific ID.
      * @param id The ID for this element.
      * @param text The string to display.
-     * @param config The configuration for the text.
+     * @param props The configuration properties for the text.
      * @return A handle to the declared element.
      */
-    protected UIElement text(int id, String text, TextElementConfig config) {
-        getUIContext().addTextElement(id, text, config);
+    protected UIElement text(int id, String text, TextElementConfig props) {
+        getUIContext().addTextElement(id, text, props);
         return new UIElement(id, getUIContext());
     }
 
-    //TODO implement tailwind style declarations
-    protected UIElement image(String config) {
-        //TODO replace null config passed to string constructor of ImageElementConfig
-        return image((ImageElementConfig) null);
+    protected UIElement image(String props) {
+        return image(ElementDeclaration.of(props));
     }
 
     /**
      * Declares an image element.
-     * @param config The configuration for the image.
+     * @param props The configuration properties for the image.
      * @return A handle to the declared element.
      */
-    protected UIElement image(ImageElementConfig config) {
-        return image(getUIContext().generateAutoId(), config);
+    protected UIElement image(ImageElementConfig.Builder props) {
+        return image(getUIContext().generateAutoId(), props);
     }
 
     /**
      * Declares an image element with a specific ID label.
      * @param idLabel The label to hash for this element's ID.
-     * @param config The configuration for the image.
+     * @param props The configuration properties for the image.
      * @return A handle to the declared element.
      */
-    protected UIElement image(String idLabel, ImageElementConfig config) {
-        return image(id(idLabel), config);
+    protected UIElement image(String idLabel, ImageElementConfig.Builder props) {
+        return image(id(idLabel), props);
     }
 
     /**
      * Declares an image element with a specific ID.
      * @param id The ID for this element.
-     * @param config The configuration for the image.
+     * @param props The configuration properties for the image.
      * @return A handle to the declared element.
      */
-    protected UIElement image(int id, ImageElementConfig config) {
-        var builder = ElementDeclaration.builder().image(config);
+    protected UIElement image(int id, ImageElementConfig.Builder props) {
+        var builder = ElementDeclaration.builder().image(props);
         return container(id, builder.build(), null);
     }
 
     /**
      * Declares an image element.
-     * @param declaration The configuration for the image element.
+     * @param props The configuration properties for the image element.
      * @return A handle to the declared element.
      */
-    protected UIElement image(ElementDeclaration declaration) {
-        return image(getUIContext().generateAutoId(), declaration);
+    protected UIElement image(ElementDeclaration props) {
+        return image(getUIContext().generateAutoId(), props);
     }
 
     /**
      * Declares an image element with a specific ID label.
      * @param idLabel The label to hash for this element's ID.
-     * @param declaration The configuration for the image element.
+     * @param props The configuration properties for the image element.
      * @return A handle to the declared element.
      */
-    protected UIElement image(String idLabel, ElementDeclaration declaration) {
-        return image(id(idLabel), declaration);
+    protected UIElement image(String idLabel, ElementDeclaration props) {
+        return image(id(idLabel), props);
     }
 
     /**
      * Declares an image element with a specific ID.
      * @param id The ID for this element.
-     * @param declaration The configuration for the image element.
+     * @param props The configuration properties for the image element.
      * @return A handle to the declared element.
      */
-    protected UIElement image(int id, ElementDeclaration declaration) {
-        return container(id, declaration, null);
+    protected UIElement image(int id, ElementDeclaration props) {
+        return container(id, props, null);
     }
 
     /**
@@ -342,7 +334,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 containerDecl.layout(),
                 containerDecl.backgroundColor(),
                 containerDecl.cornerRadius(),
-                containerDecl.aspectRatio(),
                 containerDecl.image(),
                 containerDecl.floating(),
                 ClipElementConfig.builder()
@@ -359,7 +350,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                         .wrap(containerDecl.layout().wrap())
                         .childGap(containerDecl.layout().childGap())
                         .childAlignment(containerDecl.layout().childAlignment())
-                        .build())
+                        .aspectRatio(containerDecl.layout().aspectRatio()))
                 .build();
 
         var finalScrollbarDecl = new ElementDeclaration(
@@ -370,11 +361,11 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                         scrollbarDecl.layout().childGap(),
                         scrollbarDecl.layout().childAlignment(),
                         scrollbarDecl.layout().layoutDirection(),
-                        scrollbarDecl.layout().wrap()
+                        scrollbarDecl.layout().wrap(),
+                        scrollbarDecl.layout().aspectRatio()
                 ),
                 scrollbarDecl.backgroundColor(),
                 scrollbarDecl.cornerRadius(),
-                scrollbarDecl.aspectRatio(),
                 scrollbarDecl.image(),
                 FloatingElementConfig.builder()
                         .offset(new Vector2f(0, scrollbarOffset))
@@ -767,8 +758,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 }
             }
         }
-
-        // TODO: render images, etc.
     }
 
     private void renderText(long nvg, LayoutElement element) {

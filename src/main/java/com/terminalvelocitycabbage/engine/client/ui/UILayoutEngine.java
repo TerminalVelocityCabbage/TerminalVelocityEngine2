@@ -192,8 +192,8 @@ public class UILayoutEngine {
         }
 
         // Apply aspect ratio if present
-        if (decl.aspectRatio() != null && decl.aspectRatio().aspectRatio() > 0) {
-            float ratio = decl.aspectRatio().aspectRatio();
+        float ratio = getAspectRatio(element);
+        if (ratio > 0) {
             boolean widthFixed = sizing.width().type() == UI.SizingType.FIXED || sizing.width().type() == UI.SizingType.PERCENT;
             boolean heightFixed = sizing.height().type() == UI.SizingType.FIXED || sizing.height().type() == UI.SizingType.PERCENT;
 
@@ -551,7 +551,7 @@ public class UILayoutEngine {
     private float getAspectRatio(LayoutElement element) {
         ElementDeclaration decl = element.declaration();
         if (decl == null) return 0;
-        if (decl.aspectRatio() != null) return decl.aspectRatio().aspectRatio();
+        if (decl.layout() != null && decl.layout().aspectRatio() > 0) return decl.layout().aspectRatio();
         if (decl.image() != null) {
             Vector2f dims = dataSource.getImageDimensions(decl.image().imageIdentifier(), decl.image().atlasIdentifier());
             if (dims.x > 0 && dims.y > 0) return dims.x / dims.y;
@@ -606,18 +606,18 @@ public class UILayoutEngine {
         }
 
         // Re-apply aspect ratio after FIT updates
-        if (decl.aspectRatio() != null && decl.aspectRatio().aspectRatio() > 0) {
-            float ratio = decl.aspectRatio().aspectRatio();
+        float postFitRatio = getAspectRatio(element);
+        if (postFitRatio > 0) {
             boolean widthFit = sizing.width().type() == UI.SizingType.FIT || sizing.width().type() == UI.SizingType.GROW;
             boolean heightFit = sizing.height().type() == UI.SizingType.FIT || sizing.height().type() == UI.SizingType.GROW;
 
             if (widthFit && !heightFit) {
-                element.setWidth(element.getHeight() * ratio);
+                element.setWidth(element.getHeight() * postFitRatio);
             } else if (heightFit && !widthFit) {
-                element.setHeight(element.getWidth() / ratio);
+                element.setHeight(element.getWidth() / postFitRatio);
             } else if (widthFit && heightFit) {
                 // If both are flexible, prioritize width as base for now
-                element.setHeight(element.getWidth() / ratio);
+                element.setHeight(element.getWidth() / postFitRatio);
             }
         }
     }
