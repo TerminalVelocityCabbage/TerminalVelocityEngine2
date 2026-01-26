@@ -306,6 +306,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 new LayoutConfig(
                         new Sizing(scrollbarDecl.layout().sizing().width(), SizingAxis.fixed(scrollbarHeight)),
                         scrollbarDecl.layout().padding(),
+                        scrollbarDecl.layout().margin(),
                         scrollbarDecl.layout().childGap(),
                         scrollbarDecl.layout().childAlignment(),
                         scrollbarDecl.layout().layoutDirection(),
