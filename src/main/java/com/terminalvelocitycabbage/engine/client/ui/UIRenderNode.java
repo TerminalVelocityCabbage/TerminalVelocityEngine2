@@ -436,7 +436,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     private boolean isEventTargetingElement(int elementId) {
         var mousePos = getUIContext().getInputState().getMousePosition();
-        return isPositionInside(mousePos, elementId);
+        return isPositionInside(mousePos, elementId) && !isEventCapturedByHigherFloatingElement(mousePos, elementId);
     }
 
     /**
@@ -455,21 +455,20 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     private boolean isEventCapturedByHigherFloatingElement(Vector2f pos, int elementId) {
 
-        if (pos == null) return false;
-
         var element = findElementById(getUIContext().getRootElement(), elementId);
 
         ArrayList<LayoutElement> floatingElements = new ArrayList<>();
         collectCapturingFloatingElements(getUIContext().getRootElement(), floatingElements);
 
+        if (pos == null || element == null || floatingElements.isEmpty()) return false;
+
         for (LayoutElement floatingElement : floatingElements) {
-            if (element != null &&
-                    element.declaration() != null && elementId != floatingElement.id() &&
-                    floatingElement.declaration().floating() != null &&
-                    floatingElement.declaration().floating().pointerCaptureMode() == UI.PointerCaptureMode.CAPTURE &&
-                    isPositionInside(pos, floatingElement.id()) &&
-                    floatingElement.declaration().floating().zIndex() > element.declaration().floating().zIndex()
-            ) {
+            if (element.declaration() == null) return false;
+            if (elementId == floatingElement.id()) continue;
+            if (floatingElement.declaration().floating() != null) continue;
+            if (floatingElement.declaration().floating().pointerCaptureMode() != UI.PointerCaptureMode.CAPTURE) continue;
+            if (!isPositionInside(pos, floatingElement.id())) continue;
+            if (floatingElement.declaration().floating().zIndex() > element.declaration().floating().zIndex()) {
                 return true;
             }
         }
