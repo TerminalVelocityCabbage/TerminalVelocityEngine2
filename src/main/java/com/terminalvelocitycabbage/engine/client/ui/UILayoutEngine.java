@@ -5,6 +5,7 @@ import com.terminalvelocitycabbage.engine.client.ui.data.configs.FloatingElement
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
@@ -12,15 +13,16 @@ import java.util.List;
 
 public class UILayoutEngine {
 
-    public interface TextMeasurer {
+    public interface LayoutDataSource {
         Vector2f measureText(String text, TextElementConfig config, float maxWidth);
+        Vector2f getImageDimensions(Identifier imageId, Identifier atlasId);
     }
 
-    private final TextMeasurer textMeasurer;
+    private final LayoutDataSource dataSource;
     private LayoutElement rootRef;
 
-    public UILayoutEngine(TextMeasurer textMeasurer) {
-        this.textMeasurer = textMeasurer;
+    public UILayoutEngine(LayoutDataSource textMeasurer) {
+        this.dataSource = textMeasurer;
     }
 
     public void runLayout(LayoutElement root, float availableWidth, float availableHeight) {
@@ -134,7 +136,7 @@ public class UILayoutEngine {
         float availableH = parentHeight - margin.top() - margin.bottom();
 
         if (element.isText()) {
-            element.setPreferredSize(textMeasurer.measureText(element.text(), element.textConfig(), availableW));
+            element.setPreferredSize(dataSource.measureText(element.text(), element.textConfig(), availableW));
             return;
         }
 
@@ -165,7 +167,7 @@ public class UILayoutEngine {
         UI.LayoutDirection direction = layout.layoutDirection();
         if (direction == UI.LayoutDirection.LEFT_TO_RIGHT || direction == UI.LayoutDirection.RIGHT_TO_LEFT) {
             // Main axis (Width)
-            preferredWidth = calculateAxisPreferredSize(sizing.width(), availableW, availableH, element.children(), true, layout, border);
+            preferredWidth = calculateAxisPreferredSize(element, sizing.width(), availableW, availableH, true);
             
             // Cross axis (Height). The constraint is either the parent's space or the resolved width of this element.
             float crossConstraint = switch (sizing.width().type()) {
@@ -174,10 +176,10 @@ public class UILayoutEngine {
                 case FIT -> preferredWidth;
                 case GROW -> availableW;
             };
-            preferredHeight = calculateAxisPreferredSize(sizing.height(), availableH, crossConstraint, element.children(), false, layout, border);
+            preferredHeight = calculateAxisPreferredSize(element, sizing.height(), availableH, crossConstraint, false);
         } else {
             // Main axis (Height)
-            preferredHeight = calculateAxisPreferredSize(sizing.height(), availableH, availableW, element.children(), false, layout, border);
+            preferredHeight = calculateAxisPreferredSize(element, sizing.height(), availableH, availableW, false);
             
             // Cross axis (Width)
             float crossConstraint = switch (sizing.height().type()) {
@@ -186,7 +188,7 @@ public class UILayoutEngine {
                 case FIT -> preferredHeight;
                 case GROW -> availableH;
             };
-            preferredWidth = calculateAxisPreferredSize(sizing.width(), availableW, crossConstraint, element.children(), true, layout, border);
+            preferredWidth = calculateAxisPreferredSize(element, sizing.width(), availableW, crossConstraint, true);
         }
 
         // Apply aspect ratio if present
@@ -219,7 +221,12 @@ public class UILayoutEngine {
         return margin != null ? margin : UIContext.DEFAULT_MARGIN;
     }
 
-    private float calculateAxisPreferredSize(SizingAxis axis, float availableOnThisAxis, float availableOnOtherAxis, List<LayoutElement> children, boolean isWidth, LayoutConfig layout, BorderWidth border) {
+    private float calculateAxisPreferredSize(LayoutElement element, SizingAxis axis, float availableOnThisAxis, float availableOnOtherAxis, boolean isWidth) {
+        ElementDeclaration decl = element.declaration();
+        LayoutConfig layout = decl != null && decl.layout() != null ? decl.layout() : UIContext.DEFAULT_LAYOUT;
+        BorderWidth border = (decl != null && decl.border() != null) ? decl.border().width() : UIContext.DEFAULT_BORDER_WIDTH;
+        List<LayoutElement> children = element.children();
+
         return switch (axis.type()) {
             case FIXED -> axis.min();
             case PERCENT -> {
@@ -228,71 +235,80 @@ public class UILayoutEngine {
             }
             case FIT -> {
                 float size = 0;
-                UI.LayoutDirection direction = layout.layoutDirection();
-                boolean isHorizontal = direction == UI.LayoutDirection.LEFT_TO_RIGHT || direction == UI.LayoutDirection.RIGHT_TO_LEFT;
-                boolean isMainAxis = (isWidth && isHorizontal) || (!isWidth && !isHorizontal);
 
-                if (layout.wrap()) {
-                    Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
-                    float paddingMain = isHorizontal ? (padding.left() + padding.right()) : (padding.top() + padding.bottom());
-                    float borderMain = isHorizontal ? (border.left() + border.right()) : (border.top() + border.bottom());
-                    float mainAxisConstraint = (isMainAxis ? availableOnThisAxis : availableOnOtherAxis) - paddingMain - borderMain;
-                    
-                    float currentLineMainSize = 0;
-                    float currentLineCrossSize = 0;
-                    float maxLineMainSize = 0;
-                    float totalCrossSize = 0;
-
-                    for (LayoutElement child : children) {
-                        if (child.declaration() != null && child.declaration().floating() != null) continue;
-
-                        Margin childMargin = getMargin(child);
-                        float childMarginMain = isHorizontal ? (childMargin.left() + childMargin.right()) : (childMargin.top() + childMargin.bottom());
-                        float childMarginCross = isHorizontal ? (childMargin.top() + childMargin.bottom()) : (childMargin.left() + childMargin.right());
-
-                        float childMainSize = (isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight()) + childMarginMain;
-                        float childCrossSize = (isHorizontal ? child.getPreferredHeight() : child.getPreferredWidth()) + childMarginCross;
-                        float gap = currentLineMainSize == 0 ? 0 : layout.childGap();
-
-                        if (currentLineMainSize + gap + childMainSize > mainAxisConstraint && currentLineMainSize > 0) {
-                            maxLineMainSize = Math.max(maxLineMainSize, currentLineMainSize);
-                            totalCrossSize += currentLineCrossSize + layout.childGap();
-                            currentLineMainSize = childMainSize;
-                            currentLineCrossSize = childCrossSize;
-                        } else {
-                            currentLineMainSize += gap + childMainSize;
-                            currentLineCrossSize = Math.max(currentLineCrossSize, childCrossSize);
-                        }
-                    }
-                    if (currentLineMainSize > 0) {
-                        maxLineMainSize = Math.max(maxLineMainSize, currentLineMainSize);
-                        totalCrossSize += currentLineCrossSize;
-                    }
-                    size = isMainAxis ? maxLineMainSize : totalCrossSize;
+                // Handle Image FIT
+                if (decl != null && decl.image() != null) {
+                    Vector2f dims = dataSource.getImageDimensions(decl.image().imageIdentifier(), decl.image().atlasIdentifier());
+                    size = isWidth ? dims.x : dims.y;
                 } else {
-                    if (isMainAxis) {
+                    UI.LayoutDirection direction = layout.layoutDirection();
+                    boolean isHorizontal = direction == UI.LayoutDirection.LEFT_TO_RIGHT || direction == UI.LayoutDirection.RIGHT_TO_LEFT;
+                    boolean isMainAxis = (isWidth && isHorizontal) || (!isWidth && !isHorizontal);
+
+                    if (layout.wrap()) {
+                        Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
+                        float paddingMain = isHorizontal ? (padding.left() + padding.right()) : (padding.top() + padding.bottom());
+                        float borderMain = isHorizontal ? (border.left() + border.right()) : (border.top() + border.bottom());
+                        float mainAxisConstraint = (isMainAxis ? availableOnThisAxis : availableOnOtherAxis) - paddingMain - borderMain;
+
+                        float currentLineMainSize = 0;
+                        float currentLineCrossSize = 0;
+                        float maxLineMainSize = 0;
+                        float totalCrossSize = 0;
+
                         for (LayoutElement child : children) {
                             if (child.declaration() != null && child.declaration().floating() != null) continue;
+
                             Margin childMargin = getMargin(child);
-                            float childMarginSize = isWidth ? (childMargin.left() + childMargin.right()) : (childMargin.top() + childMargin.bottom());
-                            size += (isWidth ? child.getPreferredWidth() : child.getPreferredHeight()) + childMarginSize;
+                            float childMarginMain = isHorizontal ? (childMargin.left() + childMargin.right()) : (childMargin.top() + childMargin.bottom());
+                            float childMarginCross = isHorizontal ? (childMargin.top() + childMargin.bottom()) : (childMargin.left() + childMargin.right());
+
+                            float childMainSize = (isHorizontal ? child.getPreferredWidth() : child.getPreferredHeight()) + childMarginMain;
+                            float childCrossSize = (isHorizontal ? child.getPreferredHeight() : child.getPreferredWidth()) + childMarginCross;
+                            float gap = currentLineMainSize == 0 ? 0 : layout.childGap();
+
+                            if (currentLineMainSize + gap + childMainSize > mainAxisConstraint && currentLineMainSize > 0) {
+                                maxLineMainSize = Math.max(maxLineMainSize, currentLineMainSize);
+                                totalCrossSize += currentLineCrossSize + layout.childGap();
+                                currentLineMainSize = childMainSize;
+                                currentLineCrossSize = childCrossSize;
+                            } else {
+                                currentLineMainSize += gap + childMainSize;
+                                currentLineCrossSize = Math.max(currentLineCrossSize, childCrossSize);
+                            }
                         }
-                        int nonFloatingChildren = 0;
-                        for (LayoutElement child : children) {
-                            if (child.declaration() == null || child.declaration().floating() == null) nonFloatingChildren++;
+                        if (currentLineMainSize > 0) {
+                            maxLineMainSize = Math.max(maxLineMainSize, currentLineMainSize);
+                            totalCrossSize += currentLineCrossSize;
                         }
-                        if (nonFloatingChildren > 0) {
-                            size += layout.childGap() * (nonFloatingChildren - 1);
-                        }
+                        size = isMainAxis ? maxLineMainSize : totalCrossSize;
                     } else {
-                        for (LayoutElement child : children) {
-                            if (child.declaration() != null && child.declaration().floating() != null) continue;
-                            Margin childMargin = getMargin(child);
-                            float childMarginSize = isWidth ? (childMargin.left() + childMargin.right()) : (childMargin.top() + childMargin.bottom());
-                            size = Math.max(size, (isWidth ? child.getPreferredWidth() : child.getPreferredHeight()) + childMarginSize);
+                        if (isMainAxis) {
+                            for (LayoutElement child : children) {
+                                if (child.declaration() != null && child.declaration().floating() != null) continue;
+                                Margin childMargin = getMargin(child);
+                                float childMarginSize = isWidth ? (childMargin.left() + childMargin.right()) : (childMargin.top() + childMargin.bottom());
+                                size += (isWidth ? child.getPreferredWidth() : child.getPreferredHeight()) + childMarginSize;
+                            }
+                            int nonFloatingChildren = 0;
+                            for (LayoutElement child : children) {
+                                if (child.declaration() == null || child.declaration().floating() == null)
+                                    nonFloatingChildren++;
+                            }
+                            if (nonFloatingChildren > 0) {
+                                size += layout.childGap() * (nonFloatingChildren - 1);
+                            }
+                        } else {
+                            for (LayoutElement child : children) {
+                                if (child.declaration() != null && child.declaration().floating() != null) continue;
+                                Margin childMargin = getMargin(child);
+                                float childMarginSize = isWidth ? (childMargin.left() + childMargin.right()) : (childMargin.top() + childMargin.bottom());
+                                size = Math.max(size, (isWidth ? child.getPreferredWidth() : child.getPreferredHeight()) + childMarginSize);
+                            }
                         }
                     }
                 }
+
                 Padding padding = layout.padding() != null ? layout.padding() : UIContext.DEFAULT_PADDING;
                 size += isWidth ? (padding.left() + padding.right() + border.left() + border.right()) : (padding.top() + padding.bottom() + border.top() + border.bottom());
                 yield Math.max(axis.min(), Math.min(axis.max(), size));
@@ -534,7 +550,13 @@ public class UILayoutEngine {
 
     private float getAspectRatio(LayoutElement element) {
         ElementDeclaration decl = element.declaration();
-        return (decl != null && decl.aspectRatio() != null) ? decl.aspectRatio().aspectRatio() : 0;
+        if (decl == null) return 0;
+        if (decl.aspectRatio() != null) return decl.aspectRatio().aspectRatio();
+        if (decl.image() != null) {
+            Vector2f dims = dataSource.getImageDimensions(decl.image().imageIdentifier(), decl.image().atlasIdentifier());
+            if (dims.x > 0 && dims.y > 0) return dims.x / dims.y;
+        }
+        return 0;
     }
 
     private void updateSizing(LayoutElement element) {

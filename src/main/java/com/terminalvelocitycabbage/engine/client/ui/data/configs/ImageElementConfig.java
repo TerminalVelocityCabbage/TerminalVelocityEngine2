@@ -3,9 +3,8 @@ package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 import com.terminalvelocitycabbage.engine.client.ui.data.CornerRadius;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Color;
-import org.joml.Vector2f;
 
-public record ImageElementConfig(Identifier imageIdentifier, Vector2f sourceDimensions, CornerRadius cornerRadius, Color backgroundColor) {
+public record ImageElementConfig(Identifier imageIdentifier, Identifier atlasIdentifier, CornerRadius cornerRadius, Color backgroundColor) {
 
     public static Builder builder() {
         return new Builder();
@@ -13,7 +12,7 @@ public record ImageElementConfig(Identifier imageIdentifier, Vector2f sourceDime
 
     public static class Builder {
         private Identifier imageIdentifier;
-        private Vector2f sourceDimensions;
+        private Identifier atlasIdentifier;
         private CornerRadius cornerRadius;
         private Color backgroundColor;
 
@@ -22,8 +21,8 @@ public record ImageElementConfig(Identifier imageIdentifier, Vector2f sourceDime
             return this;
         }
 
-        public Builder sourceDimensions(Vector2f sourceDimensions) {
-            this.sourceDimensions = sourceDimensions;
+        public Builder atlasIdentifier(Identifier atlasIdentifier) {
+            this.atlasIdentifier = atlasIdentifier;
             return this;
         }
 
@@ -38,7 +37,7 @@ public record ImageElementConfig(Identifier imageIdentifier, Vector2f sourceDime
         }
 
         public ImageElementConfig build() {
-            return new ImageElementConfig(imageIdentifier, sourceDimensions, cornerRadius, backgroundColor);
+            return new ImageElementConfig(imageIdentifier, atlasIdentifier, cornerRadius, backgroundColor);
         }
     }
 }

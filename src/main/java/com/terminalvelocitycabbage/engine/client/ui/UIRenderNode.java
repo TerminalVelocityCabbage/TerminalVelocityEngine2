@@ -2,6 +2,8 @@ package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.Atlas;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.Texture;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
@@ -16,6 +18,8 @@ import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 import org.joml.Vector2f;
 import org.lwjgl.nanovg.NVGColor;
+import org.lwjgl.nanovg.NVGPaint;
+import org.lwjgl.nanovg.NanoVGGL3;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.ArrayList;
@@ -30,10 +34,25 @@ import static org.lwjgl.system.MemoryStack.stackPush;
  * Base class for UI render nodes.
  * Users should extend this class and implement {@link #declareUI()} to define their interface.
  */
-public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.TextMeasurer {
+public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.LayoutDataSource {
 
     private List<LayoutElement> sortedFloatingCache;
     private Map<Integer, Integer> declarationOrderCache;
+
+    private final Map<Integer, Integer> nvgImageCache = new HashMap<>();
+
+    private int getOrCreateNvgImage(long nvg, Texture texture) {
+        int textureId = texture.getTextureID();
+        if (nvgImageCache.containsKey(textureId)) {
+            return nvgImageCache.get(textureId);
+        }
+
+        // We use the OpenGL texture ID to create a NanoVG image handle
+        // We use the whole texture (could be an atlas)
+        int handle = NanoVGGL3.nvglCreateImageFromHandle(nvg, textureId, texture.getWidth(), texture.getHeight(), 0);
+        nvgImageCache.put(textureId, handle);
+        return handle;
+    }
 
     public UIRenderNode(ShaderProgramConfig shaderProgramConfig) {
         super(shaderProgramConfig);
@@ -52,6 +71,17 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      *         By default, includes click and scroll events.
      */
     protected abstract Identifier[] getInterestedEvents();
+
+    @Override
+    public Vector2f getImageDimensions(Identifier imageId, Identifier atlasId) {
+        Texture texture = ClientBase.getInstance().getTextureCache().getTexture(imageId, atlasId);
+        if (texture == null) return new Vector2f(0, 0);
+        if (texture instanceof Atlas atlas) {
+            Atlas.AtlasTexture info = atlas.getTextureInfo(imageId);
+            if (info != null) return new Vector2f(info.size(), info.size());
+        }
+        return new Vector2f(texture.getWidth(), texture.getHeight());
+    }
 
     @Override
     public void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
@@ -207,7 +237,37 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return A handle to the declared element.
      */
     protected UIElement image(int id, ImageElementConfig config) {
-        return container(id, ElementDeclaration.builder().image(config).build(), null);
+        var builder = ElementDeclaration.builder().image(config);
+        return container(id, builder.build(), null);
+    }
+
+    /**
+     * Declares an image element.
+     * @param declaration The configuration for the image element.
+     * @return A handle to the declared element.
+     */
+    protected UIElement image(ElementDeclaration declaration) {
+        return image(getUIContext().generateAutoId(), declaration);
+    }
+
+    /**
+     * Declares an image element with a specific ID label.
+     * @param idLabel The label to hash for this element's ID.
+     * @param declaration The configuration for the image element.
+     * @return A handle to the declared element.
+     */
+    protected UIElement image(String idLabel, ElementDeclaration declaration) {
+        return image(id(idLabel), declaration);
+    }
+
+    /**
+     * Declares an image element with a specific ID.
+     * @param id The ID for this element.
+     * @param declaration The configuration for the image element.
+     * @return A handle to the declared element.
+     */
+    protected UIElement image(int id, ElementDeclaration declaration) {
+        return container(id, declaration, null);
     }
 
     /**
@@ -604,7 +664,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         CornerRadius cr = decl.cornerRadius() != null ? decl.cornerRadius() : UIContext.DEFAULT_CORNER_RADIUS;
 
         // 1. Background
-        if (decl.backgroundColor() != null) {
+        if (decl.backgroundColor() != null && decl.backgroundColor().a() > 0) {
             try (MemoryStack stack = stackPush()) {
                 nvgBeginPath(nvg);
                 nvgRoundedRectVarying(nvg, x, y, w, h, cr.topLeft(), cr.topRight(), cr.bottomRight(), cr.bottomLeft());
@@ -615,7 +675,42 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
             }
         }
 
-        // 2. Borders
+        // 2. Image
+        if (decl.image() != null) {
+            ImageElementConfig imageConfig = decl.image();
+            Identifier imageId = imageConfig.imageIdentifier();
+            Identifier atlasId = imageConfig.atlasIdentifier();
+            Texture texture = ClientBase.getInstance().getTextureCache().getTexture(imageId, atlasId);
+            if (texture != null) {
+                int nvgImage = getOrCreateNvgImage(nvg, texture);
+                if (nvgImage != 0) {
+                    float sx = 0, sy = 0, sw = texture.getWidth(), sh = texture.getHeight();
+                    if (texture instanceof Atlas atlas) {
+                        Atlas.AtlasTexture info = atlas.getTextureInfo(imageId);
+                        if (info != null) {
+                            sx = info.x();
+                            sy = info.y();
+                            sw = info.size();
+                            sh = info.size();
+                        }
+                    }
+
+                    try (MemoryStack stack = stackPush()) {
+                        NVGPaint paint = NVGPaint.malloc(stack);
+                        float scaleX = w / sw;
+                        float scaleY = h / sh;
+                        nvgImagePattern(nvg, x - sx * scaleX, y - sy * scaleY, texture.getWidth() * scaleX, texture.getHeight() * scaleY, 0, nvgImage, 1.0f, paint);
+
+                        nvgBeginPath(nvg);
+                        nvgRoundedRectVarying(nvg, x, y, w, h, cr.topLeft(), cr.topRight(), cr.bottomRight(), cr.bottomLeft());
+                        nvgFillPaint(nvg, paint);
+                        nvgFill(nvg);
+                    }
+                }
+            }
+        }
+
+        // 3. Borders
         if (decl.border() != null) {
             BorderElementConfig border = decl.border();
             BorderWidth bw = border.width();
