@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.ui.UI;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Color;
@@ -9,6 +10,11 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
     public static TextElementConfig of(String declaration) {
         if (declaration == null || declaration.isEmpty()) {
             return builder().build();
+        }
+
+        var uiContext = ClientBase.getInstance().getUIContext();
+        if (uiContext.getCachedTextConfig(declaration).isPresent()) {
+            return uiContext.getCachedTextConfig(declaration).get();
         }
 
         Builder builder = builder();
@@ -34,7 +40,11 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
             }
         }
 
-        return builder.build();
+        var textConfig = builder.build();
+
+        uiContext.cacheTextConfig(declaration, textConfig);
+
+        return textConfig;
     }
 
     private record ParsedDim(float value, boolean isPercent) {}

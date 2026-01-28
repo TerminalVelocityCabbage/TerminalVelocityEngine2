@@ -35,6 +35,9 @@ public class UIContext {
     private LayoutElement lastFrameRootElement;
     private LayoutElement currentElement;
 
+    private final Map<String, ElementDeclaration> elementDeclarationCache = new HashMap<>();
+    private final Map<String, TextElementConfig> textElementConfigCache = new HashMap<>();
+
     public UIContext() {
         autoIdCounterStack.push(0);
         hookIndexStack.push(0);
@@ -188,5 +191,21 @@ public class UIContext {
 
     public LayoutElement getCurrentElement() {
         return currentElement;
+    }
+
+    public Optional<ElementDeclaration> getCachedElementDeclaration(String declaration) {
+        return Optional.ofNullable(elementDeclarationCache.get(declaration));
+    }
+
+    public void cacheElementDeclaration(String declaration, ElementDeclaration decl) {
+        elementDeclarationCache.put(declaration, decl);
+    }
+
+    public Optional<TextElementConfig> getCachedTextConfig(String declaration) {
+        return Optional.ofNullable(textElementConfigCache.get(declaration));
+    }
+
+    public void cacheTextConfig(String declaration, TextElementConfig decl) {
+        textElementConfigCache.put(declaration, decl);
     }
 }

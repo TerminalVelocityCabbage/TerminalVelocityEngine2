@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.engine.client.ui.data;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.ui.UI;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -19,6 +20,11 @@ public record ElementDeclaration(
     public static ElementDeclaration of(String declaration) {
         if (declaration == null || declaration.isEmpty()) {
             return builder().build();
+        }
+
+        var uiContext = ClientBase.getInstance().getUIContext();
+        if (uiContext.getCachedElementDeclaration(declaration).isPresent()) {
+            return uiContext.getCachedElementDeclaration(declaration).get();
         }
 
         Builder builder = builder();
@@ -146,7 +152,11 @@ public record ElementDeclaration(
 
         builder.layoutBuilder().sizing(new Sizing(width, height)).padding(padding).margin(margin).childAlignment(new ChildAlignment(hAlign, vAlign));
 
-        return builder.build();
+        var elementDeclaration = builder.build();
+
+        uiContext.cacheElementDeclaration(declaration, elementDeclaration);
+
+        return elementDeclaration;
     }
 
     private record ParsedDim(float value, boolean isPercent) {}
