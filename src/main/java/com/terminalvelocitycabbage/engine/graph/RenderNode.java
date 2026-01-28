@@ -22,7 +22,7 @@ public abstract non-sealed class RenderNode implements GraphNode {
 
     public void init(RenderGraph renderGraph) {
         //Compile this shader program now that this renderer is ready to go (if needed)
-        if (shaderProgram == null && shaderProgramConfig != null) {
+        if (shaderProgram == null && shaderProgramConfig != null && !shaderProgramConfig.isEmpty()) {
             shaderProgram = ShaderProgram.of(shaderProgramConfig);
             recompileShaders = false;
         }
