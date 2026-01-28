@@ -68,9 +68,13 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     /**
      * @return The list of event identifiers that this render node is interested in.
-     *         By default, includes click and scroll events.
      */
     protected abstract Identifier[] getInterestedEvents();
+
+    /**
+     * Hook for users to define the UI structure.
+     */
+    protected abstract void declareUI();
 
     @Override
     public Vector2f getImageDimensions(Identifier imageId, Identifier atlasId) {
@@ -111,11 +115,6 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         renderElement(nvg, context.getRootElement());
         nvgEndFrame(nvg);
     }
-
-    /**
-     * Hook for users to define the UI structure.
-     */
-    protected abstract void declareUI();
 
     protected UIElement container(String props, Runnable children) {
         return container(getUIContext().generateAutoId(), ElementDeclaration.of(props), children);
