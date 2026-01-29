@@ -35,7 +35,7 @@ public class Registry<T> {
     public RegistryPair<T> register(Identifier identifier, T item, boolean replaceIfExists) {
         if (contains(identifier)) {
             if (!replaceIfExists) {
-                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored. This will likely cause problems later one (probably crashes)");
                 return null;
             }
             replace(identifier, item);
