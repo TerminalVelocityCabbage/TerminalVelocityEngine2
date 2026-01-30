@@ -32,7 +32,9 @@ public abstract class ResourceSource {
      * to the resource filesystem compiler
      * @param type The type of resource being retrieved
      */
-    public abstract void registerDefaultSourceRoot(ResourceCategory type);
+    public void registerDefaultSourceRoot(ResourceCategory type) {
+        getResourceRootRegistry().getAndRegister(type.getIdentifier(), type.getAssetsPath());
+    }
 
     /**
      * @param path The path to the resource being gotten

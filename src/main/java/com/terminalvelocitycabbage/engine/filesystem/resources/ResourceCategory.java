@@ -1,39 +1,49 @@
 package com.terminalvelocitycabbage.engine.filesystem.resources;
 
+import com.terminalvelocitycabbage.engine.registry.Identifiable;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
 /**
+ * @param namespace the namespace of this resource category
  * @param name the name of this resource category, and the path appended by an "s" to the default resource root
  */
-public record ResourceCategory(String name) {
+public record ResourceCategory(String namespace, String name) implements Identifiable {
 
-    public static final ResourceCategory MODEL = new ResourceCategory("model");
-    public static final ResourceCategory TEXTURE = new ResourceCategory("texture");
-    public static final ResourceCategory ANIMATION = new ResourceCategory("animation");
-    public static final ResourceCategory SHADER = new ResourceCategory("shader");
-    public static final ResourceCategory DEFAULT_CONFIG = new ResourceCategory("default_config");
-    public static final ResourceCategory SOUND = new ResourceCategory("sound");
-    public static final ResourceCategory FONT = new ResourceCategory("font");
-    public static final ResourceCategory GENERIC_FILE = new ResourceCategory("file");
-    public static final ResourceCategory LOCALIZATION = new ResourceCategory("localization");
-    public static final ResourceCategory PROPERTIES = new ResourceCategory("propertie");
+    public static ResourceCategory MODEL;
+    public static ResourceCategory TEXTURE;
+    public static ResourceCategory ANIMATION;
+    public static ResourceCategory SHADER;
+    public static ResourceCategory DEFAULT_CONFIG;
+    public static ResourceCategory SOUND;
+    public static ResourceCategory FONT;
+    public static ResourceCategory GENERIC_FILE;
+    public static ResourceCategory LOCALIZATION;
+    public static ResourceCategory PROPERTIES;
 
     /**
      * @param registry the registry to register the default values to
      * @param namespace The namespace to register these under
      */
     public static void registerEngineDefaults(Registry<ResourceCategory> registry, String namespace) {
-        registry.register(new Identifier(namespace, "model_category"), MODEL);
-        registry.register(new Identifier(namespace, "texture_category"), TEXTURE);
-        registry.register(new Identifier(namespace, "animation_category"), ANIMATION);
-        registry.register(new Identifier(namespace, "shader_category"), SHADER);
-        registry.register(new Identifier(namespace, "default_config_category"), DEFAULT_CONFIG);
-        registry.register(new Identifier(namespace, "sound_category"), SOUND);
-        registry.register(new Identifier(namespace, "font_category"), FONT);
-        registry.register(new Identifier(namespace, "generic_file_category"), GENERIC_FILE);
-        registry.register(new Identifier(namespace, "localization_category"), LOCALIZATION);
-        registry.register(new Identifier(namespace, "properties_category"), PROPERTIES);
+        MODEL = registry.getAndRegister(new ResourceCategory(namespace, "model")).getElement();
+        TEXTURE = registry.getAndRegister(new ResourceCategory(namespace, "texture")).getElement();
+        ANIMATION = registry.getAndRegister(new ResourceCategory(namespace, "animation")).getElement();
+        SHADER = registry.getAndRegister(new ResourceCategory(namespace, "shader")).getElement();
+        DEFAULT_CONFIG = registry.getAndRegister(new ResourceCategory(namespace, "default_config")).getElement();
+        SOUND = registry.getAndRegister(new ResourceCategory(namespace, "sound")).getElement();
+        FONT = registry.getAndRegister(new ResourceCategory(namespace, "font")).getElement();
+        GENERIC_FILE = registry.getAndRegister(new ResourceCategory(namespace, "generic_file")).getElement();
+        LOCALIZATION = registry.getAndRegister(new ResourceCategory(namespace, "localization")).getElement();
+        PROPERTIES = registry.getAndRegister(new ResourceCategory(namespace, "properties")).getElement();
     }
 
+    @Override
+    public Identifier getIdentifier() {
+        return new Identifier(namespace, "registry", "resource_category", name);
+    }
+
+    public String getAssetsPath() {
+        return "assets/" + namespace + "/" + name + "s";
+    }
 }

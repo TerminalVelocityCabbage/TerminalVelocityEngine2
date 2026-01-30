@@ -98,7 +98,7 @@ public class ModLoader {
         List<Mod> sortedMods = sortModsByDependency(unsortedMods);
 
         //Register the mods to the mod registry
-        sortedMods.forEach(mod -> modRegistry.register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod));
+        sortedMods.forEach(mod -> modRegistry.getAndRegister(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod));
 
         //Set all mods dependencies field with reflection
         sortedMods.forEach(mod -> setModDependencies(modRegistry, mod, mod.getEntrypoint(), unsortedMods));

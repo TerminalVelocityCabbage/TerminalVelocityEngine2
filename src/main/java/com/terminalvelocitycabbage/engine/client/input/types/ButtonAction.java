@@ -4,7 +4,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
 
 /**
- * A value that represents a button status, down, up, held, or invalid
+ * A value that represents a button type, down, up, held, or invalid
  */
 public enum ButtonAction {
 

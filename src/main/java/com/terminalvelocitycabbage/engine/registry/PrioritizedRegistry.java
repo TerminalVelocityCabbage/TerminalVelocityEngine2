@@ -33,8 +33,8 @@ public class PrioritizedRegistry<T> extends Registry<T> {
      * @param item The item to be registered
      */
     @Override
-    public RegistryPair<T> register(Identifier identifier, T item) {
-        super.register(identifier, item);
+    public RegistryPair<T> getAndRegister(Identifier identifier, T item) {
+        super.getAndRegister(identifier, item);
         var namespace = identifier.getNamespace();
         if (!priorities.contains(namespace)) {
             priorities.add(namespace);

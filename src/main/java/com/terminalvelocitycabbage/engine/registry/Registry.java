@@ -32,7 +32,53 @@ public class Registry<T> {
      * @param item The item to be registered
      * @param replaceIfExists Whether to replace an existing item with the same identifier if one already exists
      */
-    public RegistryPair<T> register(Identifier identifier, T item, boolean replaceIfExists) {
+    public Identifier register(Identifier identifier, T item, boolean replaceIfExists) {
+        if (contains(identifier)) {
+            if (!replaceIfExists) {
+                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored. This will likely cause problems later one (probably crashes)");
+                return null;
+            }
+            replace(identifier, item);
+        } else {
+            registryContents.put(identifier, item);
+        }
+        return identifier;
+    }
+
+    /**
+     * Registers an item to this registry for retrieval later by its identifier or name
+     * @param identifier The identifier of this registered item
+     * @param item The item to be registered
+     */
+    public Identifier register(Identifier identifier, T item) {
+        if (contains(identifier)) {
+            Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+            return null;
+        }
+        return register(identifier, item, false);
+    }
+
+    /**
+     * Registers an item to this registry for retrieval later by its identifier or name
+     * @param item The item to be registered. Must implement {@link Identifiable}
+     */
+    public Identifier register(T item) {
+        if (item instanceof Identifiable identifiable) {
+            return register(identifiable.getIdentifier(), item);
+        } else {
+            Log.error("Cannot register item " + item.getClass().getName() + " since it does not implement Identifiable.",
+                    "Eiter implement Identifiable or register the item manually using the register(Identifier, T) method instead.");
+        }
+        return null;
+    }
+
+    /**
+     * Registers an item to this registry for retrieval later by its identifier or name
+     * @param identifier The identifier of this registered item
+     * @param item The item to be registered
+     * @param replaceIfExists Whether to replace an existing item with the same identifier if one already exists
+     */
+    public RegistryPair<T> getAndRegister(Identifier identifier, T item, boolean replaceIfExists) {
         if (contains(identifier)) {
             if (!replaceIfExists) {
                 Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored. This will likely cause problems later one (probably crashes)");
@@ -50,24 +96,24 @@ public class Registry<T> {
      * @param identifier The identifier of this registered item
      * @param item The item to be registered
      */
-    public RegistryPair<T> register(Identifier identifier, T item) {
+    public RegistryPair<T> getAndRegister(Identifier identifier, T item) {
         if (contains(identifier)) {
             Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
             return null;
         }
-        registryContents.put(identifier, item);
-        return new RegistryPair<>(identifier, item);
+        return getAndRegister(identifier, item, false);
     }
 
     /**
      * Registers an item to this registry for retrieval later by its identifier or name
      * @param item The item to be registered. Must implement {@link Identifiable}
      */
-    public RegistryPair<T> register(T item) {
+    public RegistryPair<T> getAndRegister(T item) {
         if (item instanceof Identifiable identifiable) {
-            return register(identifiable.getIdentifier(), item);
+            return getAndRegister(identifiable.getIdentifier(), item);
         } else {
-            Log.error("Cannot register item " + item.getClass().getName() + " since it does not implement Identifiable.");
+            Log.error("Cannot register item " + item.getClass().getName() + " since it does not implement Identifiable.",
+                    "Eiter implement Identifiable or register the item manually using the register(Identifier, T) method instead.");
         }
         return null;
     }

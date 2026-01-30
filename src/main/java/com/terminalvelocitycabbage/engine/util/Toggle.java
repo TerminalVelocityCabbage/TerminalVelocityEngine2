@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.util;
 
 /**
- * A simple class to represent a toggleable yes/no status
+ * A simple class to represent a toggleable yes/no type
  */
 public class Toggle {
 
@@ -12,22 +12,22 @@ public class Toggle {
     }
 
     /**
-     * @param status The initial status of this Toggle
+     * @param status The initial type of this Toggle
      */
     public Toggle(boolean status) {
         this.status = status;
     }
 
     /**
-     * @return The status of this toggle
+     * @return The type of this toggle
      */
     public boolean getStatus() {
         return status;
     }
 
     /**
-     * Set the status of this toggle to the
-     * @param status boolean status
+     * Set the type of this toggle to the
+     * @param status boolean type
      */
     public void setStatus(boolean status) {
         this.status = status;
@@ -41,14 +41,14 @@ public class Toggle {
     }
 
     /**
-     * Sets the status of this toggle to enabled
+     * Sets the type of this toggle to enabled
      */
     public void enable() {
         setStatus(true);
     }
 
     /**
-     * Sets the status of this toggle to disabled
+     * Sets the type of this toggle to disabled
      */
     public void disable() {
         setStatus(false);
