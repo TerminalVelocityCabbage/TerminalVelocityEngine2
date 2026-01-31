@@ -22,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ECSTests {
 
     Manager manager;
-
+    
+    private static final String TEST_NAMESPACE = "test";
+    
     public static class PositionComponent implements Component {
 
         Vector3f position;
@@ -226,7 +228,7 @@ public class ECSTests {
     void createEntityFromTemplate() {
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
-        var templateIdentifier = new Identifier("test", "template");
+        var templateIdentifier = new Identifier(TEST_NAMESPACE, "template", "template");
         var entityTemplate = manager.createEntityTemplate(templateIdentifier, entity -> {
             entity.addComponent(PositionComponent.class);
             entity.getComponent(PositionComponent.class).setPosition(new Vector3f(0, 1, 0));
@@ -327,7 +329,7 @@ public class ECSTests {
         entity2.addComponent(VelocityComponent.class);
 
         //Create Routine
-        var routine = Routine.builder().addStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class).build();
+        var routine = Routine.builder().addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class).build();
 
         routine.update(manager, dummyEventDispatcher, 10);
 
@@ -350,8 +352,8 @@ public class ECSTests {
 
         //Create Routine
         var routine = Routine.builder()
-                .addStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class)
-                .addStep(new Identifier("test", "testSystem2"), MoveEntitySystem.class)
+                .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class)
+                .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem2"), MoveEntitySystem.class)
                 .build();
 
         routine.update(manager, dummyEventDispatcher, 10);
@@ -376,7 +378,7 @@ public class ECSTests {
 
         //Create Routine
         var routine = Routine.builder()
-                .addParallelStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
+                .addParallelStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
                 .build();
 
         routine.update(manager, dummyEventDispatcher, 10);
@@ -401,17 +403,17 @@ public class ECSTests {
 
         List<String> executedSteps = new ArrayList<>();
 
-        var id1 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier("test", "testSystem0")), (event) -> {
+        var id1 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem0")), (event) -> {
             executedSteps.add("testSystem0");
             Log.info("testSystem0 post");
             assertEquals(new Vector3f(10, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
         });
-        var id2 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier("test", "testSystem1")), (event) -> {
+        var id2 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem1")), (event) -> {
             executedSteps.add("testSystem1");
             Log.info("testSystem1 post");
             assertEquals(new Vector3f(200020, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
         });
-        var id3 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier("test", "testSystem2")), (event) -> {
+        var id3 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem2")), (event) -> {
             executedSteps.add("testSystem2");
             Log.info("testSystem2 post");
             assertEquals(new Vector3f(200030, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
@@ -419,9 +421,9 @@ public class ECSTests {
 
         //Create Routine
         var routine = Routine.builder()
-                .addStep(new Identifier("test", "testSystem0"), MoveEntitySystem.class)
-                .addParallelStep(new Identifier("test", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
-                .addStep(new Identifier("test", "testSystem2"), MoveEntitySystem.class)
+                .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem0"), MoveEntitySystem.class)
+                .addParallelStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
+                .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem2"), MoveEntitySystem.class)
                 .build();
 
         routine.update(manager, dummyEventDispatcher, 10);

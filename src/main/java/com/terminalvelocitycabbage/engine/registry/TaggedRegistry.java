@@ -17,7 +17,7 @@ public class TaggedRegistry<T> extends Registry<T> {
      * @param tags All the tags that this registry item should be associated with
      */
     public RegistryPair<T> register(Identifier identifier, T item, String... tags) {
-        var pair = super.register(identifier, item);
+        var pair = super.getAndRegister(identifier, item);
         for (String tag : tags) {
             if (!taggedLookup.containsKey(tag)) taggedLookup.put(tag, new HashSet<>());
             taggedLookup.get(tag).add(pair);

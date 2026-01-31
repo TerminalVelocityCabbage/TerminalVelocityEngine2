@@ -15,7 +15,7 @@ public record ResourceCategory(String name) {
     public static final ResourceCategory DEFAULT_CONFIG = new ResourceCategory("default_config");
     public static final ResourceCategory SOUND = new ResourceCategory("sound");
     public static final ResourceCategory FONT = new ResourceCategory("font");
-    public static final ResourceCategory GENERIC_FILE = new ResourceCategory("file");
+    public static final ResourceCategory GENERIC_FILE = new ResourceCategory("generic_file");
     public static final ResourceCategory LOCALIZATION = new ResourceCategory("localization");
     public static final ResourceCategory PROPERTIES = new ResourceCategory("propertie");
 
@@ -24,16 +24,27 @@ public record ResourceCategory(String name) {
      * @param namespace The namespace to register these under
      */
     public static void registerEngineDefaults(Registry<ResourceCategory> registry, String namespace) {
-        registry.register(new Identifier(namespace, "model_category"), MODEL);
-        registry.register(new Identifier(namespace, "texture_category"), TEXTURE);
-        registry.register(new Identifier(namespace, "animation_category"), ANIMATION);
-        registry.register(new Identifier(namespace, "shader_category"), SHADER);
-        registry.register(new Identifier(namespace, "default_config_category"), DEFAULT_CONFIG);
-        registry.register(new Identifier(namespace, "sound_category"), SOUND);
-        registry.register(new Identifier(namespace, "font_category"), FONT);
-        registry.register(new Identifier(namespace, "generic_file_category"), GENERIC_FILE);
-        registry.register(new Identifier(namespace, "localization_category"), LOCALIZATION);
-        registry.register(new Identifier(namespace, "properties_category"), PROPERTIES);
+        register(registry, namespace, MODEL);
+        register(registry, namespace, TEXTURE);
+        register(registry, namespace, ANIMATION);
+        register(registry, namespace, SHADER);
+        register(registry, namespace, DEFAULT_CONFIG);
+        register(registry, namespace, SOUND);
+        register(registry, namespace, FONT);
+        register(registry, namespace, GENERIC_FILE);
+        register(registry, namespace, LOCALIZATION);
+        register(registry, namespace, PROPERTIES);
     }
 
+    private static void register(Registry<ResourceCategory> registry, String namespace, ResourceCategory resourceCategory) {
+        registry.getAndRegister(resourceCategory.createIdentifier(namespace), resourceCategory);
+    }
+
+    public Identifier createIdentifier(String namespace) {
+        return new Identifier(namespace, "resource_category", this.name());
+    }
+
+    public String getAssetsPath(String namespace) {
+        return "assets/" + namespace + "/" + name + "s";
+    }
 }

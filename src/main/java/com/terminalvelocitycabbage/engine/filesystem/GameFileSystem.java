@@ -48,9 +48,8 @@ public class GameFileSystem {
      * @param fileName The file name that this resource can be found as
      */
     public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceCategory resourceCategory, String fileName) {
-        Identifier resourceIdentifier = new Identifier(sourceIdentifier.getNamespace(), fileName);
-        var ret = resourceLocationRegistry.register(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceCategory, resourceIdentifier));
-        return ret;
+        Identifier resourceIdentifier = new Identifier(sourceIdentifier.namespace(), resourceCategory.name(), fileName);
+        return resourceLocationRegistry.getAndRegister(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceCategory, resourceIdentifier));
     }
 
     /**
@@ -83,7 +82,7 @@ public class GameFileSystem {
             ResourceLocation resourceLocation = entry.getValue();
             //Get the resource from its resource location and make it available on this file system
             Resource resource = sourceRegistry.get(resourceLocation.resourceSourceIdentifier())
-                    .getResource(resourceLocation.resourceIdentifier().getName(), resourceLocation.type());
+                    .getResource(resourceLocation.resourceIdentifier().name(), resourceLocation.type());
             //Get the resource type and put this resource into it to be used later
             fileSystemContents.get(resourceLocation.type()).put(resourceLocation.resourceIdentifier(), resource);
         }

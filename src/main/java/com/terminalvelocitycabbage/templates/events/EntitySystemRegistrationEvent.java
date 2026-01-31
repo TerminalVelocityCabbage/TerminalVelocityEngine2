@@ -5,13 +5,10 @@ import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.util.ClassUtils;
-
-import javax.management.ReflectionException;
 
 public class EntitySystemRegistrationEvent extends Event {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("EntitySystemRegistrationEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "entity_system_registration");
 
     private Manager manager;
 

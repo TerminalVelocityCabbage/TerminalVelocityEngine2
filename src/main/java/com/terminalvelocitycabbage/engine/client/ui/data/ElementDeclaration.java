@@ -143,8 +143,8 @@ public record ElementDeclaration(
                 case "clip-offset-x" -> builder.clipBuilder().childOffset(getClipOffset(builder.clipBuilder()).setComponent(0, parseDim(val).value()));
                 case "clip-offset-y" -> builder.clipBuilder().childOffset(getClipOffset(builder.clipBuilder()).setComponent(1, parseDim(val).value()));
 
-                case "img" -> builder.imageBuilder().imageIdentifier(Identifier.of(val));
-                case "atlas" -> builder.imageBuilder().atlasIdentifier(Identifier.of(val));
+                case "img" -> builder.imageBuilder().imageIdentifier(Identifier.fromString(val));
+                case "atlas" -> builder.imageBuilder().atlasIdentifier(Identifier.fromString(val));
                 case "img-rounded" -> builder.imageBuilder().cornerRadius(new CornerRadius(parseDim(val).value()));
                 case "img-bg" -> builder.imageBuilder().backgroundColor(parseColor(val));
             }

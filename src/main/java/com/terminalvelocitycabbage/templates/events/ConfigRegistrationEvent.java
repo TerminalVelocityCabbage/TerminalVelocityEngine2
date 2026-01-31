@@ -8,7 +8,7 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
 
 public class ConfigRegistrationEvent extends RegistryEvent<ResourceLocation> {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("ConfigRegistrationEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "config_registration");
 
     public ConfigRegistrationEvent(Identifier name, Registry<ResourceLocation> registry) {
         super(name, registry);

@@ -455,7 +455,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      */
     protected Event heardEvent(int elementId, Identifier eventType) {
         for (Event event : getUIContext().getInputState().getEvents()) {
-            if (event.getId().equals(eventType) && isEventTargetingElement(elementId)) {
+            if (event.getIdentifier().equals(eventType) && isEventTargetingElement(elementId)) {
                 return event;
             }
         }
@@ -469,7 +469,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      */
     protected Event heardEvent(Identifier eventType) {
         for (Event event : getUIContext().getInputState().getEvents()) {
-            if (event.getId().equals(eventType)) {
+            if (event.getIdentifier().equals(eventType)) {
                 return event;
             }
         }
@@ -484,7 +484,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     protected List<Event> heardEvents(int elementId, Identifier eventType) {
         List<Event> results = new ArrayList<>();
         for (Event event : getUIContext().getInputState().getEvents()) {
-            if (event.getId().equals(eventType) && isEventTargetingElement(elementId)) {
+            if (event.getIdentifier().equals(eventType) && isEventTargetingElement(elementId)) {
                 results.add(event);
             }
         }
@@ -503,7 +503,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     protected List<Event> heardEvents(Identifier eventType) {
         List<Event> results = new ArrayList<>();
         for (Event event : getUIContext().getInputState().getEvents()) {
-            if (event.getId().equals(eventType)) {
+            if (event.getIdentifier().equals(eventType)) {
                 results.add(event);
             }
         }

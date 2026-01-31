@@ -18,11 +18,11 @@ public class RoutineSystemExecutionEvent extends Event {
 
     //TODO figure out a way to cache these identifiers since this might get really slow really fast
     public static Identifier pre(Identifier systemIdentifier) {
-        return TerminalVelocityEngine.identifierOf("routineSystemExecutionEventPre-[" + systemIdentifier.toString() + "]");
+        return TerminalVelocityEngine.identifierOf("event", "routine_system_execution_pre-[" + systemIdentifier.toString() + "]");
     }
 
     public static Identifier post(Identifier systemIdentifier) {
-        return TerminalVelocityEngine.identifierOf("routineSystemExecutionEventPost-[" + systemIdentifier.toString() + "]");
+        return TerminalVelocityEngine.identifierOf("event", "routine_system_execution_post-[" + systemIdentifier.toString() + "]");
     }
 
     public Manager getManager() {

@@ -7,7 +7,7 @@ import org.joml.Vector2f;
 
 public class UIClickEvent extends UIInputEvent {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("ui_click");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "ui_click");
 
     private final Vector2f position;
     private final MouseInput.Button button;

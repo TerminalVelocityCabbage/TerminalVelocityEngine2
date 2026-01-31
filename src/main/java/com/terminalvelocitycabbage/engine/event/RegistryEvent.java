@@ -16,12 +16,12 @@ public class RegistryEvent<T> extends Event {
     }
 
     public RegistryPair<T> register(Identifier identifier, T item) {
-        return registry.register(identifier, item);
+        return registry.getAndRegister(identifier, item);
     }
 
     public RegistryPair<T> register(T item) {
         if (item instanceof Identifiable) {
-            return registry.register(item);
+            return registry.getAndRegister(item);
         } else {
             Log.crash("Cannot register item " + item.getClass().getName() + " since it does not implement Identifiable. Use method with explicit identifier instead.");
         }

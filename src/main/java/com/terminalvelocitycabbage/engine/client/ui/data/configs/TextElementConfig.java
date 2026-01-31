@@ -31,7 +31,7 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
 
             switch (key) {
                 case "text-color" -> builder.textColor(parseColor(val));
-                case "font" -> builder.fontIdentifier(Identifier.of(val));
+                case "font" -> builder.fontIdentifier(Identifier.fromString(val));
                 case "text-size" -> builder.fontSize((int) parseDim(val).value());
                 case "letter-spacing" -> builder.letterSpacing((int) parseDim(val).value());
                 case "line-height" -> builder.lineHeight((int) parseDim(val).value());

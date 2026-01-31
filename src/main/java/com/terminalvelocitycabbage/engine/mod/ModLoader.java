@@ -98,7 +98,7 @@ public class ModLoader {
         List<Mod> sortedMods = sortModsByDependency(unsortedMods);
 
         //Register the mods to the mod registry
-        sortedMods.forEach(mod -> modRegistry.register(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace()), mod));
+        sortedMods.forEach(mod -> modRegistry.getAndRegister(new Identifier(mod.getModInfo().getNamespace(), "mod", mod.getModInfo().getNamespace()), mod));
 
         //Set all mods dependencies field with reflection
         sortedMods.forEach(mod -> setModDependencies(modRegistry, mod, mod.getEntrypoint(), unsortedMods));
@@ -117,7 +117,7 @@ public class ModLoader {
     private static void setModDependencies(Registry<Mod> modRegistry, Mod mod, ModEntrypoint entrypoint, Map<String, Mod> mods) {
         Map<String, Mod> dependencies = new HashMap<>();
         //Get and store all mod instances from registered mods that this mod depends on
-        modRegistry.get(new Identifier(mod.getModInfo().getNamespace(), mod.getModInfo().getNamespace())).getModInfo().getAllDependencies().forEach(modDependency -> {
+        modRegistry.get(new Identifier(mod.getModInfo().getNamespace(), "mod", mod.getModInfo().getNamespace())).getModInfo().getAllDependencies().forEach(modDependency -> {
             if (mods.containsKey(modDependency.getValue0())) dependencies.put(modDependency.getValue0(), mods.get(modDependency.getValue0()));
         });
         //Store that list of mods in the dependencies field on this entrypoint

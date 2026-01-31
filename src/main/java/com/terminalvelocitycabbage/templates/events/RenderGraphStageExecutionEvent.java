@@ -19,11 +19,11 @@ public class RenderGraphStageExecutionEvent extends Event {
     }
 
     public static Identifier pre(Identifier graphNodeIdentifier) {
-        return TerminalVelocityEngine.identifierOf("renderGraphStateExecutionEventPre-[" + graphNodeIdentifier.toString() + "]");
+        return TerminalVelocityEngine.identifierOf("event", "render_graph_stage_execution_pre-[" + graphNodeIdentifier.toString() + "]");
     }
 
     public static Identifier post(Identifier graphNodeIdentifier) {
-        return TerminalVelocityEngine.identifierOf("renderGraphStateExecutionEventPre-[" + graphNodeIdentifier.toString() + "]");
+        return TerminalVelocityEngine.identifierOf("event", "render_graph_stage_execution_post-[" + graphNodeIdentifier.toString() + "]");
     }
 
     public WindowProperties getProperties() {

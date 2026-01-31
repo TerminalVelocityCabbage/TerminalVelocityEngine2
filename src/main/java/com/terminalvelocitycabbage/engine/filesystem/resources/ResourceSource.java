@@ -30,9 +30,12 @@ public abstract class ResourceSource {
     /**
      * Registers a source root for the inheriting source types so that the location of a resource does not matter
      * to the resource filesystem compiler
+     * @param namespace The namespace of the entrypoint that owns this resource source
      * @param type The type of resource being retrieved
      */
-    public abstract void registerDefaultSourceRoot(ResourceCategory type);
+    public void registerDefaultSourceRoot(String namespace, ResourceCategory type) {
+        getResourceRootRegistry().getAndRegister(type.createIdentifier(namespace), type.getAssetsPath(namespace));
+    }
 
     /**
      * @param path The path to the resource being gotten
@@ -44,16 +47,16 @@ public abstract class ResourceSource {
     /**
      * Registers all the default {@link ResourceCategory}s to this source root registry
      */
-    public void registerDefaultSources() {
-        registerDefaultSourceRoot(ResourceCategory.MODEL);
-        registerDefaultSourceRoot(ResourceCategory.TEXTURE);
-        registerDefaultSourceRoot(ResourceCategory.ANIMATION);
-        registerDefaultSourceRoot(ResourceCategory.SHADER);
-        registerDefaultSourceRoot(ResourceCategory.DEFAULT_CONFIG);
-        registerDefaultSourceRoot(ResourceCategory.SOUND);
-        registerDefaultSourceRoot(ResourceCategory.FONT);
-        registerDefaultSourceRoot(ResourceCategory.GENERIC_FILE);
-        registerDefaultSourceRoot(ResourceCategory.LOCALIZATION);
-        registerDefaultSourceRoot(ResourceCategory.PROPERTIES);
+    public void registerDefaultSources(String namespace) {
+        registerDefaultSourceRoot(namespace, ResourceCategory.MODEL);
+        registerDefaultSourceRoot(namespace, ResourceCategory.TEXTURE);
+        registerDefaultSourceRoot(namespace, ResourceCategory.ANIMATION);
+        registerDefaultSourceRoot(namespace, ResourceCategory.SHADER);
+        registerDefaultSourceRoot(namespace, ResourceCategory.DEFAULT_CONFIG);
+        registerDefaultSourceRoot(namespace, ResourceCategory.SOUND);
+        registerDefaultSourceRoot(namespace, ResourceCategory.FONT);
+        registerDefaultSourceRoot(namespace, ResourceCategory.GENERIC_FILE);
+        registerDefaultSourceRoot(namespace, ResourceCategory.LOCALIZATION);
+        registerDefaultSourceRoot(namespace, ResourceCategory.PROPERTIES);
     }
 }

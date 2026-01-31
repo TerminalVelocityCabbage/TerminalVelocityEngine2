@@ -94,9 +94,9 @@ public class Localizer {
                 Identifier resourceIdentifier = e.getKey();
                 Resource resource = e.getValue();
                 String resourceString = resource.asString();
-                String resourceName = resourceIdentifier.getName();
-                loadedConfigs.putIfAbsent(resourceIdentifier.getNamespace(), new HashMap<>());
-                loadedConfigs.get(resourceIdentifier.getNamespace()).put(
+                String resourceName = resourceIdentifier.name();
+                loadedConfigs.putIfAbsent(resourceIdentifier.namespace(), new HashMap<>());
+                loadedConfigs.get(resourceIdentifier.namespace()).put(
                         Language.fromAbbreviation(resourceName.substring(0, resourceName.length() - 5)), //Trim the .toml part of the name
                         parser.parse(resourceString)
                 );
@@ -106,8 +106,8 @@ public class Localizer {
         //Load translations for selected language from cached configs
         clearTranslations();
         for (Identifier entry : translations.getRegistryContents().keySet()) {
-            String translationNamespace = entry.getNamespace();
-            String translationKey = entry.getName();
+            String translationNamespace = entry.namespace();
+            String translationKey = entry.name();
             Config config = loadedConfigs.get(translationNamespace).get(language);
             String value = config == null ? entry.toString() : config.get(translationKey);
             if (value == null) {

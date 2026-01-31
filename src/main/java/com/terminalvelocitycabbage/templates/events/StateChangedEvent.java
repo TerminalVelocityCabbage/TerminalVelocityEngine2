@@ -7,7 +7,7 @@ import com.terminalvelocitycabbage.engine.state.State;
 
 public class StateChangedEvent<T> extends Event {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("StateChangedEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "state_changed");
 
     private final State<T> state;
 

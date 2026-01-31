@@ -96,7 +96,7 @@ public class Manager {
      * @return A registry pair of this entity and it's identifier
      */
     public RegistryPair<Pair<Entity, EntityTemplateCreationCallback>> createEntityTemplate(Identifier identifier, EntityTemplateCreationCallback callback) {
-        return entityTemplates.register(identifier, new Pair<>(new Entity(this), callback));
+        return entityTemplates.getAndRegister(identifier, new Pair<>(new Entity(this), callback));
     }
 
     /**

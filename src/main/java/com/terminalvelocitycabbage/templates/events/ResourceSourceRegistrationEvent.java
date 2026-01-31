@@ -9,12 +9,16 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
 
 public class ResourceSourceRegistrationEvent extends RegistryEvent<ResourceSource> {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("ResourceSourceRegistrationEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "resource_source_registration");
     Entrypoint entrypoint;
 
-    public ResourceSourceRegistrationEvent(Identifier name, Registry<ResourceSource> registry, Entrypoint entrypoint) {
-        super(name, registry);
+    public ResourceSourceRegistrationEvent(Registry<ResourceSource> registry, Entrypoint entrypoint) {
+        super(EVENT, registry);
         this.entrypoint = entrypoint;
+    }
+
+    public Identifier registerResourceSource(String namespace, String name, ResourceSource source) {
+        return register(new Identifier(namespace, "resource_source", name), source).getIdentifier();
     }
 
     public Entrypoint getEntrypoint() {

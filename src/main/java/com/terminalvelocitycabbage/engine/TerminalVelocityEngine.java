@@ -6,7 +6,7 @@ public class TerminalVelocityEngine {
 
     public static final String ID = "terminalvelocityengine";
 
-    public static Identifier identifierOf(String name) {
-        return new Identifier(ID, name);
+    public static Identifier identifierOf(String type, String name) {
+        return new Identifier(ID, type, name);
     }
 }
