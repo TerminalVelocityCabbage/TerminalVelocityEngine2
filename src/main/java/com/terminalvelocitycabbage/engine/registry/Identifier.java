@@ -18,7 +18,7 @@ public record Identifier(
 	 * @return an identifier with the same format
 	 */
 	public static Identifier fromString(String identifierString) {
-		if (isValid(identifierString)) Log.error("Tried to parse invalid identifier string: " + identifierString);
+		if (!isValid(identifierString)) Log.error("Tried to parse invalid identifier string: " + identifierString);
 		var split = identifierString.split(":");
 		return new Identifier(split[0], split[1], split[2]);
 	}
@@ -28,8 +28,9 @@ public record Identifier(
      * @return true if the identifier string is valid, false otherwise
      */
 	public static boolean isValid(String identifierString) {
-		var split = identifierString.split(":");
+        var split = identifierString.split(":");
 		if (split.length != 3) return false;
+		if (split[0].isEmpty() || split[1].isEmpty() || split[2].isEmpty()) return false;
 		return true;
 	}
 
