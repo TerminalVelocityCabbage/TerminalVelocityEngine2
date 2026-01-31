@@ -41,7 +41,8 @@ public abstract non-sealed class RenderNode implements GraphNode {
         //Wipe the current shader program for re-compilation
         if (recompileShaders) {
             shaderProgram.cleanup();
-            shaderProgram = null;
+            shaderProgram = ShaderProgram.of(shaderProgramConfig);
+            recompileShaders = false;
         }
 
         execute(scene, properties, renderConfig, deltaTime);

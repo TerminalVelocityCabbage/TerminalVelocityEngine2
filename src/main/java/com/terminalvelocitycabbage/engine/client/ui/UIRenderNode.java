@@ -15,6 +15,8 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.state.State;
 import com.terminalvelocitycabbage.engine.util.Color;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
+import com.terminalvelocitycabbage.templates.events.UIClickEvent;
+import com.terminalvelocitycabbage.templates.events.UICharInputEvent;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 import org.joml.Vector2f;
 import org.lwjgl.nanovg.NVGColor;
@@ -382,6 +384,50 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
             // Only show scrollbar if content is larger than container
             if (scrollableRange > 0) {
                 container(id + "_scrollbar", finalScrollbarDecl, () -> {});
+            }
+        });
+    }
+
+    protected UIElement input(String props, String cursorProps, String textProps) {
+        return input(getUIContext().generateAutoId(), ElementDeclaration.of(props), ElementDeclaration.of(cursorProps), TextElementConfig.of(textProps));
+    }
+
+    protected UIElement input(int id, String props, String cursorProps, String textProps) {
+        return input(id, ElementDeclaration.of(props), ElementDeclaration.of(cursorProps), TextElementConfig.of(textProps));
+    }
+
+    protected UIElement input(String idLabel, String props, String cursorProps, String textProps) {
+        return input(id(idLabel), ElementDeclaration.of(props), ElementDeclaration.of(cursorProps), TextElementConfig.of(textProps));
+    }
+
+    protected UIElement input(ElementDeclaration containerDecl, ElementDeclaration cursorDecl, TextElementConfig textProps) {
+        return input(getUIContext().generateAutoId(), containerDecl, cursorDecl, textProps);
+    }
+
+    protected UIElement input(String idLabel, ElementDeclaration containerDecl, ElementDeclaration cursorDecl, TextElementConfig textProps) {
+        return input(id(idLabel), containerDecl, cursorDecl, textProps);
+    }
+
+    protected UIElement input(int id, ElementDeclaration containerDecl, ElementDeclaration cursorDecl, TextElementConfig textProps) {
+        State<String> text = useState(id + "_text", "");
+        State<Boolean> focused = useState(id + "_focused", false);
+
+        if (heardEvent(UIClickEvent.EVENT) != null) {
+            focused.setValue(heardEvent(id, UIClickEvent.EVENT) != null);
+        }
+
+        if (focused.getValue()) {
+            for (Event event : heardEvents(UICharInputEvent.EVENT)) {
+                if (event instanceof UICharInputEvent charInputEvent) {
+                    text.setValue(text.getValue() + charInputEvent.getCharacterString());
+                }
+            }
+        }
+
+        return container(id, containerDecl, () -> {
+            text(id + "_text_el", text.getValue(), textProps);
+            if (focused.getValue() && (System.currentTimeMillis() % 1000 < 500)) {
+                container(id + "_cursor_el", cursorDecl, () -> {});
             }
         });
     }

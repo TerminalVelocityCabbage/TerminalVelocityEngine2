@@ -136,7 +136,8 @@ public class InputHandler {
     /**
      * Registers a group of controls which result in a common action. This is how you make the W key and forward on the
      * gamepad joystick both mean "forward" etc.
-     * @param identifier An identifier which this controller can be identified by
+     * @param namespace An identifier which this controller can be identified by
+     * @param name The name of this controller
      * @param controller A {@link Controller} which groups the desired controls
      * @return The Controller which was registered
      */

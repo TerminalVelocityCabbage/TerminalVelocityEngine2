@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.templates.events.UICharInputEvent;
 
 /**
  * A class that converts raw glfw input callback events that cannot be queried by an instant into useful
@@ -34,9 +35,7 @@ public class InputCallbackListener {
 
     //TODO this will be used for things like chat windows where we just need to get a queue of characters
     protected void charCallback(long window, int character) {
-//        Log.info("Character Input: " +
-//                ClientBase.getInstance().getWindowManager().getPropertiesFromWindow(window).getTitle() +
-//                " " + String.copyValueOf(Character.toChars(character)));
+        ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UICharInputEvent(character));
     }
 
     /**
