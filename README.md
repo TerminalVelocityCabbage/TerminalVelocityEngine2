@@ -14,8 +14,8 @@ This engine is in heavy development and there is no release cycle implemented. T
 - [x] Common scheduler for easy logic execution and off-thread utilities
 - [x] Configurable Render Graph
 - [x] Networking Utilties - This is in it's infancy, basically can only be used to send and recieve decodable packets
-- [ ] Fast and customizable Renderer
-- [ ] Easy to use User Interface ultitities
+- [X] Fast and customizable Renderer
+- [X] Easy to use User Interface ultitities
 - [ ] High fidelity sound system with environmental imapacts
 - [x] Utilities for adding ingame translations
 - [ ] Easy to use Profiling Tools

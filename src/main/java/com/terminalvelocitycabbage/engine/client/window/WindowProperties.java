@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 /**
@@ -149,7 +150,11 @@ public class WindowProperties {
         //Set the currently active scene to the one specified
         activeScene = client.getSceneRegistry().get(sceneIdentifier);
         //Initialize the new scene
-        activeScene.init();
+        if (activeScene != null) {
+            activeScene.init();
+        } else {
+            Log.warn("Failed to load scene: " + sceneIdentifier + "");
+        }
     }
 
     /**

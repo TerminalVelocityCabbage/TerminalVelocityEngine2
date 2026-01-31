@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.terminalvelocitycabbage.tutorial'
+version = '2.8.0'
+
+application {
+    mainClass = 'com.terminalvelocitycabbage.tutorial.FlappyBirdClient'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation rootProject
+}

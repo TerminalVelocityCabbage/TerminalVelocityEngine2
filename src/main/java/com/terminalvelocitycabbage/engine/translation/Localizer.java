@@ -90,16 +90,18 @@ public class Localizer {
             ConfigFormat<?> tomlFormat = TomlFormat.instance();
             ConfigParser<?> parser = tomlFormat.createParser();
             Map<Identifier, Resource> localizationResources = fileSystem.getResourcesOfType(ResourceCategory.LOCALIZATION);
-            for (Map.Entry<Identifier, Resource> e : localizationResources.entrySet()) {
-                Identifier resourceIdentifier = e.getKey();
-                Resource resource = e.getValue();
-                String resourceString = resource.asString();
-                String resourceName = resourceIdentifier.name();
-                loadedConfigs.putIfAbsent(resourceIdentifier.namespace(), new HashMap<>());
-                loadedConfigs.get(resourceIdentifier.namespace()).put(
-                        Language.fromAbbreviation(resourceName.substring(0, resourceName.length() - 5)), //Trim the .toml part of the name
-                        parser.parse(resourceString)
-                );
+            if (localizationResources != null) {
+                for (Map.Entry<Identifier, Resource> e : localizationResources.entrySet()) {
+                    Identifier resourceIdentifier = e.getKey();
+                    Resource resource = e.getValue();
+                    String resourceString = resource.asString();
+                    String resourceName = resourceIdentifier.name();
+                    loadedConfigs.putIfAbsent(resourceIdentifier.namespace(), new HashMap<>());
+                    loadedConfigs.get(resourceIdentifier.namespace()).put(
+                            Language.fromAbbreviation(resourceName.substring(0, resourceName.length() - 5)), //Trim the .toml part of the name
+                            parser.parse(resourceString)
+                    );
+                }
             }
         }
 
