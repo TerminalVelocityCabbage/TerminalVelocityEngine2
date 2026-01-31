@@ -48,7 +48,7 @@ public class GameFileSystem {
      * @param fileName The file name that this resource can be found as
      */
     public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceCategory resourceCategory, String fileName) {
-        Identifier resourceIdentifier = new Identifier(sourceIdentifier.namespace(), "resource", resourceCategory.name(), fileName);
+        Identifier resourceIdentifier = new Identifier(sourceIdentifier.namespace(), resourceCategory.name(), fileName);
         return resourceLocationRegistry.getAndRegister(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceCategory, resourceIdentifier));
     }
 

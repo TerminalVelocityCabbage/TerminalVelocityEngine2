@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.test.ecs;
+package com.terminalvelocitycabbage.test.scheduler;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -16,9 +16,11 @@ public class SchedulerTest {
 
     Scheduler scheduler = null;
 
+    private static final String TEST_NAMESPACE = "test";
+
     @BeforeEach
     void setup() {
-        scheduler = new Scheduler(new Identifier("test", "default"), 4);
+        scheduler = new Scheduler(new Identifier(TEST_NAMESPACE, "scheduler", "default"), 4);
     }
 
     @AfterEach
@@ -218,7 +220,7 @@ public class SchedulerTest {
         long now = System.currentTimeMillis();
         List<Integer> returnValues = new ArrayList<>();
 
-        Identifier pool = scheduler.registerPool(new Identifier("test", "customPool"), 1);
+        Identifier pool = scheduler.registerPool(new Identifier(TEST_NAMESPACE, "pool", "customPool"), 1);
 
         var task1 = scheduler.scheduleAsyncTask(
                 pool,
@@ -250,7 +252,7 @@ public class SchedulerTest {
         long now = System.currentTimeMillis();
         List<Integer> returnValues = new ArrayList<>();
 
-        Identifier pool = scheduler.registerPool(new Identifier("test", "customPool"), 1);
+        Identifier pool = scheduler.registerPool(new Identifier(TEST_NAMESPACE, "pool", "customPool"), 1);
 
         var task1 = scheduler.scheduleAsyncTask(
                 pool,

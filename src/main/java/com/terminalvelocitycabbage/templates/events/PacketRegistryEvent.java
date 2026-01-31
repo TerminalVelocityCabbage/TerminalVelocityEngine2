@@ -10,7 +10,7 @@ public class PacketRegistryEvent extends Event {
 
     PacketRegistry packetRegistry;
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("PacketRegistryEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "packet_registry");
 
     public PacketRegistryEvent(PacketRegistry registry) {
         super(EVENT);

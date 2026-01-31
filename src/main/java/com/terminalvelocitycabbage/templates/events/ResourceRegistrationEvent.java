@@ -1,7 +1,6 @@
 package com.terminalvelocitycabbage.templates.events;
 
 import com.terminalvelocitycabbage.engine.TerminalVelocityEngine;
-import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
@@ -19,7 +18,7 @@ public class ResourceRegistrationEvent extends Event {
     }
 
     public static Identifier getEventNameFromCategory(ResourceCategory category) {
-        return TerminalVelocityEngine.identifierOf("ResourceRegistrationEvent[" + category.name() + "]");
+        return TerminalVelocityEngine.identifierOf("event", "ResourceRegistrationEvent[" + category.name() + "]");
     }
 
     public RegistryPair<ResourceLocation> registerResource(Identifier resourceSourceIdentifier, ResourceCategory category, String fileName) {

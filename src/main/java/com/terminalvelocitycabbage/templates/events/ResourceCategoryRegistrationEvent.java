@@ -8,7 +8,7 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
 
 public class ResourceCategoryRegistrationEvent extends RegistryEvent<ResourceCategory> {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("ResourceCategoryRegistrationEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "resource_category_registration");
 
     public ResourceCategoryRegistrationEvent(Identifier name, Registry<ResourceCategory> registry) {
         super(name, registry);

@@ -19,8 +19,8 @@ public class EventDispatcher {
 	 * @param event The event that will be passed to all event listeners as context for the event
 	 */
 	public void dispatchEvent(Event event) {
-		if (!eventListeners.containsKey(event.getId())) return;
-		for (Consumer<Event> consumer : eventListeners.get(event.getId())) {
+		if (!eventListeners.containsKey(event.getIdentifier())) return;
+		for (Consumer<Event> consumer : eventListeners.get(event.getIdentifier())) {
 			consumer.accept(event);
 		}
 	}

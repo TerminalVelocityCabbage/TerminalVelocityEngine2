@@ -35,7 +35,7 @@ public class PrioritizedRegistry<T> extends Registry<T> {
     @Override
     public RegistryPair<T> getAndRegister(Identifier identifier, T item) {
         super.getAndRegister(identifier, item);
-        var namespace = identifier.getNamespace();
+        var namespace = identifier.namespace();
         if (!priorities.contains(namespace)) {
             priorities.add(namespace);
         }
@@ -53,7 +53,7 @@ public class PrioritizedRegistry<T> extends Registry<T> {
         Map<String, T> items = new HashMap();
 
         registryContents.forEach((identifier, item) -> {
-            if (identifier.getName().equals(itemName)) items.put(identifier.getNamespace(), item);
+            if (identifier.name().equals(itemName)) items.put(identifier.namespace(), item);
         });
 
         for (String namespace : priorities) {

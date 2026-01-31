@@ -6,7 +6,7 @@ import org.joml.Vector2f;
 
 public class UIScrollEvent extends UIInputEvent {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("ui_scroll");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "ui_scroll");
 
     private final Vector2f delta;
 

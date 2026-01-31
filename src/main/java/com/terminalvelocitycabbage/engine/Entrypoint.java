@@ -40,7 +40,7 @@ public abstract class Entrypoint implements LoggerSource {
         return namespace;
     }
 
-    public Identifier identifierOf(String name) {
-        return new Identifier(getNamespace(), name);
+    public Identifier identifierOf(String type, String name) {
+        return new Identifier(getNamespace(), type, name);
     }
 }

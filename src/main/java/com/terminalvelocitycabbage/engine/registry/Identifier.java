@@ -9,8 +9,7 @@ import java.util.Objects;
  */
 public record Identifier(
 		String namespace,   //The source or origin of this element (tve/minecraft/etc)
-		String type,        //The type of this element (registry/resource/asset/etc)
-		String category,    //The category of this element (font/model/etc)
+		String type,        //The type of this element (font/model/animation/etc)
 		String name         //The actual name of this element (horse/arial/etc)
 ) {
 	
@@ -21,7 +20,7 @@ public record Identifier(
 	public static Identifier fromString(String identifierString) {
 		if (isValid(identifierString)) Log.error("Tried to parse invalid identifier string: " + identifierString);
 		var split = identifierString.split(":");
-		return new Identifier(split[0], split[1], split[2], split[3]);
+		return new Identifier(split[0], split[1], split[2]);
 	}
 
     /**
@@ -30,23 +29,23 @@ public record Identifier(
      */
 	public static boolean isValid(String identifierString) {
 		var split = identifierString.split(":");
-		if (split.length != 4) return false;
+		if (split.length != 3) return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return namespace + ':' + type + ":" + category + ":" + name;
+		return namespace + ':' + type + ":" + name;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof Identifier(String namespace1, String status1, String category1, String name1))) return false;
-        return Objects.equals(name(), name1) && Objects.equals(type(), status1) && Objects.equals(category(), category1) && Objects.equals(namespace(), namespace1);
+		if (!(o instanceof Identifier(String namespace1, String type1, String name1))) return false;
+        return Objects.equals(name(), name1) && Objects.equals(type(), type1) && Objects.equals(namespace(), namespace1);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(namespace(), type(), category(), name());
+		return Objects.hash(namespace(), type(), name());
 	}
 }

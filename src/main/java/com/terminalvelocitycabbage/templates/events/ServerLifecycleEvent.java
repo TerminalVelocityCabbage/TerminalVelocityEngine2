@@ -7,12 +7,12 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class ServerLifecycleEvent extends Event {
 
-	public static final Identifier PRE_INIT = TerminalVelocityEngine.identifierOf("serverLifecycleEventPreInit");
-	public static final Identifier INIT = TerminalVelocityEngine.identifierOf("serverLifecycleEventInit");
-	public static final Identifier PRE_BIND = TerminalVelocityEngine.identifierOf("serverLifecycleEventPreBind");
-	public static final Identifier STARTED = TerminalVelocityEngine.identifierOf("serverLifecycleEventStart");
-	public static final Identifier STOPPING = TerminalVelocityEngine.identifierOf("serverLifecycleEventStopping");
-	public static final Identifier STOPPED = TerminalVelocityEngine.identifierOf("serverLifecycleEventStopped");
+	public static final Identifier PRE_INIT = TerminalVelocityEngine.identifierOf("event", "server_lifecycle_pre_init");
+	public static final Identifier INIT = TerminalVelocityEngine.identifierOf("event", "server_lifecycle_init");
+	public static final Identifier PRE_BIND = TerminalVelocityEngine.identifierOf("event", "server_lifecycle_pre_bind");
+	public static final Identifier STARTED = TerminalVelocityEngine.identifierOf("event", "server_lifecycle_started");
+	public static final Identifier STOPPING = TerminalVelocityEngine.identifierOf("event", "server_lifecycle_stopping");
+	public static final Identifier STOPPED = TerminalVelocityEngine.identifierOf("event", "server_lifecycle_stopped");
 
 	Server server;
 

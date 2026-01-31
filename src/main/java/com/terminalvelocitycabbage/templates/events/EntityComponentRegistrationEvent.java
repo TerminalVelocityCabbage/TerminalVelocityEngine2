@@ -8,7 +8,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class EntityComponentRegistrationEvent extends Event {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("EntityComponentRegistrationEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "entity_component_registration");
 
     private Manager manager;
 

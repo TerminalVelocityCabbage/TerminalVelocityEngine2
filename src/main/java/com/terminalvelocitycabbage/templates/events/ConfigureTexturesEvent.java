@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class ConfigureTexturesEvent extends Event {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("ConfigureTexturesEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "configure_textures");
 
     private final GameFileSystem fileSystem;
 
@@ -27,7 +27,8 @@ public class ConfigureTexturesEvent extends Event {
         singleTextures = new HashMap<>();
     }
 
-    public Identifier registerAtlas(Identifier atlasIdentifier) {
+    public Identifier registerAtlas(String namespace, String atlasName) {
+        var atlasIdentifier = new Identifier(namespace, "atlas", atlasName);
         texturesToCompileToAtlas.putIfAbsent(atlasIdentifier, new HashMap<>());
         return atlasIdentifier;
     }

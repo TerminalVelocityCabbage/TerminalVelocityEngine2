@@ -157,7 +157,7 @@ public class Registry<T> {
     public Set<Identifier> getIdentifiersWithNamespace(String namespace) {
         Set<Identifier> identifiers = new LinkedHashSet<>();
         registryContents.keySet().forEach(identifier -> {
-            if (identifier.getNamespace().equals(namespace)) identifiers.add(identifier);
+            if (identifier.namespace().equals(namespace)) identifiers.add(identifier);
         });
         return identifiers;
     }
@@ -169,7 +169,7 @@ public class Registry<T> {
     public Set<Identifier> getIdentifiersWithName(String name) {
         Set<Identifier> identifiers = new LinkedHashSet<>();
         registryContents.keySet().forEach(identifier -> {
-            if (identifier.getName().equals(name)) identifiers.add(identifier);
+            if (identifier.name().equals(name)) identifiers.add(identifier);
         });
         return identifiers;
     }

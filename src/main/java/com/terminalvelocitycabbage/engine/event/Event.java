@@ -1,11 +1,12 @@
 package com.terminalvelocitycabbage.engine.event;
 
+import com.terminalvelocitycabbage.engine.registry.Identifiable;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 /**
  * A class which represents some event that can be listened to
  */
-public abstract class Event {
+public abstract class Event implements Identifiable {
 
 	private final Identifier id;
 
@@ -13,10 +14,8 @@ public abstract class Event {
 		this.id = name;
 	}
 
-	/**
-	 * @return The identifier of this event
-	 */
-	public Identifier getId() {
+	@Override
+	public Identifier getIdentifier() {
 		return id;
 	}
 }

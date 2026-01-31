@@ -40,7 +40,7 @@ public record ResourceCategory(String namespace, String name) implements Identif
 
     @Override
     public Identifier getIdentifier() {
-        return new Identifier(namespace, "registry", "resource_category", name);
+        return new Identifier(namespace, "resource_category", name);
     }
 
     public String getAssetsPath() {

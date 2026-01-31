@@ -8,13 +8,13 @@ import com.terminalvelocitycabbage.engine.registry.RegistryPair;
 
 public class LocalizedTextKeyRegistrationEvent extends RegistryEvent<String> {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("LocalizedTextKeyRegistrationEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "localized_text_key_registration");
 
     public LocalizedTextKeyRegistrationEvent(Registry<String> registry) {
         super(EVENT, registry);
     }
 
     public RegistryPair<String> registerKey(String namespace, String translationKey) {
-        return register(new Identifier(namespace, translationKey), translationKey);
+        return register(new Identifier(namespace, "localization", translationKey), translationKey);
     }
 }

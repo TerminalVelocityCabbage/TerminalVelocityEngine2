@@ -40,7 +40,7 @@ public class Shader {
     private String parseInclusions(String source) {
         //Get the identifier of the shader that the parent shader is trying to import from its include definition
         String importName = StringUtils.getStringBetween(source, "#include \"", "\";");
-        Identifier importIdentifier = Identifier.of(Objects.requireNonNull(importName));
+        Identifier importIdentifier = Identifier.fromString(Objects.requireNonNull(importName));
 
         //Try to get the resource for the shader trying to be included
         var resource = ClientBase.getInstance().getFileSystem().getResource(ResourceCategory.SHADER, importIdentifier);

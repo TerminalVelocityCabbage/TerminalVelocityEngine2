@@ -24,13 +24,13 @@ public class TVConfig {
      */
     public static FileConfig getOrCreateFileConfig(GameFileSystem fileSystem, Identifier resourceIdentifier) {
 
-        String configDir = "configs/" + resourceIdentifier.getNamespace();
+        String configDir = "configs/" + resourceIdentifier.namespace();
         FileConfig fileConfig = null;
         try {
             //init directory
             Files.createDirectories(Paths.get(configDir));
             fileConfig = FileConfig
-                    .builder(configDir + "/" + resourceIdentifier.getName())
+                    .builder(configDir + "/" + resourceIdentifier.name())
                     .onFileNotFound(FileNotFoundAction.copyData(Objects.requireNonNull(fileSystem.getResource(ResourceCategory.DEFAULT_CONFIG, resourceIdentifier).openStream())))
                     .build();
             fileConfig.load();

@@ -7,7 +7,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public class InputHandlerRegistrationEvent extends Event {
 
-    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("InputHandlerRegistrationEvent");
+    public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "input_handler_registration");
 
     InputHandler inputHandler;
 
