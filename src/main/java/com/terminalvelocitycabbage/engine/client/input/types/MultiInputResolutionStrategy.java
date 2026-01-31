@@ -13,7 +13,7 @@ public enum MultiInputResolutionStrategy {
     /**
      * @param current The previously processed value
      * @param input The value to compare this previous value to
-     * @return A resolved value to be used as the latest type of the input process.
+     * @return A resolved value to be used as the latest status of the input process.
      */
     public float resolve(float current, float input) {
         float result = current;

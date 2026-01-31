@@ -8,16 +8,16 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
  */
 public record ResourceCategory(String name) {
 
-    public static ResourceCategory MODEL = new ResourceCategory("model");
-    public static ResourceCategory TEXTURE = new ResourceCategory("texture");
-    public static ResourceCategory ANIMATION = new ResourceCategory("animation");
-    public static ResourceCategory SHADER = new ResourceCategory("shader");
-    public static ResourceCategory DEFAULT_CONFIG = new ResourceCategory("default_config");
-    public static ResourceCategory SOUND = new ResourceCategory("sound");
-    public static ResourceCategory FONT = new ResourceCategory("font");
-    public static ResourceCategory GENERIC_FILE = new ResourceCategory("generic_file");
-    public static ResourceCategory LOCALIZATION = new ResourceCategory("localization");
-    public static ResourceCategory PROPERTIES = new ResourceCategory("properties");
+    public static final ResourceCategory MODEL = new ResourceCategory("model");
+    public static final ResourceCategory TEXTURE = new ResourceCategory("texture");
+    public static final ResourceCategory ANIMATION = new ResourceCategory("animation");
+    public static final ResourceCategory SHADER = new ResourceCategory("shader");
+    public static final ResourceCategory DEFAULT_CONFIG = new ResourceCategory("default_config");
+    public static final ResourceCategory SOUND = new ResourceCategory("sound");
+    public static final ResourceCategory FONT = new ResourceCategory("font");
+    public static final ResourceCategory GENERIC_FILE = new ResourceCategory("generic_file");
+    public static final ResourceCategory LOCALIZATION = new ResourceCategory("localization");
+    public static final ResourceCategory PROPERTIES = new ResourceCategory("propertie");
 
     /**
      * @param registry the registry to register the default values to
