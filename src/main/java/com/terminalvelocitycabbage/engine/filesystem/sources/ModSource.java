@@ -31,7 +31,7 @@ public class ModSource extends ResourceSource {
     @Override
     public Resource getResource(String name, ResourceCategory resourceCategory) {
 
-        String compiledPath = resourceCategory.getAssetsPath() + "/" + name;
+        String compiledPath = resourceCategory.getAssetsPath(mod.getEntrypoint().getNamespace()) + "/" + name;
         JarFile jarFile = mod.getJarFile();
         JarEntry entry = jarFile.getJarEntry(compiledPath);
 

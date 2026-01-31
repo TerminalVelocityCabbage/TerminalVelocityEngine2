@@ -28,7 +28,7 @@ public class MainSource extends ResourceSource {
     @Override
     public Resource getResource(String name, ResourceCategory resourceCategory) {
 
-        String compiledPath = resourceCategory.getAssetsPath() + "/" + name;
+        String compiledPath = resourceCategory.getAssetsPath(entrypoint.getNamespace()) + "/" + name;
 
         var resource = entrypoint.getClass().getClassLoader().getResource(compiledPath);
         if (resource == null) {

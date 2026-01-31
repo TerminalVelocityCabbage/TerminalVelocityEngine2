@@ -40,8 +40,10 @@ public record Identifier(
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof Identifier(String namespace1, String type1, String name1))) return false;
-        return Objects.equals(name(), name1) && Objects.equals(type(), type1) && Objects.equals(namespace(), namespace1);
+		if (o instanceof Identifier(String namespace1, String type1, String name1)) {
+			return Objects.equals(namespace(), namespace1) && Objects.equals(type(), type1) && Objects.equals(name(), name1);
+		}
+		return false;
 	}
 
 	@Override

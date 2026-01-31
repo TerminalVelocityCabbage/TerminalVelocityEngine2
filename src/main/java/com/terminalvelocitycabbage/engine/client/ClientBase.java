@@ -20,7 +20,6 @@ import com.terminalvelocitycabbage.engine.networking.SyncPacketRegistryPacket;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.engine.util.TickManager;
 import com.terminalvelocitycabbage.templates.events.*;
-import com.terminalvelocitycabbage.templates.events.FontRegistrationEvent;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -91,8 +90,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
-        eventDispatcher.dispatchEvent(new ResourceCategoryRegistrationEvent(ResourceCategoryRegistrationEvent.EVENT, fileSystem.getResourceCategoryRegistry()));
-        eventDispatcher.dispatchEvent(new ResourceSourceRegistrationEvent(ResourceSourceRegistrationEvent.EVENT, fileSystem.getSourceRegistry(), getInstance()));
+        eventDispatcher.dispatchEvent(new ResourceCategoryRegistrationEvent(fileSystem.getResourceCategoryRegistry()));
+        eventDispatcher.dispatchEvent(new ResourceSourceRegistrationEvent(fileSystem.getSourceRegistry(), getInstance()));
         for (ResourceCategory category : fileSystem.getResourceCategoryRegistry().getRegistryContents().values()) {
             eventDispatcher.dispatchEvent(new ResourceRegistrationEvent(fileSystem, category));
         }

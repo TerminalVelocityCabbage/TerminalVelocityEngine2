@@ -10,8 +10,8 @@ public class ResourceCategoryRegistrationEvent extends RegistryEvent<ResourceCat
 
     public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "resource_category_registration");
 
-    public ResourceCategoryRegistrationEvent(Identifier name, Registry<ResourceCategory> registry) {
-        super(name, registry);
+    public ResourceCategoryRegistrationEvent(Registry<ResourceCategory> registry) {
+        super(EVENT, registry);
     }
 
 }
