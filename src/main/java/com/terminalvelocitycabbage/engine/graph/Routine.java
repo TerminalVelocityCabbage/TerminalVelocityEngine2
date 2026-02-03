@@ -5,6 +5,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.engine.registry.Identifiable;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.RoutineSystemExecutionEvent;
 
@@ -16,12 +17,14 @@ import java.util.concurrent.ForkJoinTask;
  * A node for an {@link RenderGraph}, specifically for executing a set of ECS systems.
  * Does not have to be called by a Render Graph, can also be useful serverside to chain repeating logic.
  */
-public non-sealed class Routine implements GraphNode {
+public non-sealed class Routine implements GraphNode, Identifiable {
 
+    private final Identifier identifier;
     private final Map<Identifier, Step> steps;
     private final ForkJoinPool pool;
 
-    private Routine(Map<Identifier, Step> steps) {
+    private Routine(Identifier identifier, Map<Identifier, Step> steps) {
+        this.identifier = identifier;
         this.steps = steps;
         this.pool = new ForkJoinPool();
     }
@@ -29,8 +32,8 @@ public non-sealed class Routine implements GraphNode {
     /**
      * @return A new Builder instance to configure a new Routine
      */
-    public static Builder builder() {
-        return new Builder();
+    public static Builder builder(String namespace, String name) {
+        return new Builder(new Identifier(namespace, "routine", name));
     }
 
     /**
@@ -52,6 +55,11 @@ public non-sealed class Routine implements GraphNode {
      */
     public void shutdown() {
         pool.shutdown();
+    }
+
+    @Override
+    public Identifier getIdentifier() {
+        return identifier;
     }
 
     private interface Step {
@@ -80,9 +88,11 @@ public non-sealed class Routine implements GraphNode {
 
     public static class Builder {
 
+        private final Identifier identifier;
         private final Map<Identifier, Step> steps;
 
-        private Builder() {
+        private Builder(Identifier identifier) {
+            this.identifier = identifier;
             steps = new LinkedHashMap<>();
         }
 
@@ -112,7 +122,7 @@ public non-sealed class Routine implements GraphNode {
          * @return A new Routine instance from the configuration of this builder
          */
         public Routine build() {
-            return new Routine(steps);
+            return new Routine(identifier, steps);
         }
     }
 

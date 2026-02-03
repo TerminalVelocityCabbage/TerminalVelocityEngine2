@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.templates.events;
 
 import com.terminalvelocitycabbage.engine.TerminalVelocityEngine;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.RegistryEvent;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -18,7 +19,7 @@ public class RoutineRegistrationEvent extends RegistryEvent<Routine> {
         return new Identifier(namespace, "routine_step", name);
     }
 
-    public Routine registerRoutine(String namespace, String name, Routine routine) {
-        return register(new Identifier(namespace, "routine", name), routine).getElement();
+    public Routine registerRoutine(Routine routine) {
+        return register(routine).getElement();
     }
 }

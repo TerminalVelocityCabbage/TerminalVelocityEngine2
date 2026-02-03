@@ -11,7 +11,10 @@ import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramCo
 import com.terminalvelocitycabbage.engine.client.renderer.shader.Uniform;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Entity;
+import com.terminalvelocitycabbage.engine.ecs.Manager;
+import com.terminalvelocitycabbage.engine.ecs.System;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.sources.MainSource;
@@ -19,10 +22,7 @@ import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
-import com.terminalvelocitycabbage.templates.ecs.components.FixedOrthoCameraComponent;
-import com.terminalvelocitycabbage.templates.ecs.components.ModelComponent;
-import com.terminalvelocitycabbage.templates.ecs.components.PositionComponent;
-import com.terminalvelocitycabbage.templates.ecs.components.TransformationComponent;
+import com.terminalvelocitycabbage.templates.ecs.components.*;
 import com.terminalvelocitycabbage.templates.events.*;
 import com.terminalvelocitycabbage.templates.meshes.SquareDataMesh;
 
@@ -54,6 +54,7 @@ public class FlappyBirdClient extends ClientBase {
             .addElement(VertexAttribute.XYZ_POSITION)
             .addElement(VertexAttribute.UV)
             .build();
+    public static Routine DEFAULT_ROUTINE;
     public static Identifier RENDER_GRAPH;
     private static Identifier DEFAULT_SCENE;
 
@@ -118,26 +119,38 @@ public class FlappyBirdClient extends ClientBase {
             event.registerComponent(TransformationComponent.class);
             event.registerComponent(PositionComponent.class);
             event.registerComponent(FixedOrthoCameraComponent.class);
+            event.registerComponent(VelocityComponent.class);
         });
         getEventDispatcher().listenToEvent(EntitySystemRegistrationEvent.EVENT, e -> {
             EntitySystemRegistrationEvent event = (EntitySystemRegistrationEvent) e;
-            //TODO systems
+            event.createSystem(GravitySystem.class);
+            event.createSystem(AccelerationSystem.class);
         });
         getEventDispatcher().listenToEvent(EntityTemplateRegistrationEvent.EVENT, e -> {
             EntityTemplateRegistrationEvent event = (EntityTemplateRegistrationEvent) e;
             BIRD_ENTITY = event.createEntityTemplate(ID, "bird", entity -> {
                 entity.addComponent(ModelComponent.class).setModel(BIRD_MODEL);
                 entity.addComponent(TransformationComponent.class).setPosition(0, 0, -2).setScale(120f);
+                entity.addComponent(VelocityComponent.class).setVelocity(0, .5f, 0);
             });
             PLAYER_CAMERA_ENTITY = event.createEntityTemplate(ID, "player_camera", entity -> {
                 entity.addComponent(PositionComponent.class);
                 entity.addComponent(FixedOrthoCameraComponent.class);
             });
         });
+        getEventDispatcher().listenToEvent(RoutineRegistrationEvent.EVENT, e -> {
+            RoutineRegistrationEvent event = (RoutineRegistrationEvent) e;
+            DEFAULT_ROUTINE = event.registerRoutine(Routine.builder(ID, "update_bird_positions")
+                    .addStep(event.registerStep(ID, "gravity"), GravitySystem.class)
+                    .addStep(event.registerStep(ID, "acceleration"), AccelerationSystem.class)
+                    .build());
+            Log.info(DEFAULT_ROUTINE);
+        });
         getEventDispatcher().listenToEvent(RendererRegistrationEvent.EVENT, e -> {
             RendererRegistrationEvent event = (RendererRegistrationEvent) e;
             RENDER_GRAPH = event.registerGraph(ID, "render_graph",
                     new RenderGraph(RenderGraph.RenderPath.builder()
+                            .addRoutineNode(DEFAULT_ROUTINE)
                             .addRenderNode(event.registerNode(ID, "draw_scene"), DrawSceneRenderNode.class, DEFAULT_SHADER_PROGRAM_CONFIG)
                     )
             );
@@ -231,6 +244,29 @@ public class FlappyBirdClient extends ClientBase {
             var client = FlappyBirdClient.getInstance();
             client.getTextureCache().cleanupAtlas(TEXTURE_ATLAS);
             getMeshCache().cleanup();
+        }
+    }
+
+    public static class GravitySystem extends System {
+
+        private static final float GRAVITY = 4.9f / 10000f;
+
+        @Override
+        public void update(Manager manager, float deltaTime) {
+            manager.getEntitiesWith(VelocityComponent.class).forEach(entity -> {
+                entity.getComponent(VelocityComponent.class).addVelocity(0, -GRAVITY * deltaTime, 0);
+            });
+        }
+    }
+
+    public static class AccelerationSystem extends System {
+
+        @Override
+        public void update(Manager manager, float deltaTime) {
+            manager.getEntitiesWith(VelocityComponent.class, TransformationComponent.class).forEach(entity -> {
+                var velocity = entity.getComponent(VelocityComponent.class).getVelocity();
+                entity.getComponent(TransformationComponent.class).translate(velocity.x * deltaTime, velocity.y * deltaTime, velocity.z * deltaTime);
+            });
         }
     }
 }
