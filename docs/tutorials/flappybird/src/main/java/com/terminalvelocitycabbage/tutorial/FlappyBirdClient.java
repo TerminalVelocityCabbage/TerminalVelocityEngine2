@@ -1,6 +1,12 @@
 package com.terminalvelocitycabbage.tutorial;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.input.control.Control;
+import com.terminalvelocitycabbage.engine.client.input.control.KeyboardKeyControl;
+import com.terminalvelocitycabbage.engine.client.input.controller.BooleanController;
+import com.terminalvelocitycabbage.engine.client.input.controller.Controller;
+import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
+import com.terminalvelocitycabbage.engine.client.input.types.KeyboardInput;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
@@ -130,7 +136,7 @@ public class FlappyBirdClient extends ClientBase {
             EntityTemplateRegistrationEvent event = (EntityTemplateRegistrationEvent) e;
             BIRD_ENTITY = event.createEntityTemplate(ID, "bird", entity -> {
                 entity.addComponent(ModelComponent.class).setModel(BIRD_MODEL);
-                entity.addComponent(TransformationComponent.class).setPosition(0, 0, -2).setScale(120f);
+                entity.addComponent(TransformationComponent.class).setPosition(-200, 0, -2).setScale(120f);
                 entity.addComponent(VelocityComponent.class).setVelocity(0, .5f, 0);
             });
             PLAYER_CAMERA_ENTITY = event.createEntityTemplate(ID, "player_camera", entity -> {
@@ -158,6 +164,17 @@ public class FlappyBirdClient extends ClientBase {
         getEventDispatcher().listenToEvent(SceneRegistrationEvent.EVENT, e -> {
             SceneRegistrationEvent event = (SceneRegistrationEvent) e;
             DEFAULT_SCENE = event.registerScene(ID, "scene", new DefaultScene(RENDER_GRAPH, List.of()));
+        });
+        getEventDispatcher().listenToEvent(InputHandlerRegistrationEvent.EVENT, e -> {
+            InputHandlerRegistrationEvent event = (InputHandlerRegistrationEvent) e;
+
+            var inputHandler = event.getInputHandler();
+            //Register Controls
+            Control exitControl = inputHandler.registerControlListener(new KeyboardKeyControl(KeyboardInput.Key.ESCAPE));
+            Control flapControl = inputHandler.registerControlListener(new KeyboardKeyControl(KeyboardInput.Key.SPACE));
+            //Register Controllers
+            inputHandler.registerController(ID, "exit_game", new CloseGameController(exitControl));
+            inputHandler.registerController(ID, "flap", new JumpController(flapControl));
         });
     }
 
@@ -249,7 +266,7 @@ public class FlappyBirdClient extends ClientBase {
 
     public static class GravitySystem extends System {
 
-        private static final float GRAVITY = 4.9f / 10000f;
+        private static final float GRAVITY = 9.8E-4f;
 
         @Override
         public void update(Manager manager, float deltaTime) {
@@ -267,6 +284,35 @@ public class FlappyBirdClient extends ClientBase {
                 var velocity = entity.getComponent(VelocityComponent.class).getVelocity();
                 entity.getComponent(TransformationComponent.class).translate(velocity.x * deltaTime, velocity.y * deltaTime, velocity.z * deltaTime);
             });
+        }
+    }
+
+    public static class CloseGameController extends BooleanController {
+
+        public CloseGameController(Control... controls) {
+            super(ButtonAction.PRESSED, false, controls);
+        }
+
+        @Override
+        public void act() {
+            if (isEnabled()) FlappyBirdClient.getInstance().getWindowManager().closeFocusedWindow();
+        }
+    }
+
+    public static class JumpController extends BooleanController {
+
+        public JumpController(Control... controls) {
+            super(ButtonAction.PRESSED, false, controls);
+        }
+
+        @Override
+        public void act() {
+            if (isEnabled()) {
+                var manager = ClientBase.getInstance().getManager();
+                manager.getEntitiesWith(TransformationComponent.class, VelocityComponent.class).forEach(entity -> {
+                    entity.getComponent(VelocityComponent.class).setVelocity(0, .5f, 0);
+                });
+            }
         }
     }
 }
