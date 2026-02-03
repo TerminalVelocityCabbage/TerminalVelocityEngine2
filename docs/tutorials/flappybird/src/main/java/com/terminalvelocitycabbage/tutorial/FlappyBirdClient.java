@@ -19,7 +19,9 @@ import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
+import com.terminalvelocitycabbage.templates.ecs.components.FixedOrthoCameraComponent;
 import com.terminalvelocitycabbage.templates.ecs.components.ModelComponent;
+import com.terminalvelocitycabbage.templates.ecs.components.PositionComponent;
 import com.terminalvelocitycabbage.templates.ecs.components.TransformationComponent;
 import com.terminalvelocitycabbage.templates.events.*;
 import com.terminalvelocitycabbage.templates.meshes.SquareDataMesh;
@@ -57,6 +59,7 @@ public class FlappyBirdClient extends ClientBase {
 
     //Entity stuff
     public static Identifier BIRD_ENTITY;
+    public static Identifier PLAYER_CAMERA_ENTITY;
 
     public FlappyBirdClient(String namespace, int ticksPerSecond) {
         super(namespace, ticksPerSecond);
@@ -85,6 +88,9 @@ public class FlappyBirdClient extends ClientBase {
                     .addShader(Shader.Type.VERTEX, DEFAULT_VERTEX_SHADER)
                     .addShader(Shader.Type.FRAGMENT, DEFAULT_FRAGMENT_SHADER)
                     .addUniform(new Uniform("textureSampler"))
+                    .addUniform(new Uniform("projectionMatrix"))
+                    .addUniform(new Uniform("viewMatrix"))
+                    .addUniform(new Uniform("modelMatrix"))
                     .build();
         });
         getEventDispatcher().listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.TEXTURE), e -> {
@@ -110,6 +116,8 @@ public class FlappyBirdClient extends ClientBase {
             EntityComponentRegistrationEvent event = (EntityComponentRegistrationEvent) e;
             event.registerComponent(ModelComponent.class);
             event.registerComponent(TransformationComponent.class);
+            event.registerComponent(PositionComponent.class);
+            event.registerComponent(FixedOrthoCameraComponent.class);
         });
         getEventDispatcher().listenToEvent(EntitySystemRegistrationEvent.EVENT, e -> {
             EntitySystemRegistrationEvent event = (EntitySystemRegistrationEvent) e;
@@ -119,7 +127,11 @@ public class FlappyBirdClient extends ClientBase {
             EntityTemplateRegistrationEvent event = (EntityTemplateRegistrationEvent) e;
             BIRD_ENTITY = event.createEntityTemplate(ID, "bird", entity -> {
                 entity.addComponent(ModelComponent.class).setModel(BIRD_MODEL);
-                entity.addComponent(TransformationComponent.class).setPosition(0, 0, -2);
+                entity.addComponent(TransformationComponent.class).setPosition(0, 0, -2).setScale(120f);
+            });
+            PLAYER_CAMERA_ENTITY = event.createEntityTemplate(ID, "player_camera", entity -> {
+                entity.addComponent(PositionComponent.class);
+                entity.addComponent(FixedOrthoCameraComponent.class);
             });
         });
         getEventDispatcher().listenToEvent(RendererRegistrationEvent.EVENT, e -> {
@@ -163,10 +175,19 @@ public class FlappyBirdClient extends ClientBase {
         public void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
 
             var client = FlappyBirdClient.getInstance();
+            var player = client.getManager().getFirstEntityWith(FixedOrthoCameraComponent.class);
+            var camera = player.getComponent(FixedOrthoCameraComponent.class);
             var shaderProgram = getShaderProgram();
+
+            if (properties.isResized()) {
+                camera.updateProjectionMatrix(properties.getWidth(), properties.getHeight());
+            }
 
             shaderProgram.bind();
             shaderProgram.getUniform("textureSampler").setUniform(0);
+            shaderProgram.getUniform("projectionMatrix").setUniform(camera.getProjectionMatrix());
+            shaderProgram.getUniform("viewMatrix").setUniform(camera.getViewMatrix(player));
+
 
             var entities = client.getManager().getEntitiesWith(ModelComponent.class, TransformationComponent.class);
 
@@ -179,7 +200,7 @@ public class FlappyBirdClient extends ClientBase {
                 var transformationComponent = entity.getComponent(TransformationComponent.class);
 
                 texture.bind();
-                //shaderProgram.getUniform("modelMatrix").setUniform(transformationComponent.getTransformationMatrix());
+                shaderProgram.getUniform("modelMatrix").setUniform(transformationComponent.getTransformationMatrix());
                 if (mesh.getFormat().equals(shaderProgram.getConfig().getVertexFormat())) mesh.render();
             }
 
@@ -202,6 +223,7 @@ public class FlappyBirdClient extends ClientBase {
             setMeshCache(new MeshCache(client.getModelRegistry(), client.getMeshRegistry(), client.getTextureCache()));
 
             manager.createEntityFromTemplate(BIRD_ENTITY);
+            manager.createEntityFromTemplate(PLAYER_CAMERA_ENTITY);
         }
 
         @Override
