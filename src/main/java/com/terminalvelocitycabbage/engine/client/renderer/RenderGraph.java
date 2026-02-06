@@ -171,22 +171,20 @@ public class RenderGraph {
             }
 
             /**
-             * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
              * @param routine the routine to be executed at this stage in the graph
              * @return this Builder (for easy changing of methods)
              */
-            public Config addRoutineNode(Identifier identifier, Routine routine) {
-                return addRoutineNode(identifier, routine, true);
+            public Config addRoutineNode(Routine routine) {
+                return addRoutineNode(routine, true);
             }
 
             /**
-             * @param identifier the {@link Identifier} that corresponds to this node of the renderGraph
              * @param routine the routine to be executed at this stage in the graph
              * @param automaticallyEnable a boolean to represent if this node should be enabled or paused on initialization
              * @return this Builder (for easy changing of methods)
              */
-            public Config addRoutineNode(Identifier identifier, Routine routine, boolean automaticallyEnable) {
-                graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), routine));
+            public Config addRoutineNode(Routine routine, boolean automaticallyEnable) {
+                graphNodes.put(routine.getIdentifier(), new Pair<>(new Toggle(automaticallyEnable), routine));
                 return this;
             }
 

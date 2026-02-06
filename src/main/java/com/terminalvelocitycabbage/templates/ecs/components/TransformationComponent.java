@@ -30,6 +30,11 @@ public class TransformationComponent implements Component {
         return this;
     }
 
+    public TransformationComponent translate(float x, float y, float z) {
+        transformation.translate(x, y, z);
+        return this;
+    }
+
     public Quaternionf getRotation() {
         return transformation.getRotation();
     }
