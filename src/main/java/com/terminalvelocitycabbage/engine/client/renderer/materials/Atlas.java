@@ -3,11 +3,13 @@ package com.terminalvelocitycabbage.engine.client.renderer.materials;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.util.ImageUtils;
 import com.terminalvelocitycabbage.engine.util.MathUtils;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -105,40 +107,46 @@ public class Atlas extends Texture {
         List<Identifier> reverseKeys = new ArrayList<>(dataMap.keySet());
         Collections.reverse(reverseKeys);
 
-        //Remembers the height of the last texture added, so if the next one doesn't fit, we can move below it
-        int lastHeight = dataMap.get(reverseKeys.getFirst()).height();
         //Loop through all textures and mark their positions in the texture position map
         for (Identifier textureIdentifier : reverseKeys) {
             var data = dataMap.get(textureIdentifier);
 
-            //If this texture doesn't fit in the current row
-            if (currentX >= getWidth()) {
-                currentY += lastHeight;
-                //Find the next empty pixel in this row
-                for (int i = 0; i < getWidth(); i++) {
-                    if (!used[i][currentY]) {
-                        currentX = i;
+            //Find the first available spot that fits this texture
+            boolean found = false;
+            for (int y = 0; y <= getHeight() - data.height(); y += 2) { //Step by 2 as a small optimization, all textures are power of 2
+                for (int x = 0; x <= getWidth() - data.width(); x += 2) {
+                    if (canFit(used, x, y, data.width())) {
+                        //Mark this texture's position here
+                        texturePositionsInAtlas.put(textureIdentifier, new Vector2i(x, y));
+                        //Put this texture into the atlas info map
+                        atlas.put(textureIdentifier, new AtlasTexture(x, y, data.width()));
+                        //Mark the pixels that this texture used as used so we don't overwrite these pixels later
+                        markUsed(used, x, y, data.width());
+                        found = true;
                         break;
                     }
                 }
+                if (found) break;
             }
-            //If this texture fits here
-            if (data.width() + currentX <= getWidth()) {
-                //Mark this texture's position here
-                texturePositionsInAtlas.put(textureIdentifier, new Vector2i(currentX, currentY));
-                //Put this texture into the atlas info map
-                atlas.put(textureIdentifier, new AtlasTexture(currentX, currentY, data.width()));
-                //Mark the pixels that this texture used as used so we don't overwrite these pixels later
-                markUsed(used, currentX, currentY, data.width());
-                //Move the current position over in this row
-                currentX += data.width();
-            }
-            lastHeight = data.height();
+
+            if (!found) Log.crash("Failed to pack texture " + textureIdentifier + " into atlas, atlas is too small or packing is inefficient");
         }
 
         if (dataMap.size() != texturePositionsInAtlas.size()) Log.crash("Failed to pack all textures into atlas, not all textures were added");
 
         return texturePositionsInAtlas;
+    }
+
+    /**
+     * @return true if the square block of size starting at (x, y) is empty
+     */
+    private static boolean canFit(boolean[][] used, int x, int y, int size) {
+        for (int dx = 0; dx < size; dx++) {
+            for (int dy = 0; dy < size; dy++) {
+                if (used[x + dx][y + dy]) return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -187,14 +195,19 @@ public class Atlas extends Texture {
         //Get the number of max-sized textures that this atlas needs by packing in smaller textures into it's size
         int numMaxSizeTextures = 0;
         int lastSizeLeftover = 0;
-        for (Map.Entry<Integer, Integer> entry : sizeCounts.entrySet()) {
-            if (entry.getKey() == maxSize) {
-                numMaxSizeTextures += entry.getValue();
+        List<Integer> keys = new ArrayList<>(sizeCounts.keySet());
+        for (int i = 0; i < keys.size(); i++) {
+            int size = keys.get(i);
+            int count = sizeCounts.get(size);
+            if (size == maxSize) {
+                numMaxSizeTextures += count;
             } else {
-                numMaxSizeTextures += Math.ceilDiv(entry.getValue() - (lastSizeLeftover * 4), 4);
-                lastSizeLeftover = entry.getValue() % 4;
+                int totalCurrentSizeNeeded = count + lastSizeLeftover;
+                numMaxSizeTextures += totalCurrentSizeNeeded / ( (maxSize / size) * (maxSize / size) );
+                lastSizeLeftover = totalCurrentSizeNeeded % ( (maxSize / size) * (maxSize / size) );
             }
         }
+        if (lastSizeLeftover > 0) numMaxSizeTextures++;
 
         //Determine size of atlas
         Vector2i maxTextureSizeAtlasDimensions = MathUtils.findMostSquareDimensions(numMaxSizeTextures);

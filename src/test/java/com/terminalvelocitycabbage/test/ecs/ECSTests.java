@@ -329,7 +329,7 @@ public class ECSTests {
         entity2.addComponent(VelocityComponent.class);
 
         //Create Routine
-        var routine = Routine.builder().addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class).build();
+        var routine = Routine.builder(TEST_NAMESPACE, "testRoutine").addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class).build();
 
         routine.update(manager, dummyEventDispatcher, 10);
 
@@ -351,7 +351,7 @@ public class ECSTests {
         entity2.addComponent(VelocityComponent.class);
 
         //Create Routine
-        var routine = Routine.builder()
+        var routine = Routine.builder(TEST_NAMESPACE, "testRoutine")
                 .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class)
                 .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem2"), MoveEntitySystem.class)
                 .build();
@@ -377,7 +377,7 @@ public class ECSTests {
         entity2.addComponent(VelocityComponent.class);
 
         //Create Routine
-        var routine = Routine.builder()
+        var routine = Routine.builder(TEST_NAMESPACE, "testRoutine")
                 .addParallelStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
                 .build();
 
@@ -420,7 +420,7 @@ public class ECSTests {
         });
 
         //Create Routine
-        var routine = Routine.builder()
+        var routine = Routine.builder(TEST_NAMESPACE, "testRoutine")
                 .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem0"), MoveEntitySystem.class)
                 .addParallelStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
                 .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem2"), MoveEntitySystem.class)
