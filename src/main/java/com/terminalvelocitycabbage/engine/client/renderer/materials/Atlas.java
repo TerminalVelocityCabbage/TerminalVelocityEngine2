@@ -21,15 +21,16 @@ public class Atlas extends Texture {
         //Early exit for empty resources
         if (textureResources.isEmpty()) Log.crash("Cannot create atlas with no textures");
 
-        //Early exit for single texture atlases
-        if (textureResources.size() == 1) {
-            Log.warn("Only one texture in atlas, using that texture directly instead of creating an atlas for it");
-            var entry = textureResources.entrySet().iterator().next();
-            var textureData = Data.fromResource(entry.getKey(), entry.getValue());
-            generateOpenGLTexture(textureData.width(), textureData.height(), textureData.components(), textureData.imageBuffer());
-            textureData.free();
-            return;
-        }
+        //TODO determine if this is okay or not
+//        //Early exit for single texture atlases
+//        if (textureResources.size() == 1) {
+//            Log.warn("Only one texture in atlas, using that texture directly instead of creating an atlas for it");
+//            var entry = textureResources.entrySet().iterator().next();
+//            var textureData = Data.fromResource(entry.getKey(), entry.getValue());
+//            generateOpenGLTexture(textureData.width(), textureData.height(), textureData.components(), textureData.imageBuffer());
+//            textureData.free();
+//            return;
+//        }
 
         //Generates all texture data into temporary data objects for use later
         Map<Identifier, Data> sortedTextureData = loadTextureData(textureResources);
