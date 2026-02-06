@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.nanovg.NanoVG.*;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
 /**
@@ -113,9 +114,16 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         
         // 4. Render
         long nvg = ClientBase.getInstance().getNvgContext();
+
         nvgBeginFrame(nvg, properties.getWidth(), properties.getHeight(), 1.0f); // TODO devicePixelRatio
         renderElement(nvg, context.getRootElement());
         nvgEndFrame(nvg);
+
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     protected UIElement container(String props, Runnable children) {
