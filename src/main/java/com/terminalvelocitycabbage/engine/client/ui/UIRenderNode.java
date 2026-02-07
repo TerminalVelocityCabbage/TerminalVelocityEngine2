@@ -9,6 +9,7 @@ import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -450,7 +452,12 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         if (focused.getValue()) {
             for (Event event : heardEvents(UICharInputEvent.EVENT)) {
                 if (event instanceof UICharInputEvent charInputEvent) {
-                    text.setValue(text.getValue() + charInputEvent.getCharacterString());
+                    //TODO this doesn't work - need to auto register backspage button event probably
+                    if (charInputEvent.getCharacter() == GLFW_KEY_BACKSPACE) {
+                        text.setValue(text.getValue().substring(0, text.getValue().length() - 1));
+                    } else {
+                        text.setValue(text.getValue() + charInputEvent.getCharacterString());
+                    }
                 }
             }
         }
@@ -480,8 +487,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return The persistent State object.
      */
     protected <T> State<T> useState(T initialValue) {
-        int stateId = getUIContext().getNextHookId();
-        return getUIContext().getOrCreatePersistentState(stateId, initialValue);
+        return useState(getUIContext().getNextHookId(), initialValue);
     }
 
     /**
@@ -492,8 +498,11 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @return The persistent State object.
      */
     protected <T> State<T> useState(String key, T initialValue) {
-        int stateId = getUIContext().getHookId(key);
-        return getUIContext().getOrCreatePersistentState(stateId, initialValue);
+        return useState(getUIContext().getHookId(key), initialValue);
+    }
+
+    private <T> State<T> useState(int id, T initialValue) {
+        return getUIContext().getOrCreatePersistentState(id, initialValue);
     }
 
     /**

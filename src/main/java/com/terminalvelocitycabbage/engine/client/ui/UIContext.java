@@ -89,7 +89,7 @@ public class UIContext {
     }
 
     public int getHookId(String key) {
-        return hashString("hook_" + key, 0, idStack.isEmpty() ? 0 : idStack.peek());
+        return hashString("hook_" + key, 0, 71);
     }
 
     public int generateAutoId() {

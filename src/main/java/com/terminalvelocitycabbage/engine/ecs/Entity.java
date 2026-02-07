@@ -165,6 +165,13 @@ public class Entity implements Poolable {
     }
 
     /**
+     * Frees this entity from the manager's pools. This entity should not be used after this method is called.
+     */
+    public void free() {
+        manager.freeEntity(this);
+    }
+
+    /**
      * resets this entity to it's empty usable state. This usually occurs when this entity is added back to the
      * entity pool for later use. It assigns this entity a new uuid and clears all components
      */
