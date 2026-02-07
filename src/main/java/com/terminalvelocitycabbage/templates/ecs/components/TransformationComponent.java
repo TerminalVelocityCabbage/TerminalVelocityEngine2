@@ -58,6 +58,10 @@ public class TransformationComponent implements Component {
         return this;
     }
 
+    public Transformation getTransformation() {
+        return transformation;
+    }
+
     public Matrix4f getTransformationMatrix() {
         return transformation.getTransformationMatrix();
     }

@@ -79,5 +79,4 @@ public final class Font implements Identifiable {
                 "fontId=" + fontId + ']';
     }
 
-
 }

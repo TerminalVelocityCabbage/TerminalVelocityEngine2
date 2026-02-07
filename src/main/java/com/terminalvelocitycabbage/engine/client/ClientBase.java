@@ -8,6 +8,8 @@ import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
+import com.terminalvelocitycabbage.engine.client.sound.SoundDeviceManager;
+import com.terminalvelocitycabbage.engine.client.sound.SoundManager;
 import com.terminalvelocitycabbage.engine.client.ui.UIContext;
 import com.terminalvelocitycabbage.engine.client.window.InputCallbackListener;
 import com.terminalvelocitycabbage.engine.client.window.WindowManager;
@@ -34,6 +36,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     private final WindowManager windowManager;
     private final Registry<RenderGraph> renderGraphRegistry;
     private final Registry<Font> fontRegistry;
+    private final SoundManager soundManager;
+    private final SoundDeviceManager soundDeviceManager;
 
     //Scene stuff
     protected final Registry<Mesh> meshRegistry;
@@ -59,6 +63,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         windowManager = new WindowManager();
         renderGraphRegistry = new Registry<>();
         fontRegistry = new Registry<>();
+        soundManager = new SoundManager();
+        soundDeviceManager = new SoundDeviceManager();
         inputHandler = new InputHandler();
         inputCallbackListener = new InputCallbackListener();
         uiContext = new UIContext();
@@ -109,6 +115,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
         eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelRegistry));
+        soundDeviceManager.init();
+        eventDispatcher.dispatchEvent(new SoundRegistrationEvent(soundManager));
         eventDispatcher.dispatchEvent(new EntityTemplateRegistrationEvent(manager));
         eventDispatcher.dispatchEvent(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry()));
         localizer.init();
@@ -198,6 +206,8 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     public void destroy() {
         windowManager.destroy();
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().destroy());
+        soundManager.cleanup();
+        soundDeviceManager.cleanup();
     }
 
     public Registry<RenderGraph> getRenderGraphRegistry() {
@@ -242,5 +252,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public TextureCache getTextureCache() {
         return textureCache;
+    }
+
+    public SoundManager getSoundManager() {
+        return soundManager;
     }
 }
