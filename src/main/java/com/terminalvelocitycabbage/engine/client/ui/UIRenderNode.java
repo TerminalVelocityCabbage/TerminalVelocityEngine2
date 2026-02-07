@@ -278,6 +278,29 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
      * @param children A Runnable that declares the child elements.
      * @return A handle to the declared element.
      */
+    protected UIElement scrollableContainer(String containerDecl, String scrollbarDecl, Runnable children) {
+        return scrollableContainer(getUIContext().generateAutoId(), ElementDeclaration.of(containerDecl), ElementDeclaration.of(scrollbarDecl), children);
+    }
+
+    /**
+     * Declares a scrollable container with a specific ID label.
+     * @param idLabel The label to hash for this element's ID.
+     * @param containerDecl The configuration for the container itself.
+     * @param scrollbarDecl The configuration for the scrollbar (width, background, etc.).
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
+    protected UIElement scrollableContainer(String idLabel, String containerDecl, String scrollbarDecl, Runnable children) {
+        return scrollableContainer(id(idLabel), ElementDeclaration.of(containerDecl), ElementDeclaration.of(scrollbarDecl), children);
+    }
+
+    /**
+     * Declares a scrollable container.
+     * @param containerDecl The configuration for the container itself.
+     * @param scrollbarDecl The configuration for the scrollbar (width, background, etc.).
+     * @param children A Runnable that declares the child elements.
+     * @return A handle to the declared element.
+     */
     protected UIElement scrollableContainer(ElementDeclaration containerDecl, ElementDeclaration scrollbarDecl, Runnable children) {
         return scrollableContainer(getUIContext().generateAutoId(), containerDecl, scrollbarDecl, children);
     }
