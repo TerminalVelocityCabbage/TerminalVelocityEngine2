@@ -237,10 +237,10 @@ public class ECSTests {
         var entity1 = manager.createEntityFromTemplate(templateIdentifier);
         var entity2 = manager.createEntityFromTemplate(templateIdentifier);
         assertNotEquals(entity1, entity2);
-        assertTrue(entity1.containsComponent(PositionComponent.class));
-        assertTrue(entity1.containsComponent(VelocityComponent.class));
-        assertTrue(entity2.containsComponent(PositionComponent.class));
-        assertTrue(entity2.containsComponent(VelocityComponent.class));
+        assertTrue(entity1.hasComponent(PositionComponent.class));
+        assertTrue(entity1.hasComponent(VelocityComponent.class));
+        assertTrue(entity2.hasComponent(PositionComponent.class));
+        assertTrue(entity2.hasComponent(VelocityComponent.class));
         assertNotEquals(entity1.getComponent(PositionComponent.class), entity2.getComponent(PositionComponent.class));
         assertNotEquals(entity1.getComponent(PositionComponent.class), entity2.getComponent(PositionComponent.class));
         assertEquals(entity1.getComponent(PositionComponent.class).getPosition(), entity2.getComponent(PositionComponent.class).getPosition());
@@ -257,8 +257,8 @@ public class ECSTests {
         entity1.addComponent(VelocityComponent.class);
         var entity2 = manager.duplicateEntity(entity1);
         assertNotEquals(entity1, entity2);
-        assertTrue(entity2.containsComponent(PositionComponent.class));
-        assertTrue(entity2.containsComponent(VelocityComponent.class));
+        assertTrue(entity2.hasComponent(PositionComponent.class));
+        assertTrue(entity2.hasComponent(VelocityComponent.class));
         assertNotEquals(entity1.getComponent(PositionComponent.class), entity2.getComponent(PositionComponent.class));
     }
 

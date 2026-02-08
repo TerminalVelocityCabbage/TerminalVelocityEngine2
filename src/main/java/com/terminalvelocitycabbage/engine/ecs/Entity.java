@@ -45,7 +45,7 @@ public class Entity implements Poolable {
     }
 
     public <T extends Component> T addComponent(Class<T> componentClass) {
-        if (containsComponent(componentClass)) {
+        if (hasComponent(componentClass)) {
             Log.warn("Tried to add component " + componentClass.getName() + " to entity with id " + getID() + " which already contains it");
         }
         components.put(componentClass, manager.obtainComponent(componentClass, this));
@@ -76,7 +76,7 @@ public class Entity implements Poolable {
      */
     @SuppressWarnings("unchecked")
     public <T extends Component> T getComponent(Class<T> componentClass) {
-        if (!containsComponent(componentClass)) {
+        if (!hasComponent(componentClass)) {
             Log.warn("Entity does not contain component " + componentClass.getName() + " but it was attempted to be retrieved.");
             return null;
         }
@@ -101,7 +101,7 @@ public class Entity implements Poolable {
      * @param <T> A class that implements {@link Component}
      * @return A boolean representing whether this entity contains the specified component
      */
-    public <T extends Component> boolean containsComponent(Class<T> componentClass) {
+    public <T extends Component> boolean hasComponent(Class<T> componentClass) {
         return components.containsKey(componentClass);
     }
 

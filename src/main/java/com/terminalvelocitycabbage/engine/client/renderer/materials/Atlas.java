@@ -225,7 +225,7 @@ public class Atlas extends Texture {
             //Get this texture's data
             var textureData = Data.fromResource(textureIdentifier, textureResource);
             //Verify all textures are square and power of 2
-            if (textureData.width() != textureData.height()) Log.crash("Texture " + textureIdentifier + " is not square, cannot create atlas");
+            if (textureData.width() != textureData.height()) Log.crash("Texture " + textureIdentifier + " is not square, cannot create atlas, it's: " + textureData.width() + "x" + textureData.height());
             if (!MathUtils.isPowerOfTwo(textureData.width())) Log.crash("Texture " + textureIdentifier + " is not a power of 2, cannot create atlas");
             //Add it to the list of textures to be added to this atlas
             unsortedTextureData.put(textureIdentifier, textureData);

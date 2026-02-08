@@ -44,7 +44,7 @@ public class ComponentFilter {
         //Sort out entities that contain components that are not allowed
         sortedEntities = unsortedEntities.stream().filter(entity -> {
             for (Class<? extends Component> component : getExcludedComponents()) {
-                if (entity.containsComponent(component)) return false;
+                if (entity.hasComponent(component)) return false;
             }
             return true;
         }).toList();
@@ -52,7 +52,7 @@ public class ComponentFilter {
         //Sort out entities that don't contain all components that are required
         sortedEntities = sortedEntities.stream().filter(entity -> {
             for (Class<? extends Component> component : getRequiredAllOfComponents()) {
-                if (!entity.containsComponent(component)) return false;
+                if (!entity.hasComponent(component)) return false;
             }
             return true;
         }).toList();
@@ -61,7 +61,7 @@ public class ComponentFilter {
         for (Set<Class<? extends Component>> componentAnyComparisons : getRequiredAnyOfComponents()) {
             sortedEntities = sortedEntities.stream().filter(entity -> {
                 for (Class<? extends Component> component : componentAnyComparisons) {
-                    if (entity.containsComponent(component)) return true;
+                    if (entity.hasComponent(component)) return true;
                 }
                 return false;
             }).toList();
@@ -72,7 +72,7 @@ public class ComponentFilter {
             sortedEntities = sortedEntities.stream().filter(entity -> {
                 int foundMatches = 0;
                 for (Class<? extends Component> component : componentOneOfComparisons) {
-                    if (entity.containsComponent(component)) {
+                    if (entity.hasComponent(component)) {
                         foundMatches++;
                         if (foundMatches > 1) return false;
                     }

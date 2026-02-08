@@ -58,6 +58,11 @@ public class TransformationComponent implements Component {
         return this;
     }
 
+    public TransformationComponent setScale(float scaleX, float scaleY, float scaleZ) {
+        transformation.setScale(scaleX, scaleY, scaleZ);
+        return this;
+    }
+
     public Transformation getTransformation() {
         return transformation;
     }
