@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.templates.events.UICharInputEvent;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.Callback;
@@ -144,6 +145,19 @@ public class WindowManager {
         //Set char callback
         glfwSetCharCallback(windowID, (long window, int character) -> {
             ClientBase.getInstance().getInputCallbackListener().charCallback(window, character);
+        });
+
+        glfwSetKeyCallback(windowID, (long window, int key, int scancode, int action, int mods) -> {
+            ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UICharInputEvent(-1,
+                    new UICharInputEvent.SpecialInputKey(
+                    key == GLFW_KEY_BACKSPACE,
+                    key == GLFW_KEY_DELETE,
+                    key == GLFW_KEY_ENTER,
+                    key == GLFW_KEY_TAB,
+                    (mods & GLFW_MOD_SHIFT) != 0,
+                    (mods & GLFW_MOD_CONTROL) != 0,
+                    (mods & GLFW_MOD_ALT) != 0
+            )));
         });
 
         //Set cursor pos callback

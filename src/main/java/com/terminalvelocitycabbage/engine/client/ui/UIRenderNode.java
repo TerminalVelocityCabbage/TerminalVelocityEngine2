@@ -444,6 +444,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     protected UIElement input(int id, ElementDeclaration containerDecl, ElementDeclaration cursorDecl, TextElementConfig textProps) {
         State<String> text = useState(id + "_text", "");
         State<Boolean> focused = useState(id + "_focused", false);
+        State<Boolean> backspacePressed = useState(id + "_backspace_pressed", false);
 
         if (heardEvent(UIClickEvent.EVENT) != null) {
             focused.setValue(heardEvent(id, UIClickEvent.EVENT) != null);
@@ -452,9 +453,11 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         if (focused.getValue()) {
             for (Event event : heardEvents(UICharInputEvent.EVENT)) {
                 if (event instanceof UICharInputEvent charInputEvent) {
-                    //TODO this doesn't work - need to auto register backspage button event probably
-                    if (charInputEvent.getCharacter() == GLFW_KEY_BACKSPACE) {
-                        text.setValue(text.getValue().substring(0, text.getValue().length() - 1));
+                    if (charInputEvent.isSpecialInput()) {
+                        if (!text.getValue().isEmpty() && charInputEvent.isBackspace() && !backspacePressed.getValue()) {
+                            text.setValue(text.getValue().substring(0, text.getValue().length() - 1));
+                        }
+                        backspacePressed.setValue(!backspacePressed.getValue());
                     } else {
                         text.setValue(text.getValue() + charInputEvent.getCharacterString());
                     }

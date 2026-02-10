@@ -33,9 +33,8 @@ public class InputCallbackListener {
         mouseScrollXDelta = 0;
     }
 
-    //TODO this will be used for things like chat windows where we just need to get a queue of characters
     protected void charCallback(long window, int character) {
-        ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UICharInputEvent(character));
+        ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UICharInputEvent(character, null));
     }
 
     /**
