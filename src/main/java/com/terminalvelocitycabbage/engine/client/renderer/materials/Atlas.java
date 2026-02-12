@@ -264,7 +264,7 @@ public class Atlas extends Texture {
     public Vector2f getTextureUVFromModelUV(Identifier textureIdentifier, Vector2f modelUV) {
         var atlasTexture = getTextureInfo(textureIdentifier);
 
-        // 🔧 Configurable padding (in pixels)
+        //TODO determine if this should be a config on the atlas (probably)
         float paddingPixels = 0.001f;
 
         float minX = atlasTexture.x() + paddingPixels;
