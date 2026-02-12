@@ -262,13 +262,21 @@ public class Atlas extends Texture {
      * @return A new set of UV coordinates to the atlas region that contains the existing texture
      */
     public Vector2f getTextureUVFromModelUV(Identifier textureIdentifier, Vector2f modelUV) {
-
         var atlasTexture = getTextureInfo(textureIdentifier);
 
-        return new Vector2f(
-                MathUtils.lerp(atlasTexture.x(), atlasTexture.x() + atlasTexture.size(), modelUV.x()) / getWidth(),
-                MathUtils.lerp(atlasTexture.y(), atlasTexture.y() + atlasTexture.size(), modelUV.y()) / getHeight()
-        );
+        // 🔧 Configurable padding (in pixels)
+        float paddingPixels = 0.001f;
+
+        float minX = atlasTexture.x() + paddingPixels;
+        float minY = atlasTexture.y() + paddingPixels;
+
+        float maxX = atlasTexture.x() + atlasTexture.size() - paddingPixels;
+        float maxY = atlasTexture.y() + atlasTexture.size() - paddingPixels;
+
+        float u = MathUtils.lerp(minX, maxX, modelUV.x()) / getWidth();
+        float v = MathUtils.lerp(minY, maxY, modelUV.y()) / getHeight();
+
+        return new Vector2f(u, v);
     }
 
 }
