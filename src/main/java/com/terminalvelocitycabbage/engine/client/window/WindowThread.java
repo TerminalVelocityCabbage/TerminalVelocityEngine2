@@ -110,4 +110,11 @@ public class WindowThread extends Thread {
     public long getWindowHandle() {
         return windowHandle;
     }
+
+    /**
+     * @return this renderer's deltaTime
+     */
+    public long getDeltaTime() {
+        return rendererClock.getDeltaTime();
+    }
 }

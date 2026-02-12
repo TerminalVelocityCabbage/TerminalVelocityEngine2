@@ -46,4 +46,8 @@ public class SoundSourceComponent implements Component {
     public void stop() {
         source.stop();
     }
+
+    public boolean isPlaying() {
+        return source.isPlaying();
+    }
 }

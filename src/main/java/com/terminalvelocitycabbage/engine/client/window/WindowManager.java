@@ -243,6 +243,14 @@ public class WindowManager {
     }
 
     /**
+     * @param windowHandle the windowHandle to get the deltaTime of
+     * @return this window's deltaTime
+     */
+    public long deltaTime(long windowHandle) {
+        return threads.get(windowHandle).getDeltaTime();
+    }
+
+    /**
      * @return The window handle of (or -1) the currently moused over window
      */
     public long getMousedOverWindow() {

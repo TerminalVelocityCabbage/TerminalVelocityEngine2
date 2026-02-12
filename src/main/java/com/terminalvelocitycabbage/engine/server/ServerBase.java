@@ -27,6 +27,9 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
     private String address;
     private int port;
 
+    //Time
+    long deltaTime;
+
     public ServerBase(String namespace, int ticksPerSecond) {
         super(namespace, ticksPerSecond);
         instance = this;

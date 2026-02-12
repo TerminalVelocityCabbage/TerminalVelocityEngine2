@@ -170,7 +170,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     private void run() {
 
         //Make sure the first frame has a somewhat valid deltatime
-        deltaTime = 1;
         tickClock.now();
 
         //Start the logic loop
@@ -184,13 +183,11 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
      */
     public void update() {
         //Update the tick timer
-        deltaTime = tickClock.getDeltaTime();
-        runtime += deltaTime;
         tickClock.now();
         //Update the input handlers for use in game logic
         inputTickManager.update();
         while (inputTickManager.hasTick()) {
-            inputHandler.update(getWindowManager().getFocusedWindow(), getWindowManager().getMousedOverWindow(), deltaTime);
+            inputHandler.update(getWindowManager().getFocusedWindow(), getWindowManager().getMousedOverWindow(), getDeltaTime());
             inputCallbackListener.reset();
         }
         //update the tick manager for game logic
@@ -256,5 +253,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public SoundManager getSoundManager() {
         return soundManager;
+    }
+
+    public long getDeltaTime() {
+        return getWindowManager().deltaTime(getWindowManager().getFocusedWindow());
     }
 }
