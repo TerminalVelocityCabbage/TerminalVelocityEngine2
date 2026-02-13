@@ -25,7 +25,7 @@ public class TransformationComponent implements Component {
         return this;
     }
 
-    public TransformationComponent setPosition(Vector3i position) {
+    public TransformationComponent setPosition(Vector3f position) {
         transformation.setPosition(position);
         return this;
     }

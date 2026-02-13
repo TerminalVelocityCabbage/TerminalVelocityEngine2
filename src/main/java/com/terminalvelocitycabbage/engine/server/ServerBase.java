@@ -29,6 +29,7 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
 
     //Time
     long deltaTime;
+    protected long runtime;
 
     public ServerBase(String namespace, int ticksPerSecond) {
         super(namespace, ticksPerSecond);
@@ -145,5 +146,15 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
 
     public int getPort() {
         return port;
+    }
+
+    @Override
+    public long getRuntime() {
+        return runtime;
+    }
+
+    @Override
+    public long getDeltaTime() {
+        return deltaTime;
     }
 }

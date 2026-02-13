@@ -255,6 +255,12 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         return soundManager;
     }
 
+    @Override
+    public long getRuntime() {
+        return getWindowManager().runtime(getWindowManager().getFocusedWindow());
+    }
+
+    @Override
     public long getDeltaTime() {
         return getWindowManager().deltaTime(getWindowManager().getFocusedWindow());
     }

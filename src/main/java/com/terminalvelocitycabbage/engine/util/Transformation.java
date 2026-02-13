@@ -40,7 +40,7 @@ public class Transformation {
         return this;
     }
 
-    public Transformation setPosition(Vector3i position) {
+    public Transformation setPosition(Vector3f position) {
         this.position.set(position.x, position.y, position.z);
         dirty = true;
         return this;

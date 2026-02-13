@@ -22,7 +22,6 @@ public abstract class MainEntrypoint extends Entrypoint {
     protected final Manager manager;
     protected final Scheduler scheduler; //TODO determine if it makes sense to maintain schedulers here or not, also tick & update schedulers?
     protected final MutableInstant tickClock;
-    protected long runtime;
     protected final StateHandler stateHandler;
 
     //Networking stuff
@@ -110,9 +109,9 @@ public abstract class MainEntrypoint extends Entrypoint {
         return localizer;
     }
 
-    public long getRuntime() {
-        return runtime;
-    }
+    public abstract long getDeltaTime();
+
+    public abstract long getRuntime();
 
     public Registry<Routine> getRoutineRegistry() {
         return routineRegistry;

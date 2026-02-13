@@ -22,6 +22,9 @@ public class WindowThread extends Thread {
     WindowProperties properties;
     //A clock to manage deltaTime for this window's renderer
     final MutableInstant rendererClock;
+    //Time
+    long deltaTime;
+    long runtime;
 
     /**
      * @param windowHandle the window pointer that points to the window managed by this thread
@@ -55,9 +58,9 @@ public class WindowThread extends Thread {
         ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).init(capabilities);
 
         //swap the image in this window with the new one
-        long deltaTime;
         while (!quit) {
             deltaTime = rendererClock.getDeltaTime();
+            runtime += deltaTime;
             rendererClock.now();
 
             //Make sure window properties are correct with current window size
@@ -115,6 +118,10 @@ public class WindowThread extends Thread {
      * @return this renderer's deltaTime
      */
     public long getDeltaTime() {
-        return rendererClock.getDeltaTime();
+        return deltaTime;
+    }
+
+    public long getRuntime() {
+        return runtime;
     }
 }
