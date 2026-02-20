@@ -9,15 +9,14 @@ import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
-import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.state.State;
 import com.terminalvelocitycabbage.engine.util.Color;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
-import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 import com.terminalvelocitycabbage.templates.events.UICharInputEvent;
+import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 import org.joml.Vector2f;
 import org.lwjgl.nanovg.NVGColor;
@@ -30,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -920,6 +918,10 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
 
     protected UIContext getUIContext() {
         return ClientBase.getInstance().getUIContext();
+    }
+
+    protected String props(String... props) {
+        return String.join(" ", props);
     }
 
 }

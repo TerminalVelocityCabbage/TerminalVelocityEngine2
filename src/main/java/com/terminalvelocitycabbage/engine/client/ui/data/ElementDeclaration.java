@@ -117,7 +117,7 @@ public record ElementDeclaration(
                 case "gap" -> builder.layoutBuilder().childGap((int) parseDim(val).value());
                 case "align-x" -> hAlign = UI.HorizontalAlignment.fromProp(val);
                 case "align-y" -> vAlign = UI.VerticalAlignment.fromProp(val);
-                case "layout-x", "layout-y" -> builder.layoutBuilder().layoutDirection(UI.LayoutDirection.fromProp(val));
+                case "layout-x", "layout-y", "layout" -> builder.layoutBuilder().layoutDirection(UI.LayoutDirection.fromProp(val));
                 case "wrap" -> builder.layoutBuilder().wrap(true);
 
                 case "float-parent" -> builder.floatingBuilder().attachTo(UI.FloatingAttachToElement.PARENT);

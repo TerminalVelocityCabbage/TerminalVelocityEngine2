@@ -13,4 +13,8 @@ public class FontRegistrationEvent extends RegistryEvent<Font> {
     public FontRegistrationEvent(Registry<Font> registry) {
         super(EVENT, registry);
     }
+
+    public Identifier registerFont(Identifier fontResource) {
+        return register(new Font(fontResource)).getIdentifier();
+    }
 }

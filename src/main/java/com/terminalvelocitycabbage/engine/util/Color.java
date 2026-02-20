@@ -67,6 +67,10 @@ public class Color {
         return a;
     }
 
+    public String toPropString() {
+        return r + "," + g + "," + b + "," + a;
+    }
+
     @Override
     public String toString() {
         return "Color{r=" + r + " g=" + g + " b=" + b + " a=" + a + "}";
