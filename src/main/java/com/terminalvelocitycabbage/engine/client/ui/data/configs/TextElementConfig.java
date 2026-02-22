@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine.client.ui.data.configs;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.ui.UI;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Color;
 
@@ -124,6 +125,7 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
         }
 
         public TextElementConfig build() {
+            if (fontIdentifier == null) Log.crash("No font specified for text element", new IllegalArgumentException("Font identifier cannot be null"));
             return new TextElementConfig(textColor, fontIdentifier, fontSize, letterSpacing, lineHeight, wrapMode, textAlignment);
         }
     }

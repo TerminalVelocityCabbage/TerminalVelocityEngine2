@@ -232,8 +232,12 @@ public class UI {
     public static String alignY(VerticalAlignment alignment) {
         return "aligny-[" + alignment.name().toLowerCase() + "]";
     }
-    
+
     public static String layout(LayoutDirection direction) {
+        return "layout-[" + direction.toProp() + "]";
+    }
+
+    public static String direction(LayoutDirection direction) {
         return "layout-[" + direction.toProp() + "]";
     }
     
@@ -253,7 +257,7 @@ public class UI {
         return "float-element-[" + elementId + "]";
     }
     
-    public static String attachTo(FloatingAttachPointType element, FloatingAttachToElement to) {
+    public static String attachTo(FloatingAttachPointType element, FloatingAttachPointType to) {
         return "attach-[" + element.name().toLowerCase() + "] to-[" + to.name().toLowerCase() + "]";
     }
     

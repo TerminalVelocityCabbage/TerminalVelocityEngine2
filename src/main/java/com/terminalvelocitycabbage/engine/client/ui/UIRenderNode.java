@@ -920,7 +920,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         return ClientBase.getInstance().getUIContext();
     }
 
-    protected String props(String... props) {
+    protected static String props(String... props) {
         return String.join(" ", props);
     }
 
