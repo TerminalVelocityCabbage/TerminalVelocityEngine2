@@ -87,7 +87,7 @@ public abstract class EditorUIRenderNode extends UIRenderNode {
             //Tabs
             container(props(
                     UI.growX(), UI.fitY(), UI.backgroundColor(BACKGROUND_COLOR), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT),
-                    UI.gap(15, PIXELS)
+                    UI.gap(5, PIXELS)
             ), () -> {
                 for (int i = 0; i < tabs.length; i++) {
                     if (tab(tabs[i].name(), i == selectedTab.getValue())) selectedTab.setValue(i);
@@ -131,6 +131,18 @@ public abstract class EditorUIRenderNode extends UIRenderNode {
                 UI.width(16, PIXELS), UI.height(16, PIXELS), UI.backgroundColor(TRANSPARENT),
                     UI.bgImage(icon, atlas), UI.imageBackground(TRANSPARENT)
             ));
+        });
+    }
+
+    public void button(int buttonID, String label, Runnable action) {
+
+        if (heardEvent(buttonID, UIClickEvent.EVENT) instanceof UIClickEvent) action.run();
+
+        container(buttonID, props(
+                UI.height(24, PIXELS), UI.fitX(), UI.backgroundColor(ELEMENT_COLOR), UI.rounded(5),
+                UI.border(2), UI.borderColor(MEDIUM_LIGHT), UI.p(3, PIXELS)
+        ), () -> {
+            text(label, props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(TEXT_COLOR)));
         });
     }
 }

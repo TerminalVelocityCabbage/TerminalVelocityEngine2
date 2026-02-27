@@ -1,9 +1,6 @@
 package com.terminalvelocitycabbage.editor;
 
-import com.terminalvelocitycabbage.editor.registry.EditorFonts;
-import com.terminalvelocitycabbage.editor.registry.EditorInput;
-import com.terminalvelocitycabbage.editor.registry.EditorRenderGraphs;
-import com.terminalvelocitycabbage.editor.registry.EditorTextures;
+import com.terminalvelocitycabbage.editor.registry.*;
 import com.terminalvelocitycabbage.editor.scenes.EditorScene;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
@@ -41,6 +38,7 @@ public class TerminalVelocityEngineEditor extends ClientBase {
         EditorRenderGraphs.init(getEventDispatcher());
         EditorInput.init(getEventDispatcher());
         EditorTextures.init(getEventDispatcher());
+        EditorStates.init(getEventDispatcher());
     }
 
     public static void main(String[] args) {

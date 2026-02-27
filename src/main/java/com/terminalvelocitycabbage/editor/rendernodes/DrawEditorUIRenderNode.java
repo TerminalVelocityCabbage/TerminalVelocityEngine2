@@ -1,9 +1,13 @@
 package com.terminalvelocitycabbage.editor.rendernodes;
 
+import com.terminalvelocitycabbage.editor.registry.EditorStates;
 import com.terminalvelocitycabbage.editor.registry.EditorTextures;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.ui.UI;
 import com.terminalvelocitycabbage.engine.debug.Log;
+import com.terminalvelocitycabbage.engine.filesystem.selector.FileDialogs;
+
+import java.nio.file.Path;
 
 import static com.terminalvelocitycabbage.engine.client.ui.UI.UIUnit.PIXELS;
 
@@ -19,7 +23,7 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
         container(props(UI.pT(10, PIXELS), UI.gap(5, PIXELS), UI.backgroundColor(BACKGROUND_COLOR), UI.grow(), UI.layout(UI.LayoutDirection.TOP_TO_BOTTOM)), () -> {
             //optionsBar();
             container(props(UI.gap(5, PIXELS), UI.grow(), UI.backgroundColor(BACKGROUND_COLOR), UI.layout(UI.LayoutDirection.LEFT_TO_RIGHT)), () -> {
-                sceneTree();
+                hierarchy();
                 container(props(UI.gap(5, PIXELS), UI.backgroundColor(BACKGROUND_COLOR), UI.grow(), UI.layout(UI.LayoutDirection.TOP_TO_BOTTOM)), () -> {
                     scene();
                     browser();
@@ -39,7 +43,7 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
         });
     }
 
-    private void sceneTree() {
+    private void hierarchy() {
         container(props(
                 UI.growY(), UI.width(240, PIXELS), UI.backgroundColor(ELEMENT_COLOR), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT),
                 UI.gap(5, PIXELS)
@@ -69,7 +73,12 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
                 UI.grow(), UI.backgroundColor(BACKGROUND_COLOR)
         ), () -> {
             tabbedMenu("browserTabs",
-                    new Tab("Asset Browser", () -> {
+                    new Tab("3D", () -> {
+                        container(props(UI.grow(), UI.backgroundColor(BORDER_COLOR)), () -> {
+                            commands();
+                        });
+                    }),
+                    new Tab("2D", () -> {
                         container(props(UI.grow(), UI.backgroundColor(BORDER_COLOR)), () -> {
                             commands();
                         });
@@ -89,9 +98,17 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
     }
 
     private void assetBrowser() {
-        container(props(UI.backgroundColor(ELEMENT_COLOR), UI.grow(), UI.gap(5, PIXELS), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT)), () -> {
+        container(props(UI.backgroundColor(BORDER_COLOR), UI.grow(), UI.gap(5, PIXELS), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT)), () -> {
             container(props(UI.width(240, PIXELS), UI.growY(),UI.backgroundColor(ELEMENT_COLOR)), () -> {
-                text("Asset Filesystem TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                Path assetLocation = EditorStates.getAssetLocation();
+                if (assetLocation.equals(Path.of("unset"))) {
+                    button(id("set_asset_location"), "Open Folder", () -> {
+                        var selectedPath = FileDialogs.selectFolder("Select Assets Folder", Path.of("."));
+                        selectedPath.ifPresent(EditorStates::setAssetLocation);
+                    });
+                } else {
+                    text(assetLocation.toString(), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                }
             });
             container(props(UI.grow(), UI.backgroundColor(ELEMENT_COLOR)), () -> {
                 text("Asset List TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
@@ -105,8 +122,11 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
                 UI.gap(5, PIXELS)
         ), () -> {
             tabbedMenu("inspectorTabs",
-                    new Tab("Inspector", () -> {
+                    new Tab("Element Inspector", () -> {
                         text("Inspector TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                    }),
+                    new Tab("State Inspector", () -> {
+                        text("State Inspector TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
                     })
             );
         });
