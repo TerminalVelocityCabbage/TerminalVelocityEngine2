@@ -47,7 +47,7 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
                 UI.growY(), UI.width(240, PIXELS), UI.backgroundColor(ELEMENT_COLOR), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT),
                 UI.gap(5, PIXELS)
         ), () -> {
-            tabbedMenu("sceneTabs",
+            tabbedMenu("hierarchyTabs",
                     new Tab("Scene Hierarchy", () -> {
                         text("Scene tree TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
                     })
@@ -71,7 +71,7 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
         container(props(
                 UI.grow(), UI.backgroundColor(BACKGROUND_COLOR)
         ), () -> {
-            tabbedMenu("browserTabs",
+            tabbedMenu("sceneTabs",
                     new Tab("3D", () -> {
                         container(props(UI.grow(), UI.backgroundColor(BORDER_COLOR)), () -> {
                             commands();

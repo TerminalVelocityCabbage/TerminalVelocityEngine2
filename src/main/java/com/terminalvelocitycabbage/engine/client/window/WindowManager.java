@@ -195,7 +195,7 @@ public class WindowManager {
         thread.destroyWindow();
         //Prevent an IllegalStateException on last destroyed window
         if (threads.size() > 1) {
-            threads.remove(thread);
+            threads.remove(thread.getWindowHandle());
         }
     }
 

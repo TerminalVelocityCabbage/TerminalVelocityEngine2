@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
@@ -40,49 +41,53 @@ public class WindowThread extends Thread {
 
     @Override
     public void run() {
-        //make this thread use this context for this new window
-        glfwMakeContextCurrent(windowHandle);
-        GLCapabilities capabilities = GL.createCapabilities();
+        try {
+            //make this thread use this context for this new window
+            glfwMakeContextCurrent(windowHandle);
+            GLCapabilities capabilities = GL.createCapabilities();
 
-        long nvg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-        ClientBase.getInstance().setNvgContext(nvg);
+            long nvg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+            ClientBase.getInstance().setNvgContext(nvg);
 
-        glEnable(GL_DEPTH_TEST);
+            glEnable(GL_DEPTH_TEST);
 
-        //Turn on vsync
-        //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
-        glfwSwapInterval(1);
+            //Turn on vsync
+            //TODO swap this out for a window config apply() && Verify that bgfx may take care of this instead
+            glfwSwapInterval(1);
 
-        //Initialize the RenderGraph & scene
-        properties.init();
-        ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).init(capabilities);
+            //Initialize the RenderGraph & scene
+            properties.init();
+            ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).init(capabilities);
 
-        //swap the image in this window with the new one
-        while (!quit) {
-            deltaTime = rendererClock.getDeltaTime();
-            runtime += deltaTime;
-            rendererClock.now();
+            //swap the image in this window with the new one
+            while (!quit) {
+                deltaTime = rendererClock.getDeltaTime();
+                runtime += deltaTime;
+                rendererClock.now();
 
-            //Make sure window properties are correct with current window size
-            int[] width = new int[1];
-            int[] height = new int[1];
-            glfwGetFramebufferSize(windowHandle, width, height);
-            properties.resize(width[0], height[0]);
-            if (properties.isResized()) glViewport(0, 0, properties.getWidth(), properties.getHeight());
+                //Make sure window properties are correct with current window size
+                int[] width = new int[1];
+                int[] height = new int[1];
+                glfwGetFramebufferSize(windowHandle, width, height);
+                properties.resize(width[0], height[0]);
+                if (properties.isResized()) glViewport(0, 0, properties.getWidth(), properties.getHeight());
 
-            //Clear the last frame and render a new one
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).render(getProperties(), deltaTime);
-            properties.endFrame();
-            glfwSwapBuffers(windowHandle);
+                //Clear the last frame and render a new one
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).render(getProperties(), deltaTime);
+                properties.endFrame();
+                glfwSwapBuffers(windowHandle);
+            }
+
+            //queue this window for destruction
+            windowManager.queueDestroyWindow(this);
+
+            //Clear the gl capabilities from this window
+            nvgDelete(ClientBase.getInstance().getNvgContext());
+            GL.setCapabilities(null);
+        } catch (Exception e) {
+            Log.crash("An error occurred in a Window thread", e);
         }
-
-        //queue this window for destruction
-        windowManager.queueDestroyWindow(this);
-
-        //Clear the gl capabilities from this window
-        nvgDelete(ClientBase.getInstance().getNvgContext());
-        GL.setCapabilities(null);
     }
 
     /**

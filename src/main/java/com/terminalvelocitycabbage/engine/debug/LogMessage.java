@@ -49,4 +49,8 @@ public class LogMessage {
                                 .reset()
                 );
     }
+    @Override
+    public String toString() {
+        return message;
+    }
 }
