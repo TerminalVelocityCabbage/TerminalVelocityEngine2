@@ -68,7 +68,7 @@ public class URLResource implements Resource {
         if (buffer != null) {
             buffer.flip();
         } else {
-            Log.crash("Could not get this URL Resource as a ByteBuffer", new RuntimeException());
+            Log.crash("Could not get this URL Resource as a ByteBuffer: " + path, new RuntimeException());
         }
 
         return buffer;

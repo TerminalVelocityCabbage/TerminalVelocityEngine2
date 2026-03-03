@@ -5,7 +5,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.FontRegistrationEvent;
 import com.terminalvelocitycabbage.templates.events.ResourceRegistrationEvent;
 
-import static com.terminalvelocitycabbage.editor.TerminalVelocityEngineEditor.ENGINE_RESOURCE_SOURCE;
+import static com.terminalvelocitycabbage.editor.Editor.ENGINE_RESOURCE_SOURCE;
 import static com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory.FONT;
 
 public class EditorFonts {

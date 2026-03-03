@@ -85,6 +85,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
      * Starts this client program
      */
     public void start() {
+        registerEventListeners(eventDispatcher);
         ModLoader.loadAndRegisterMods(this, Side.CLIENT, modRegistry);
         init();
         run();

@@ -14,8 +14,6 @@ public abstract class ModEntrypoint extends Entrypoint {
         super(namespace);
     }
 
-    public abstract void registerEventListeners();
-
     public Mod getMod() {
         return mod;
     }

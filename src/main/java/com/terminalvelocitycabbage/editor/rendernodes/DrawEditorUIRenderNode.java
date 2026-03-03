@@ -1,13 +1,12 @@
 package com.terminalvelocitycabbage.editor.rendernodes;
 
-import com.terminalvelocitycabbage.editor.registry.EditorStates;
+import com.terminalvelocitycabbage.editor.Editor;
 import com.terminalvelocitycabbage.editor.registry.EditorTextures;
+import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.ui.UI;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.filesystem.selector.FileDialogs;
-
-import java.nio.file.Path;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 
 import static com.terminalvelocitycabbage.engine.client.ui.UI.UIUnit.PIXELS;
 
@@ -100,14 +99,10 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
     private void assetBrowser() {
         container(props(UI.backgroundColor(BORDER_COLOR), UI.grow(), UI.gap(5, PIXELS), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT)), () -> {
             container(props(UI.width(240, PIXELS), UI.growY(),UI.backgroundColor(ELEMENT_COLOR)), () -> {
-                Path assetLocation = EditorStates.getAssetLocation();
-                if (assetLocation.equals(Path.of("unset"))) {
-                    button(id("set_asset_location"), "Open Folder", () -> {
-                        var selectedPath = FileDialogs.selectFolder("Select Assets Folder", Path.of("."));
-                        selectedPath.ifPresent(EditorStates::setAssetLocation);
-                    });
-                } else {
-                    text(assetLocation.toString(), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                Editor editor = (Editor) Editor.getInstance();
+                ClientBase client = editor.getGameClient();
+                for (ResourceSource source : client.getFileSystem().getSourceRegistry().getRegistryContents().values()) {
+                    text(source.toString(), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
                 }
             });
             container(props(UI.grow(), UI.backgroundColor(ELEMENT_COLOR)), () -> {

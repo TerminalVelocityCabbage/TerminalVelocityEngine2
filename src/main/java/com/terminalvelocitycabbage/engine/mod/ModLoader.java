@@ -104,7 +104,7 @@ public class ModLoader {
         sortedMods.forEach(mod -> setModDependencies(modRegistry, mod, mod.getEntrypoint(), unsortedMods));
 
         //Register event listeners for each mod
-        sortedMods.forEach(mod -> mod.getEntrypoint().registerEventListeners());
+        sortedMods.forEach(mod -> mod.getEntrypoint().registerEventListeners(mainEntrypoint.getEventDispatcher()));
     }
 
     /**

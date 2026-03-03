@@ -1,6 +1,6 @@
 package com.terminalvelocitycabbage.editor.registry;
 
-import com.terminalvelocitycabbage.editor.TerminalVelocityEngineEditor;
+import com.terminalvelocitycabbage.editor.Editor;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -27,17 +27,17 @@ public class EditorTextures {
     }
 
     private static Identifier registerTexture(EventDispatcher eventDispatcher, ResourceRegistrationEvent event, String textureName) {
-        Identifier textureIdentifier = event.registerResource(TerminalVelocityEngineEditor.ENGINE_RESOURCE_SOURCE, ResourceCategory.TEXTURE, textureName).getIdentifier();
+        Identifier textureIdentifier = event.registerResource(Editor.ENGINE_RESOURCE_SOURCE, ResourceCategory.TEXTURE, textureName).getIdentifier();
         eventDispatcher.listenToEvent(ConfigureTexturesEvent.EVENT, e -> {
             ConfigureTexturesEvent configureEvent = (ConfigureTexturesEvent) e;
 
-            UI_ATLAS = configureEvent.registerAtlas(TerminalVelocityEngineEditor.ID, "ui_atlas");
+            UI_ATLAS = configureEvent.registerAtlas(Editor.getInstance().getNamespace(), "ui_atlas");
             configureEvent.addTexture(textureIdentifier, UI_ATLAS);
         });
         return textureIdentifier;
     }
 
     public static void generateAtlases() {
-        TerminalVelocityEngineEditor.getInstance().getTextureCache().generateAtlas(UI_ATLAS);
+        Editor.getInstance().getTextureCache().generateAtlas(UI_ATLAS);
     }
 }
