@@ -1,5 +1,6 @@
 package com.terminalvelocitycabbage.editor.scenes;
 
+import com.terminalvelocitycabbage.editor.registry.EditorInput;
 import com.terminalvelocitycabbage.editor.registry.EditorRenderGraphs;
 import com.terminalvelocitycabbage.editor.registry.EditorTextures;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
@@ -10,6 +11,7 @@ public class EditorScene extends Scene {
 
     public EditorScene() {
         super(EditorRenderGraphs.EDITOR_RENDER_GRAPH, List.of());
+        addInputControllers(EditorInput.UI_CLICK, EditorInput.UI_SCROLL);
     }
 
     @Override

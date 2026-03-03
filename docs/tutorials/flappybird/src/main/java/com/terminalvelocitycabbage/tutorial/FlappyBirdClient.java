@@ -68,6 +68,10 @@ public class FlappyBirdClient extends ClientBase {
     public static Identifier BIRD_ENTITY;
     public static Identifier PLAYER_CAMERA_ENTITY;
 
+    //Input stuff
+    public static Identifier FLAP_CONTROLLER;
+    public static Identifier EXIT_GAME_CONTROLLER;
+
     public FlappyBirdClient(String namespace, int ticksPerSecond) {
         super(namespace, ticksPerSecond);
         //Listen to events
@@ -173,8 +177,8 @@ public class FlappyBirdClient extends ClientBase {
             Control exitControl = inputHandler.registerControlListener(new KeyboardKeyControl(KeyboardInput.Key.ESCAPE));
             Control flapControl = inputHandler.registerControlListener(new KeyboardKeyControl(KeyboardInput.Key.SPACE));
             //Register Controllers
-            inputHandler.registerController(ID, "exit_game", new CloseGameController(exitControl));
-            inputHandler.registerController(ID, "flap", new JumpController(flapControl));
+            EXIT_GAME_CONTROLLER = inputHandler.registerController(ID, "exit_game", new CloseGameController(exitControl));
+            FLAP_CONTROLLER = inputHandler.registerController(ID, "flap", new JumpController(flapControl));
         });
     }
 
@@ -242,6 +246,7 @@ public class FlappyBirdClient extends ClientBase {
 
         public DefaultScene(Identifier renderGraph, List<Routine> routines) {
             super(renderGraph, routines);
+            addInputControllers(FLAP_CONTROLLER, EXIT_GAME_CONTROLLER);
         }
 
         @Override

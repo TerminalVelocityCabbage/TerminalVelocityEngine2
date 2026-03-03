@@ -7,11 +7,15 @@ import com.terminalvelocitycabbage.engine.client.input.control.MouseScrollContro
 import com.terminalvelocitycabbage.engine.client.input.controller.ControlGroup;
 import com.terminalvelocitycabbage.engine.client.input.types.MouseInput;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.InputHandlerRegistrationEvent;
 import com.terminalvelocitycabbage.templates.inputcontrollers.UIClickController;
 import com.terminalvelocitycabbage.templates.inputcontrollers.UIScrollController;
 
 public class EditorInput {
+
+    public static Identifier UI_CLICK;
+    public static Identifier UI_SCROLL;
 
     public static void init(EventDispatcher eventDispatcher) {
 
@@ -24,8 +28,8 @@ public class EditorInput {
             Control mouseScrollUpControl = inputHandler.registerControlListener(new MouseScrollControl(MouseInput.ScrollDirection.UP, 1f));
             Control mouseScrollDownControl = inputHandler.registerControlListener(new MouseScrollControl(MouseInput.ScrollDirection.DOWN, 1f));
 
-            inputHandler.registerController(Editor.getInstance().getNamespace(), "ui_click", new UIClickController(MouseInput.Button.LEFT_CLICK, leftClickControl));
-            inputHandler.registerController(Editor.getInstance().getNamespace(), "scroll", new UIScrollController(
+            UI_CLICK = inputHandler.registerController(Editor.getInstance().getNamespace(), "ui_click", new UIClickController(MouseInput.Button.LEFT_CLICK, leftClickControl));
+            UI_SCROLL = inputHandler.registerController(Editor.getInstance().getNamespace(), "scroll", new UIScrollController(
                     new ControlGroup(mouseScrollUpControl),
                     new ControlGroup(mouseScrollDownControl)
             ));

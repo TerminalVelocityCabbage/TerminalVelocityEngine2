@@ -4,6 +4,8 @@ import com.terminalvelocitycabbage.engine.client.renderer.model.MeshCache;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,6 +18,7 @@ public abstract class Scene {
     private Identifier renderGraph;
     private List<Routine> routines;
     private MeshCache meshCache;
+    private final List<Identifier> inputControllers = new ArrayList<>();
 
     public Scene(Identifier renderGraph, List<Routine> routines) {
         this.renderGraph = renderGraph;
@@ -54,5 +57,20 @@ public abstract class Scene {
 
     public MeshCache getMeshCache() {
         return meshCache;
+    }
+
+    /**
+     * Adds the specified input controller to this scene's list of input controllers
+     * @param controllers The identifier of the input controller to add
+     */
+    public void addInputControllers(Identifier... controllers) {
+        inputControllers.addAll(Arrays.asList(controllers));
+    }
+
+    /**
+     * @return The list of identifiers that point to the input controllers used by this scene
+     */
+    public List<Identifier> getInputControllers() {
+        return inputControllers;
     }
 }

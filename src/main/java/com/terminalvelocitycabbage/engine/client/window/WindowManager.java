@@ -222,6 +222,7 @@ public class WindowManager {
      * @return The {@link WindowProperties} of the specified window
      */
     public WindowProperties getPropertiesFromWindow(long windowHandle) {
+        if (!threads.containsKey(windowHandle)) return null;
         return threads.get(windowHandle).getProperties();
     }
 
