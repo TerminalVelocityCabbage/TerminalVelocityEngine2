@@ -14,6 +14,8 @@ public class EditorTextures {
     public static Identifier TRANSLATE_ICON;
     public static Identifier ROTATE_ICON;
     public static Identifier SCALE_ICON;
+    public static Identifier CARET_OPEN_ICON;
+    public static Identifier CARET_CLOSED_ICON;
 
     public static void init(EventDispatcher eventDispatcher) {
 
@@ -23,6 +25,8 @@ public class EditorTextures {
             TRANSLATE_ICON = registerTexture(eventDispatcher, event, "translate_icon.png");
             ROTATE_ICON = registerTexture(eventDispatcher, event, "rotate_icon.png");
             SCALE_ICON = registerTexture(eventDispatcher, event, "scale_icon.png");
+            CARET_OPEN_ICON = registerTexture(eventDispatcher, event, "caret_open_icon.png");
+            CARET_CLOSED_ICON = registerTexture(eventDispatcher, event, "caret_closed_icon.png");
         });
     }
 

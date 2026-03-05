@@ -52,7 +52,6 @@ public abstract class Editor<T extends ClientBase> extends ClientBase {
     @Override
     public void init() {
         super.init();
-        getFileSystem().listResources();
         WindowProperties properties = new WindowProperties(1800, 900, "Terminal Velocity Engine", EDITOR_SCENE);
         long window = getWindowManager().createNewWindow(properties);
         getWindowManager().focusWindow(window);

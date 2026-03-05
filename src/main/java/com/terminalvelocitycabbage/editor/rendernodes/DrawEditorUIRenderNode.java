@@ -113,17 +113,25 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
 
     private void inspector() {
         container(props(
-                UI.growY(), UI.width(240, PIXELS), UI.backgroundColor(ELEMENT_COLOR),
+                UI.growY(), UI.width(340, PIXELS), UI.backgroundColor(ELEMENT_COLOR),
                 UI.gap(5, PIXELS)
         ), () -> {
             tabbedMenu("inspectorTabs",
-                    new Tab("Element Inspector", () -> {
-                        text("Inspector TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
-                    }),
+                    new Tab("Element Inspector", this::elementInspector),
                     new Tab("State Inspector", () -> {
                         text("State Inspector TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
                     })
             );
+        });
+    }
+
+    private void elementInspector() {
+        container(props(UI.grow(), UI.direction(UI.LayoutDirection.TOP_TO_BOTTOM)), () -> {
+            //TODO change this to show the components of the selected entity
+            for (Class<?> componentC : Editor.getInstance().getManager().getComponents()) {
+                component(componentC);
+                horizontalDivider();
+            }
         });
     }
 }
