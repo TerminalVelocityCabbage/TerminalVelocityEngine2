@@ -195,7 +195,7 @@ public class WindowManager {
         thread.destroyWindow();
         //Prevent an IllegalStateException on last destroyed window
         if (threads.size() > 1) {
-            threads.remove(thread);
+            threads.remove(thread.getWindowHandle());
         }
     }
 
@@ -222,6 +222,7 @@ public class WindowManager {
      * @return The {@link WindowProperties} of the specified window
      */
     public WindowProperties getPropertiesFromWindow(long windowHandle) {
+        if (!threads.containsKey(windowHandle)) return null;
         return threads.get(windowHandle).getProperties();
     }
 

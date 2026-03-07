@@ -85,6 +85,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
      * Starts this client program
      */
     public void start() {
+        registerEventListeners(eventDispatcher);
         ModLoader.loadAndRegisterMods(this, Side.CLIENT, modRegistry);
         init();
         run();
@@ -262,6 +263,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     @Override
     public long getDeltaTime() {
+        if (getWindowManager().getFocusedWindow() == -1) return 0;
         return getWindowManager().deltaTime(getWindowManager().getFocusedWindow());
     }
 }
