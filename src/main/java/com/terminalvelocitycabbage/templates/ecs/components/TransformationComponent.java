@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
-import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.util.Transformation;
 import org.joml.Matrix4f;
@@ -8,7 +7,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
-@EditorHint.ComponentName(name = "Transformation")
 public class TransformationComponent implements Component {
 
     Transformation transformation;

@@ -1,10 +1,8 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
-import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import org.joml.Vector3f;
 
-@EditorHint.ComponentName(name = "Position")
 public class PositionComponent implements Component {
 
     Vector3f position;

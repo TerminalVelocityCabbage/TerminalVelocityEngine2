@@ -1,6 +1,5 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
-import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.sound.SoundSource;
 import com.terminalvelocitycabbage.engine.debug.Log;
@@ -9,7 +8,6 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.joml.Vector3f;
 
 //TODO add utilities for playing with different pitches etc, not required in MVP
-@EditorHint.ComponentName(name = "Sound Source")
 public class SoundSourceComponent implements Component {
 
     SoundSource source;

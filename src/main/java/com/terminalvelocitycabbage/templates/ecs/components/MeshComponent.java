@@ -1,10 +1,8 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
-import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 
-@EditorHint.ComponentName(name = "Mesh")
 public class MeshComponent implements Component {
 
     Mesh mesh;
