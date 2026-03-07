@@ -18,6 +18,7 @@ public record ResourceCategory(String name) {
     public static final ResourceCategory GENERIC_FILE = new ResourceCategory("generic_file");
     public static final ResourceCategory LOCALIZATION = new ResourceCategory("localization");
     public static final ResourceCategory PROPERTIES = new ResourceCategory("propertie");
+    public static final ResourceCategory ENTITY = new ResourceCategory("entitie");
 
     /**
      * @param registry the registry to register the default values to
@@ -34,6 +35,7 @@ public record ResourceCategory(String name) {
         register(registry, namespace, GENERIC_FILE);
         register(registry, namespace, LOCALIZATION);
         register(registry, namespace, PROPERTIES);
+        register(registry, namespace, ENTITY);
     }
 
     private static void register(Registry<ResourceCategory> registry, String namespace, ResourceCategory resourceCategory) {

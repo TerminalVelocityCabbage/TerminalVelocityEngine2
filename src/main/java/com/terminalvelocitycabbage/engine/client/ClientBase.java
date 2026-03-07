@@ -118,7 +118,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelRegistry));
         soundDeviceManager.init();
         eventDispatcher.dispatchEvent(new SoundRegistrationEvent(soundManager));
-        eventDispatcher.dispatchEvent(new EntityTemplateRegistrationEvent(manager));
+        eventDispatcher.dispatchEvent(new EntityTemplateRegistrationEvent(manager, fileSystem));
         eventDispatcher.dispatchEvent(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry()));
         localizer.init();
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());

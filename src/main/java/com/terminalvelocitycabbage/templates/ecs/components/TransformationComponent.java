@@ -5,11 +5,36 @@ import com.terminalvelocitycabbage.engine.util.Transformation;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.joml.Vector3i;
 
 public class TransformationComponent implements Component {
 
     Transformation transformation;
+
+    @Override
+    public void parseComponentField(String field, String value) {
+        String cleanedValue = value.replace("[", "").replace("]", "");
+        String[] split = cleanedValue.split(",");
+        for (int i = 0; i < split.length; i++) split[i] = split[i].trim();
+        switch (field) {
+            case "position" -> {
+                if (split.length == 3) {
+                    setPosition(Float.parseFloat(split[0]), Float.parseFloat(split[1]), Float.parseFloat(split[2]));
+                }
+            }
+            case "rotation" -> {
+                if (split.length == 3) {
+                    rotate(Float.parseFloat(split[0]), Float.parseFloat(split[1]), Float.parseFloat(split[2]));
+                }
+            }
+            case "scale" -> {
+                if (split.length == 1) {
+                    setScale(Float.parseFloat(split[0]));
+                } else if (split.length == 3) {
+                    setScale(Float.parseFloat(split[0]), Float.parseFloat(split[1]), Float.parseFloat(split[2]));
+                }
+            }
+        }
+    }
 
     @Override
     public void setDefaults() {
