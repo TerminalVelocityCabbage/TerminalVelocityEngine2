@@ -1,10 +1,11 @@
 package com.terminalvelocitycabbage.engine.filesystem.resources.types;
 
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -42,10 +43,16 @@ public class JarResource implements Resource {
     //TODO test
     @Override
     public ByteBuffer asByteBuffer(boolean keepAlive) {
-        InputStream inputStream = openStream();
-        try {
-            ByteBuffer byteBuffer = ByteBuffer.allocate(inputStream.available());
-            Channels.newChannel(inputStream).read(byteBuffer);
+        try (InputStream inputStream = openStream()) {
+            byte[] bytes = inputStream.readAllBytes();
+            ByteBuffer byteBuffer;
+            if (keepAlive) {
+                byteBuffer = MemoryUtil.memCalloc(bytes.length);
+            } else {
+                byteBuffer = BufferUtils.createByteBuffer(bytes.length);
+            }
+            byteBuffer.put(bytes);
+            byteBuffer.flip();
             return byteBuffer;
         } catch (IOException e) {
             throw new RuntimeException(e);

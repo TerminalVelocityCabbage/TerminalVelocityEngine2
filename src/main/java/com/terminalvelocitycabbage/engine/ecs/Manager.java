@@ -385,6 +385,10 @@ public class Manager {
         return Collections.unmodifiableMap(inverseEntityRelationships);
     }
 
+    public List<Class> getComponents() {
+        return componentPool.getTypes();
+    }
+
     public interface EntityTemplateCreationCallback {
         void copyComponents(Entity entity);
     }

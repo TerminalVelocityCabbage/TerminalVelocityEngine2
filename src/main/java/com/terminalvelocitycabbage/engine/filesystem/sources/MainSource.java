@@ -16,7 +16,11 @@ public class MainSource extends ResourceSource {
     Entrypoint entrypoint;
 
     public MainSource(Entrypoint entrypoint) {
-        super(entrypoint.getNamespace());
+        this(entrypoint, entrypoint.getNamespace());
+    }
+
+    public MainSource(Entrypoint entrypoint, String namespace) {
+        super(namespace);
         this.entrypoint = entrypoint;
     }
 
@@ -28,7 +32,7 @@ public class MainSource extends ResourceSource {
     @Override
     public Resource getResource(String name, ResourceCategory resourceCategory) {
 
-        String compiledPath = resourceCategory.getAssetsPath(entrypoint.getNamespace()) + "/" + name;
+        String compiledPath = resourceCategory.getAssetsPath(namespace) + "/" + name;
 
         var resource = entrypoint.getClass().getClassLoader().getResource(compiledPath);
         if (resource == null) {

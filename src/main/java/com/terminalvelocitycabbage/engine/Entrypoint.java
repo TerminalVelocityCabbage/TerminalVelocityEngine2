@@ -2,6 +2,7 @@ package com.terminalvelocitycabbage.engine;
 
 import com.terminalvelocitycabbage.engine.debug.Logger;
 import com.terminalvelocitycabbage.engine.debug.LoggerSource;
+import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 public abstract class Entrypoint implements LoggerSource {
@@ -22,6 +23,12 @@ public abstract class Entrypoint implements LoggerSource {
     public Logger getLogger() {
         return logger;
     }
+
+    /**
+     * Registers event listeners for this entrypoint
+     * @param dispatcher The dispatcher to register event listeners to
+     */
+    public abstract void registerEventListeners(EventDispatcher dispatcher);
 
     /**
      * Logic required when initializing this entrypoint

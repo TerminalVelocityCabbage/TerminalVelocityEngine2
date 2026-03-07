@@ -8,11 +8,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.io.*;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 public class URLResource implements Resource {
@@ -45,37 +41,33 @@ public class URLResource implements Resource {
         return br.lines().collect(Collectors.joining("\n"));
     }
 
-    //TODO once tested jar resource for inputstream stuff see if this works for that too because it's simpler
     @Override
     public ByteBuffer asByteBuffer(boolean keepAlive) {
 
         ByteBuffer buffer = null;
-        Path path = Paths.get(url.getPath().replaceFirst("/", "").replaceFirst("file:", ""));
 
-        if (Files.isReadable(path)) {
-            try(SeekableByteChannel sbc = Files.newByteChannel(path)) {
-                if (keepAlive) {
-                    buffer = MemoryUtil.memCalloc((int)sbc.size() + 1);
-                } else {
-                    buffer = BufferUtils.createByteBuffer((int)sbc.size() + 1);
-                }
-                while(sbc.read(buffer) != -1);
-            } catch(IOException e) {
-                Log.crash("Could not read byte channel", new IOException(e));
+        try (InputStream is = openStream()) {
+            byte[] bytes = is.readAllBytes();
+            if (keepAlive) {
+                buffer = MemoryUtil.memCalloc(bytes.length);
+            } else {
+                buffer = BufferUtils.createByteBuffer(bytes.length);
             }
+            buffer.put(bytes);
+        } catch (IOException e) {
+            Log.crash("Could not read URL as ByteBuffer: " + url, e);
         }
 
         if (buffer != null) {
             buffer.flip();
         } else {
-            Log.crash("Could not get this URL Resource as a ByteBuffer", new RuntimeException());
+            Log.crash("Could not get this URL Resource as a ByteBuffer: " + url, new RuntimeException());
         }
 
         return buffer;
     }
 
     public void printPath() {
-        Path path = Paths.get(url.getPath().replaceFirst("/", "").replaceFirst("file:", ""));
-        Log.info(path.toString());
+        Log.info(url.toString());
     }
 }

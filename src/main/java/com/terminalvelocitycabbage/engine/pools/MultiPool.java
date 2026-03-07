@@ -1,6 +1,8 @@
 package com.terminalvelocitycabbage.engine.pools;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -101,5 +103,9 @@ public class MultiPool {
 
     public <T extends Poolable> boolean hasType(Class<T> type) {
         return pools.containsKey(type);
+    }
+
+    public List<Class> getTypes() {
+        return new ArrayList<>(pools.keySet());
     }
 }

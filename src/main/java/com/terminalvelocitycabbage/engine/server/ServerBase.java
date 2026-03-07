@@ -40,6 +40,7 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
      * Starts this server program
      */
     public void start() {
+        registerEventListeners(eventDispatcher);
         ModLoader.loadAndRegisterMods(this, Side.SERVER, modRegistry);
         eventDispatcher.dispatchEvent(new PacketRegistryEvent(getPacketRegistry()));
         eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));

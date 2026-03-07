@@ -99,7 +99,7 @@ public class Registry<T> {
     public RegistryPair<T> getAndRegister(Identifier identifier, T item) {
         if (contains(identifier)) {
             Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
-            return null;
+            return new RegistryPair<>(identifier, get(identifier));
         }
         return getAndRegister(identifier, item, false);
     }

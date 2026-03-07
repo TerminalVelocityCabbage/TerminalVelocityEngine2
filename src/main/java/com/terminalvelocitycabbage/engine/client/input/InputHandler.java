@@ -3,11 +3,15 @@ package com.terminalvelocitycabbage.engine.client.input;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.input.control.*;
 import com.terminalvelocitycabbage.engine.client.input.controller.Controller;
+import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import org.lwjgl.glfw.GLFWGamepadState;
 import org.lwjgl.system.MemoryUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -23,11 +27,14 @@ public class InputHandler {
 
     Registry<Control> controlRegistry;
     Registry<Controller> controllerRegistry;
+    List<Identifier> activeControllers;
+    Scene lastProcessedScene;
 
     public InputHandler() {
         this.gamepadState = new GLFWGamepadState(MemoryUtil.memAlloc(GLFWGamepadState.SIZEOF));
         this.controlRegistry = new Registry<>();
         this.controllerRegistry = new Registry<>();
+        this.activeControllers = new ArrayList<>();
     }
 
     /**
@@ -38,6 +45,14 @@ public class InputHandler {
      * @param deltaTime The amount of time in ms between now and the last update
      */
     public void update(long focusedWindow1, long mousedOverWindow1, long deltaTime) {
+
+        var properties = ClientBase.getInstance().getWindowManager().getPropertiesFromWindow(focusedWindow1);
+        Scene currentScene = properties == null ? null : properties.getActiveScene();
+
+        if (this.focusedWindow != focusedWindow1 || currentScene != lastProcessedScene) {
+            setControllersForScene(currentScene);
+            lastProcessedScene = currentScene;
+        }
 
         this.focusedWindow = focusedWindow1;
         this.mousedOverWindow = mousedOverWindow1;
@@ -64,7 +79,12 @@ public class InputHandler {
         }
 
         //Update controllers
-        controllerRegistry.getRegistryContents().values().forEach(Controller::processInputs);
+        activeControllers.forEach(identifier -> {
+            var controller = controllerRegistry.get(identifier);
+            if (controller != null) {
+                controller.processInputs();
+            }
+        });
     }
 
     private void processMouseKeyboardInputs(long deltaTime) {
@@ -141,7 +161,50 @@ public class InputHandler {
      * @param controller A {@link Controller} which groups the desired controls
      * @return The Controller which was registered
      */
-    public Controller registerController(String namespace, String name, Controller controller) {
-        return controllerRegistry.getAndRegister(new Identifier(namespace, "controller", name), controller).getElement();
+    public Identifier registerController(String namespace, String name, Controller controller) {
+        return controllerRegistry.getAndRegister(new Identifier(namespace, "controller", name), controller).getIdentifier();
+    }
+
+    /**
+     * @return The list of active controller identifiers
+     */
+    public List<Identifier> getActiveControllers() {
+        return activeControllers;
+    }
+
+    /**
+     * Activates the specified controller
+     * @param identifier The identifier of the controller to activate
+     */
+    public void activateController(Identifier identifier) {
+        if (!activeControllers.contains(identifier)) {
+            activeControllers.add(identifier);
+        }
+    }
+
+    /**
+     * Deactivates the specified controller
+     * @param identifier The identifier of the controller to deactivate
+     */
+    public void deactivateController(Identifier identifier) {
+        activeControllers.remove(identifier);
+    }
+
+    /**
+     * Clears all active controllers
+     */
+    public void clearActiveControllers() {
+        activeControllers.clear();
+    }
+
+    /**
+     * Sets the active controllers to those specified by the scene
+     * @param scene The scene to get controllers from
+     */
+    public void setControllersForScene(Scene scene) {
+        clearActiveControllers();
+        if (scene != null) {
+            scene.getInputControllers().forEach(this::activateController);
+        }
     }
 }
