@@ -7,7 +7,6 @@ import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.templates.ecs.components.ModelComponent;
 import com.terminalvelocitycabbage.templates.ecs.components.TransformationComponent;
 import com.terminalvelocitycabbage.templates.events.EntityTemplateRegistrationEvent;
 import org.joml.Vector3f;
@@ -79,7 +78,7 @@ public class EntityTemplateRegistrationTest {
         };
 
         EntityTemplateRegistrationEvent event = new EntityTemplateRegistrationEvent(manager, fileSystem);
-        Identifier templateId = event.createEntityTemplateFromFile(new Identifier("test", "entity", "test_file"));
+        Identifier templateId = event.createEntityTemplateFromFile("test", "test_file");
 
         assertNotNull(templateId);
         Entity entity = manager.createEntityFromTemplate(templateId);

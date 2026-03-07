@@ -5,8 +5,13 @@ import com.terminalvelocitycabbage.engine.registry.Registry;
 
 /**
  * @param name the name of this resource category, and the path appended by an "s" to the default resource root
+ * @param plural the plural name of this resource category used for the assets path
  */
-public record ResourceCategory(String name) {
+public record ResourceCategory(String name, String plural) {
+
+    public ResourceCategory(String name) {
+        this(name, name + "s");
+    }
 
     public static final ResourceCategory MODEL = new ResourceCategory("model");
     public static final ResourceCategory TEXTURE = new ResourceCategory("texture");
@@ -17,8 +22,8 @@ public record ResourceCategory(String name) {
     public static final ResourceCategory FONT = new ResourceCategory("font");
     public static final ResourceCategory GENERIC_FILE = new ResourceCategory("generic_file");
     public static final ResourceCategory LOCALIZATION = new ResourceCategory("localization");
-    public static final ResourceCategory PROPERTIES = new ResourceCategory("propertie");
-    public static final ResourceCategory ENTITY = new ResourceCategory("entitie");
+    public static final ResourceCategory PROPERTIES = new ResourceCategory("property", "properties");
+    public static final ResourceCategory ENTITY = new ResourceCategory("entity", "entities");
 
     /**
      * @param registry the registry to register the default values to
@@ -47,6 +52,6 @@ public record ResourceCategory(String name) {
     }
 
     public String getAssetsPath(String namespace) {
-        return "assets/" + namespace + "/" + name + "s";
+        return "assets/" + namespace + "/" + plural;
     }
 }
