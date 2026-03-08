@@ -25,6 +25,7 @@ public record ResourceCategory(String name, String plural) {
     public static final ResourceCategory PROPERTIES = new ResourceCategory("property", "properties");
     public static final ResourceCategory ENTITY = new ResourceCategory("entity", "entities");
     public static final ResourceCategory ROUTINE = new ResourceCategory("routine");
+    public static final ResourceCategory SCENE = new ResourceCategory("scene");
 
     /**
      * @param registry the registry to register the default values to
@@ -43,6 +44,7 @@ public record ResourceCategory(String name, String plural) {
         register(registry, namespace, PROPERTIES);
         register(registry, namespace, ENTITY);
         register(registry, namespace, ROUTINE);
+        register(registry, namespace, SCENE);
     }
 
     private static void register(Registry<ResourceCategory> registry, String namespace, ResourceCategory resourceCategory) {

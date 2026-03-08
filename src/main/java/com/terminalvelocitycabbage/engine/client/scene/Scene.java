@@ -118,6 +118,20 @@ public class Scene {
         return inputControllers;
     }
 
+    /**
+     * @return The list of identifiers that point to the texture atlases used by this scene
+     */
+    public List<Identifier> getTextureAtlases() {
+        return textureAtlases;
+    }
+
+    /**
+     * @return The list of entity initializers for this scene
+     */
+    public List<Consumer<Manager>> getEntityInitializers() {
+        return entityInitializers;
+    }
+
     public static Builder builder() {
         return new Builder();
     }

@@ -59,5 +59,7 @@ public abstract class ResourceSource {
         registerDefaultSourceRoot(namespace, ResourceCategory.LOCALIZATION);
         registerDefaultSourceRoot(namespace, ResourceCategory.PROPERTIES);
         registerDefaultSourceRoot(namespace, ResourceCategory.ENTITY);
+        registerDefaultSourceRoot(namespace, ResourceCategory.ROUTINE);
+        registerDefaultSourceRoot(namespace, ResourceCategory.SCENE);
     }
 }
