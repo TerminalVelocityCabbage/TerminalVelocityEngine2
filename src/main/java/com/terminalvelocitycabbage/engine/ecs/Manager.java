@@ -39,6 +39,9 @@ public class Manager {
     //A list of components and their identifiers
     Map<String, Class<? extends Component>> componentNameToClassMap;
 
+    //A list of systems and their identifiers
+    Map<String, Class<? extends System>> systemNameToClassMap;
+
     //Stores entity relationships
     Map<String, Map<Entity, Set<Entity>>> entityRelationships;
     Map<String, Map<Entity, Set<Entity>>> inverseEntityRelationships;
@@ -56,6 +59,7 @@ public class Manager {
         entityQueryCache = new HashMap<>();
 
         componentNameToClassMap = new HashMap<>();
+        systemNameToClassMap = new HashMap<>();
 
         entityRelationships = new HashMap<>();
         inverseEntityRelationships = new HashMap<>();
@@ -264,10 +268,22 @@ public class Manager {
         try {
             T system = ClassUtils.createInstance(systemClass);
             systems.put(systemClass, system);
+
+            String stringId = systemClass.getSimpleName().toLowerCase().replace("system", "");
+            systemNameToClassMap.put(stringId, systemClass);
+
             return system;
         } catch (ReflectionException e) {
             throw new RuntimeException(e.getCause());
         }
+    }
+
+    /**
+     * @param name The simple name of the system class (without "System" suffix)
+     * @return the class of the system requested
+     */
+    public Class<? extends System> getSystemClass(String name) {
+        return systemNameToClassMap.get(name);
     }
 
     /**

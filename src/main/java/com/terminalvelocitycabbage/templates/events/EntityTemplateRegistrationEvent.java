@@ -45,7 +45,7 @@ public class EntityTemplateRegistrationEvent extends Event {
             if (components == null) return;
 
             for (Config.Entry entry : components.entrySet()) {
-                String componentId = entry.getKey();
+                String componentId = entry.getKey().replace("_", "");
                 Object value = entry.getValue();
 
                 Class<? extends Component> componentClass = manager.getComponentClass(componentId);

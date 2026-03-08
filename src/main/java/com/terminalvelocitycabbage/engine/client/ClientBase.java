@@ -107,7 +107,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new InputHandlerRegistrationEvent(inputHandler));
         eventDispatcher.dispatchEvent(new EntityComponentRegistrationEvent(manager));
         eventDispatcher.dispatchEvent(new EntitySystemRegistrationEvent(manager));
-        eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry));
+        eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry, manager, fileSystem));
         var configureTexturesEvent = new ConfigureTexturesEvent(fileSystem);
         eventDispatcher.dispatchEvent(configureTexturesEvent);
         textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures());
