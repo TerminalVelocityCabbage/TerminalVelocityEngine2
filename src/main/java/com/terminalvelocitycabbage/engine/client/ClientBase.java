@@ -113,7 +113,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures());
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
         eventDispatcher.dispatchEvent(new FontRegistrationEvent(fontRegistry));
-        eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry));
+        eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry, fileSystem, routineRegistry));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
         eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelRegistry));
         soundDeviceManager.init();
