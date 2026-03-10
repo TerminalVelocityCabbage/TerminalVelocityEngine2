@@ -10,6 +10,15 @@ public class ModelComponent implements Component {
     Identifier model;
 
     @Override
+    public void parseComponentField(String field, String value) {
+        switch (field) {
+            case "model" -> {
+                this.model = Identifier.fromString(value, "model");
+            }
+        }
+    }
+
+    @Override
     public void setDefaults() {
         this.model = null;
     }

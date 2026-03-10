@@ -10,6 +10,20 @@ public class PositionComponent implements Component {
     Vector3f position;
 
     @Override
+    public void parseComponentField(String field, String value) {
+        String cleanedValue = value.replace("[", "").replace("]", "");
+        String[] split = cleanedValue.split(",");
+        for (int i = 0; i < split.length; i++) split[i] = split[i].trim();
+        switch (field) {
+            case "position" -> {
+                if (split.length == 3) {
+                    setPosition(Float.parseFloat(split[0]), Float.parseFloat(split[1]), Float.parseFloat(split[2]));
+                }
+            }
+        }
+    }
+
+    @Override
     public void setDefaults() {
         position = new Vector3f(0, 0, 0);
     }

@@ -24,6 +24,17 @@ public record Identifier(
 	}
 
     /**
+     * @param identifierString The string in format namespace:path to convert to an Identifier
+     * @param defaultType The default type to use if the identifier string only has two parts
+     * @return an identifier with the same format
+     */
+    public static Identifier fromString(String identifierString, String defaultType) {
+        var split = identifierString.split(":");
+        if (split.length == 2) return new Identifier(split[0], defaultType, split[1]);
+        return fromString(identifierString);
+    }
+
+    /**
      * @param identifierString The identifier string to check for validity
      * @return true if the identifier string is valid, false otherwise
      */

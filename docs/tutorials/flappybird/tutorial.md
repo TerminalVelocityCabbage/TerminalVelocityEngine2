@@ -198,30 +198,13 @@ That means registering the components our entities will use, the systems that wi
 ## Creating a Scene and Render Graph
 Now; we've got all the resources we need, but now we need to tell the renderer how to render them This comes in two parts, defining the renderer and defining a scene.
 
-To create a scene we need a class that extends `Scene` and a bit of setup and cleanup code:
+To create a scene we use the `Scene.builder()` and provide all of the configuration we need:
 ```java
-    static class DefaultScene extends Scene {
-
-        public DefaultScene(Identifier renderGraph, Routine... routines) {
-            super(renderGraph, List.of(routines));
-        }
-
-        @Override
-        public void init() {
-            GameClient client = (GameClient) ClientBase.getInstance();
-            Manager manager = client.getManager();
-
-            client.getTextureCache().generateAtlas(GameTextures.DEFAULT_SCENE_ATLAS);
-            setMeshCache(new MeshCache(client.getModelRegistry(), client.getMeshRegistry(), client.getTextureCache()));
-
-            manager.createEntityFromTemplate(GameEntities.SMILE_SQUARE_ENTITY);
-            manager.createEntityFromTemplate(GameEntities.SAD_SQUARE_ENTITY);
-            playerEntity = manager.createEntityFromTemplate(GameEntities.PLAYER_ENTITY);
-        }
-
-        @Override
-        public void cleanup() {
-            //Things to do with scene cleanup
-        }
-    }
+    DEFAULT_SCENE = event.registerScene(ID, "scene", Scene.builder()
+            .renderGraph(RENDER_GRAPH)
+            .inputController(FLAP_CONTROLLER, EXIT_GAME_CONTROLLER)
+            .textureAtlas(TEXTURE_ATLAS)
+            .entity(manager -> manager.createEntityFromTemplate(BIRD_ENTITY))
+            .entity(manager -> manager.createEntityFromTemplate(PLAYER_CAMERA_ENTITY))
+            .build());
 ```

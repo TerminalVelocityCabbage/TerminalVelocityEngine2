@@ -36,9 +36,12 @@ public class URLResource implements Resource {
 
     @Override
     public String asString() {
-        var isr = new InputStreamReader(openStream(), StandardCharsets.UTF_8);
-        var br = new BufferedReader(isr);
-        return br.lines().collect(Collectors.joining("\n"));
+        try (InputStream is = openStream()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            Log.crash("Could not read URL Resource as String: " + url, e);
+            return null;
+        }
     }
 
     @Override

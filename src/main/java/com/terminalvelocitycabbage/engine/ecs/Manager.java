@@ -36,6 +36,12 @@ public class Manager {
     //A cache of recent queries to the manager
     Map<String, Set<Entity>> entityQueryCache;
 
+    //A list of components and their identifiers
+    Map<String, Class<? extends Component>> componentNameToClassMap;
+
+    //A list of systems and their identifiers
+    Map<String, Class<? extends System>> systemNameToClassMap;
+
     //Stores entity relationships
     Map<String, Map<Entity, Set<Entity>>> entityRelationships;
     Map<String, Map<Entity, Set<Entity>>> inverseEntityRelationships;
@@ -52,14 +58,18 @@ public class Manager {
 
         entityQueryCache = new HashMap<>();
 
+        componentNameToClassMap = new HashMap<>();
+        systemNameToClassMap = new HashMap<>();
+
         entityRelationships = new HashMap<>();
         inverseEntityRelationships = new HashMap<>();
     }
 
     /**
      * Adds a component to the componentTypeSet
+     *
      * @param componentType the class of the component you wish to add to the pool
-     * @param <T> The type of the component, must extend {@link Component}
+     * @param <T>           The type of the component, must extend {@link Component}
      */
     public <T extends Component> void registerComponent(Class<T> componentType) {
         registerComponent(componentType, 0);
@@ -72,8 +82,14 @@ public class Manager {
      * @param <T> The type of the component, must extend {@link Component}
      */
     public <T extends Component> void registerComponent(Class<T> componentType, int initialPoolSize) {
+        String stringId = componentType.getSimpleName().toLowerCase().replace("component", "");
+        componentNameToClassMap.put(stringId, componentType);
         componentPool.getPool(componentType, true, initialPoolSize);
         activeComponents.put(componentType, new ArrayList<>());
+    }
+
+    public Class<? extends Component> getComponentClass(String name) {
+        return componentNameToClassMap.get(name);
     }
 
     /**
@@ -252,10 +268,22 @@ public class Manager {
         try {
             T system = ClassUtils.createInstance(systemClass);
             systems.put(systemClass, system);
+
+            String stringId = systemClass.getSimpleName().toLowerCase().replace("system", "");
+            systemNameToClassMap.put(stringId, systemClass);
+
             return system;
         } catch (ReflectionException e) {
             throw new RuntimeException(e.getCause());
         }
+    }
+
+    /**
+     * @param name The simple name of the system class (without "System" suffix)
+     * @return the class of the system requested
+     */
+    public Class<? extends System> getSystemClass(String name) {
+        return systemNameToClassMap.get(name);
     }
 
     /**

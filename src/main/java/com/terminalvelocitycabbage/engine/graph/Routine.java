@@ -62,11 +62,15 @@ public non-sealed class Routine implements GraphNode, Identifiable {
         return identifier;
     }
 
-    private interface Step {
+    public Map<Identifier, Step> getSteps() {
+        return Collections.unmodifiableMap(steps);
+    }
+
+    public interface Step {
         void execute(Manager manager, float deltaTime, ForkJoinPool pool);
     }
 
-    private record SequentialStep(Class<? extends System> system) implements Step {
+    public record SequentialStep(Class<? extends System> system) implements Step {
 
         @Override
         public void execute(Manager manager, float deltaTime, ForkJoinPool pool) {
@@ -74,7 +78,7 @@ public non-sealed class Routine implements GraphNode, Identifiable {
         }
     }
 
-    private record ParallelStep(Set<Class<? extends System> > systems) implements Step {
+    public record ParallelStep(Set<Class<? extends System>> systems) implements Step {
 
         @Override
         public void execute(Manager manager, float deltaTime, ForkJoinPool pool) {
@@ -113,8 +117,18 @@ public non-sealed class Routine implements GraphNode, Identifiable {
          * @return This builder for easy chaining of methods
          */
         public Builder addParallelStep(Identifier stepIdentifier, Class<? extends System>... systems) {
-            if (systems.length == 0) Log.crash("Error adding parallel step to routine", new IllegalArgumentException("At least one system required"));
-            steps.put(stepIdentifier, new ParallelStep(Set.of(systems)));
+            return addParallelStep(stepIdentifier, Set.of(systems));
+        }
+
+        /**
+         * @param stepIdentifier The identifier used to identify this step in the routine, especially for mods
+         * @param systems The set of systems which will be executed in parallel during this step in the routine
+         *                Note that systems inside this parallel node do not complete in any guaranteed order
+         * @return This builder for easy chaining of methods
+         */
+        public Builder addParallelStep(Identifier stepIdentifier, Set<Class<? extends System>> systems) {
+            if (systems.isEmpty()) Log.crash("Error adding parallel step to routine", new IllegalArgumentException("At least one system required"));
+            steps.put(stepIdentifier, new ParallelStep(systems));
             return this;
         }
 

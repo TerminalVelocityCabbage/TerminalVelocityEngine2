@@ -167,7 +167,13 @@ public class FlappyBirdClient extends ClientBase {
         });
         getEventDispatcher().listenToEvent(SceneRegistrationEvent.EVENT, e -> {
             SceneRegistrationEvent event = (SceneRegistrationEvent) e;
-            DEFAULT_SCENE = event.registerScene(ID, "scene", new DefaultScene(RENDER_GRAPH, List.of()));
+            DEFAULT_SCENE = event.registerScene(ID, "scene", Scene.builder()
+                    .renderGraph(RENDER_GRAPH)
+                    .inputController(FLAP_CONTROLLER, EXIT_GAME_CONTROLLER)
+                    .textureAtlas(TEXTURE_ATLAS)
+                    .entity(manager -> manager.createEntityFromTemplate(BIRD_ENTITY))
+                    .entity(manager -> manager.createEntityFromTemplate(PLAYER_CAMERA_ENTITY))
+                    .build());
         });
         getEventDispatcher().listenToEvent(InputHandlerRegistrationEvent.EVENT, e -> {
             InputHandlerRegistrationEvent event = (InputHandlerRegistrationEvent) e;
@@ -242,32 +248,6 @@ public class FlappyBirdClient extends ClientBase {
         }
     }
 
-    public static class DefaultScene extends Scene {
-
-        public DefaultScene(Identifier renderGraph, List<Routine> routines) {
-            super(renderGraph, routines);
-            addInputControllers(FLAP_CONTROLLER, EXIT_GAME_CONTROLLER);
-        }
-
-        @Override
-        public void init() {
-            var client = FlappyBirdClient.getInstance();
-            var manager = client.getManager();
-
-            client.getTextureCache().generateAtlas(TEXTURE_ATLAS);
-            setMeshCache(new MeshCache(client.getModelRegistry(), client.getMeshRegistry(), client.getTextureCache()));
-
-            manager.createEntityFromTemplate(BIRD_ENTITY);
-            manager.createEntityFromTemplate(PLAYER_CAMERA_ENTITY);
-        }
-
-        @Override
-        public void cleanup() {
-            var client = FlappyBirdClient.getInstance();
-            client.getTextureCache().cleanupAtlas(TEXTURE_ATLAS);
-            getMeshCache().cleanup();
-        }
-    }
 
     public static class GravitySystem extends System {
 
