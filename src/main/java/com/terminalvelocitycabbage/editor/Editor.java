@@ -1,8 +1,8 @@
 package com.terminalvelocitycabbage.editor;
 
 import com.terminalvelocitycabbage.editor.registry.*;
-import com.terminalvelocitycabbage.editor.scenes.EditorScene;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
@@ -12,6 +12,11 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.ResourceCategoryRegistrationEvent;
 import com.terminalvelocitycabbage.templates.events.ResourceSourceRegistrationEvent;
 import com.terminalvelocitycabbage.templates.events.SceneRegistrationEvent;
+
+import static com.terminalvelocitycabbage.editor.registry.EditorInput.UI_CLICK;
+import static com.terminalvelocitycabbage.editor.registry.EditorInput.UI_SCROLL;
+import static com.terminalvelocitycabbage.editor.registry.EditorRenderGraphs.EDITOR_RENDER_GRAPH;
+import static com.terminalvelocitycabbage.editor.registry.EditorTextures.UI_ATLAS;
 
 public abstract class Editor<T extends ClientBase> extends ClientBase {
 
@@ -40,7 +45,12 @@ public abstract class Editor<T extends ClientBase> extends ClientBase {
             ENGINE_RESOURCE_SOURCE = ((ResourceSourceRegistrationEvent) event).registerResourceSource(getNamespace(), "editor", mainSource);
         });
         dispatcher.listenToEvent(SceneRegistrationEvent.EVENT, event -> {
-            EDITOR_SCENE = ((SceneRegistrationEvent) event).registerScene(getNamespace(), "editor", new EditorScene());
+            EDITOR_SCENE = ((SceneRegistrationEvent) event).registerScene(getNamespace(), "editor",
+                    Scene.builder()
+                            .inputControllers(UI_SCROLL, UI_CLICK)
+                            .renderGraph(EDITOR_RENDER_GRAPH)
+                            .textureAtlases(UI_ATLAS)
+                            .build());
         });
         EditorFonts.init(getEventDispatcher());
         EditorRenderGraphs.init(getEventDispatcher());
