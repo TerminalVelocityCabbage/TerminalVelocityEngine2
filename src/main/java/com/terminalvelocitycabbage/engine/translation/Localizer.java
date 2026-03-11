@@ -98,7 +98,7 @@ public class Localizer {
                     String resourceName = resourceIdentifier.name();
                     loadedConfigs.putIfAbsent(resourceIdentifier.namespace(), new HashMap<>());
                     loadedConfigs.get(resourceIdentifier.namespace()).put(
-                            Language.fromAbbreviation(resourceName.substring(0, resourceName.length() - 5)), //Trim the .toml part of the name
+                            Language.fromAbbreviation(resourceName),
                             parser.parse(resourceString)
                     );
                 }
@@ -110,20 +110,23 @@ public class Localizer {
         for (Identifier entry : translations.getRegistryContents().keySet()) {
             String translationNamespace = entry.namespace();
             String translationKey = entry.name();
-            Config config = loadedConfigs.get(translationNamespace).get(language);
-            String value = config == null ? entry.toString() : config.get(translationKey);
-            if (value == null) {
+            Map<Language, Config> namespaceConfigs = loadedConfigs.get(translationNamespace);
+            Config config = namespaceConfigs == null ? null : namespaceConfigs.get(language);
+            String value = config == null ? null : config.get(translationKey);
+            if (value == null && config != null) {
                 List<String> fallbacks = config.get("meta.fallbacks");
-                for (String fallback : fallbacks) {
-                    Config fallbackConfig = loadedConfigs.get(translationNamespace).get(Language.fromAbbreviation(fallback));
-                    if (fallbackConfig == null) {
-                        Log.error("No fallback language found for language: " + fallback);
-                        continue;
-                    }
-                    String fallbackValue = fallbackConfig.get(translationKey);
-                    if (fallbackValue != null) {
-                        value = fallbackValue;
-                        break; //We don't want to look at the next fallback if this one has a value for this localized key
+                if (fallbacks != null) {
+                    for (String fallback : fallbacks) {
+                        Config fallbackConfig = namespaceConfigs.get(Language.fromAbbreviation(fallback));
+                        if (fallbackConfig == null) {
+                            Log.error("No fallback language found for language: " + fallback);
+                            continue;
+                        }
+                        String fallbackValue = fallbackConfig.get(translationKey);
+                        if (fallbackValue != null) {
+                            value = fallbackValue;
+                            break; //We don't want to look at the next fallback if this one has a value for this localized key
+                        }
                     }
                 }
             }
