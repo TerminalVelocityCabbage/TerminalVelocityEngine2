@@ -1,8 +1,10 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
+import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
+@EditorHint.ComponentName(name = "Model")
 public class ModelComponent implements Component {
 
     Identifier model;
