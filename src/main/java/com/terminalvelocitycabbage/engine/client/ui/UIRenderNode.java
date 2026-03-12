@@ -1,14 +1,15 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.Framebuffer;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.TargetProperties;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.Atlas;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.Texture;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.*;
-import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.graph.RenderNode;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
@@ -91,28 +92,31 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     }
 
     @Override
-    public void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
+    public void render(Scene scene, TargetProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
 
         sortedFloatingCache = null;
         declarationOrderCache = null;
 
         UIContext context = getUIContext();
         context.beginFrame(properties.getWidth(), properties.getHeight());
-        
+
         // 1. Declare UI
         declareUI();
         context.closeElement(); // Close the window root
-        
+
         // 2. Layout
         UILayoutEngine layoutEngine = new UILayoutEngine(this);
         layoutEngine.runLayout(context.getRootElement(), properties.getWidth(), properties.getHeight());
-        
+
         // 3. Store layout for next frame queries
         Map<Integer, UIElementData> nextFrameData = new HashMap<>();
         collectElementData(context.getRootElement(), nextFrameData);
         context.endFrame(nextFrameData);
-        
-        // 4. Render
+
+        // 4. Update FBO sizes if needed
+        updateFbos(context.getRootElement());
+
+        // 5. Render
         long nvg = ClientBase.getInstance().getNvgContext();
 
         nvgBeginFrame(nvg, properties.getWidth(), properties.getHeight(), 1.0f); // TODO devicePixelRatio
@@ -372,7 +376,8 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                         .vertical(true)
                         .childOffset(new Vector2f(0, contentOffset))
                         .build(),
-                containerDecl.border()
+                containerDecl.border(),
+                null
         );
 
         var contentContainerDecl = ElementDeclaration.builder()
@@ -407,7 +412,8 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                         .pointerCaptureMode(UI.PointerCaptureMode.CAPTURE)
                         .build(),
                 scrollbarDecl.clip(),
-                scrollbarDecl.border()
+                scrollbarDecl.border(),
+                null
         );
 
         return container(id, finalContainerDecl, () -> {
@@ -471,6 +477,45 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         });
     }
 
+
+    protected UIElement fbo(Identifier fboId, String props) {
+        return fbo(getUIContext().generateAutoId(), fboId, ElementDeclaration.of(props));
+    }
+
+    protected UIElement fbo(int id, Identifier fboId, String props) {
+        return fbo(id, fboId, ElementDeclaration.of(props));
+    }
+
+    protected UIElement fbo(Identifier fboId, ElementDeclaration declaration) {
+        return fbo(getUIContext().generateAutoId(), fboId, declaration);
+    }
+
+    protected UIElement fbo(int id, Identifier fboId, ElementDeclaration declaration) {
+        ElementDeclaration finalDecl = new ElementDeclaration(
+                declaration.layout(),
+                declaration.backgroundColor(),
+                declaration.cornerRadius(),
+                declaration.image(),
+                declaration.floating(),
+                declaration.clip(),
+                declaration.border(),
+                fboId
+        );
+        return container(id, finalDecl, null);
+    }
+
+    private void updateFbos(LayoutElement element) {
+        if (element == null) return;
+        if (element.declaration() != null && element.declaration().fboId() != null) {
+            Framebuffer fbo = ClientBase.getInstance().getFramebufferRegistry().get(element.declaration().fboId());
+            if (fbo != null) {
+                fbo.resize((int) element.getWidth(), (int) element.getHeight());
+            }
+        }
+        for (LayoutElement child : element.children()) {
+            updateFbos(child);
+        }
+    }
 
     /**
      * Generates a stable integer ID from a string label.
@@ -749,6 +794,29 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 nvgRGBAf(decl.backgroundColor().r(), decl.backgroundColor().g(), decl.backgroundColor().b(), decl.backgroundColor().a(), color);
                 nvgFillColor(nvg, color);
                 nvgFill(nvg);
+            }
+        }
+
+        // 1.5 FBO
+        if (decl.fboId() != null) {
+            Framebuffer fbo = ClientBase.getInstance().getFramebufferRegistry().get(decl.fboId());
+            if (fbo != null) {
+                fbo.init();
+                Texture texture = fbo.getTexture();
+                if (texture != null) {
+                    int nvgImage = getOrCreateNvgImage(nvg, texture);
+                    if (nvgImage != 0) {
+                        try (MemoryStack stack = stackPush()) {
+                            NVGPaint paint = NVGPaint.malloc(stack);
+                            nvgImagePattern(nvg, x, y, w, h, 0, nvgImage, 1.0f, paint);
+
+                            nvgBeginPath(nvg);
+                            nvgRoundedRectVarying(nvg, x, y, w, h, cr.topLeft(), cr.topRight(), cr.bottomRight(), cr.bottomLeft());
+                            nvgFillPaint(nvg, paint);
+                            nvgFill(nvg);
+                        }
+                    }
+                }
             }
         }
 

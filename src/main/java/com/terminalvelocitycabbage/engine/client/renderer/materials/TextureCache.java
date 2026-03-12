@@ -20,11 +20,12 @@ public class TextureCache {
     private final Map<Identifier, Texture> generatedTextures;
     private final Map<Identifier, Atlas> generatedAtlases;
 
-    public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures) {
+    public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures, Map<Identifier, RenderTexture> renderTextures) {
         this.generatedTextures = new HashMap<>();
         this.generatedAtlases = new HashMap<>();
         this.texturesToCompileToAtlas = texturesToCompileToAtlas;
         this.singleTextures = singleTextures;
+        this.generatedTextures.putAll(renderTextures);
     }
 
     public void generateAtlas(Identifier atlasIdentifier) {
@@ -36,6 +37,7 @@ public class TextureCache {
             this.generatedTextures.put(textureId, atlas);
         }
     }
+
 
     /**
      * @param texture The identifier for the texture you wish to retrieve from this cache

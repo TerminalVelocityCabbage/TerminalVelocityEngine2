@@ -77,6 +77,6 @@ public class RoutineRegistrationEvent extends RegistryEvent<Routine> {
     }
 
     public Identifier routineIdentifierOf(String namespace, String name) {
-        return ResourceCategory.ROUTINE.identifierOf(namespace, name);
+        return ResourceCategory.ROUTINE.identifierOf(namespace, name + ".routine.toml");
     }
 }

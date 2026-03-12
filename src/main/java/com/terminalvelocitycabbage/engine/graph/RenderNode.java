@@ -1,20 +1,27 @@
 package com.terminalvelocitycabbage.engine.graph;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.Framebuffer;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.TargetProperties;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgram;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
-import com.terminalvelocitycabbage.engine.client.window.WindowProperties;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 
+import static org.lwjgl.opengl.GL11.glViewport;
+
 /**
- * A node for an {@link RenderGraph}, specifically for executing code that draws to the screen.
+ * A node for an {@link RenderGraph}, specifically for executing code that draws to a target.
  */
 public abstract non-sealed class RenderNode implements GraphNode {
 
     boolean recompileShaders = false;
     final ShaderProgramConfig shaderProgramConfig;
     ShaderProgram shaderProgram;
+    Identifier targetFramebufferId;
+    private int lastFboWidth, lastFboHeight;
 
     public RenderNode(ShaderProgramConfig shaderProgramConfig) {
         this.shaderProgramConfig = shaderProgramConfig;
@@ -32,11 +39,11 @@ public abstract non-sealed class RenderNode implements GraphNode {
      * DO NOT OVERRIDE THIS METHOD
      *
      * @param scene The scene that this stage is rendering
-     * @param properties The properties of the currently rendered to window
+     * @param properties The properties of the currently rendered to target
      * @param renderConfig This render graphs render config
      * @param deltaTime The time since the last render operation
      */
-    public void executeRenderStage(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
+    public void executeRenderStage(Scene scene, TargetProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
 
         //Wipe the current shader program for re-compilation
         if (recompileShaders) {
@@ -45,18 +52,49 @@ public abstract non-sealed class RenderNode implements GraphNode {
             recompileShaders = false;
         }
 
-        execute(scene, properties, renderConfig, deltaTime);
+        TargetProperties currentProperties = properties;
+        Framebuffer targetFramebuffer = targetFramebufferId == null ? null : ClientBase.getInstance().getFramebufferRegistry().get(targetFramebufferId);
+        if (targetFramebuffer != null) {
+            targetFramebuffer.init();
+            targetFramebuffer.bind();
+            glViewport(0, 0, targetFramebuffer.getWidth(), targetFramebuffer.getHeight());
+            boolean fboResized = targetFramebuffer.getWidth() != lastFboWidth || targetFramebuffer.getHeight() != lastFboHeight;
+            currentProperties = new TargetProperties(targetFramebuffer.getWidth(), targetFramebuffer.getHeight(), fboResized, scene, targetFramebuffer);
+            lastFboWidth = targetFramebuffer.getWidth();
+            lastFboHeight = targetFramebuffer.getHeight();
+        }
+
+        render(scene, currentProperties, renderConfig, deltaTime);
+
+        if (targetFramebuffer != null) {
+            targetFramebuffer.unbind();
+            glViewport(0, 0, properties.getWidth(), properties.getHeight());
+        }
+    }
+
+    /**
+     * @return the {@link Identifier} target of this node (if it has one)
+     */
+    public Identifier getTargetFramebufferId() {
+        return targetFramebufferId;
+    }
+
+    /**
+     * @param targetFramebufferId the {@link Identifier} of the {@link Framebuffer} that this node should draw to (set to null for the screen)
+     */
+    public void setTargetFramebufferId(Identifier targetFramebufferId) {
+        this.targetFramebufferId = targetFramebufferId;
     }
 
     /**
      * The method that should be overriden to assign logic to this stage in the render graph
      *
      * @param scene The scene that this stage is rendering
-     * @param properties The properties of the currently rendered to window
+     * @param properties The properties of the currently rendered to target
      * @param renderConfig This render graphs render config
      * @param deltaTime The time since the last render operation
      */
-    public abstract void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime);
+    public abstract void render(Scene scene, TargetProperties properties, HeterogeneousMap renderConfig, long deltaTime);
 
     /**
      * Marks the shaders of this node to be recompiled at the start of the next render stage

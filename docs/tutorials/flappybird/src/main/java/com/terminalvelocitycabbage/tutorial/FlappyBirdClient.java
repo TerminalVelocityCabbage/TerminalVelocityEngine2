@@ -8,6 +8,7 @@ import com.terminalvelocitycabbage.engine.client.input.controller.Controller;
 import com.terminalvelocitycabbage.engine.client.input.types.ButtonAction;
 import com.terminalvelocitycabbage.engine.client.input.types.KeyboardInput;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
+import com.terminalvelocitycabbage.engine.client.renderer.TargetProperties;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
@@ -206,7 +207,7 @@ public class FlappyBirdClient extends ClientBase {
         }
 
         @Override
-        public void execute(Scene scene, WindowProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
+        public void render(Scene scene, TargetProperties properties, HeterogeneousMap renderConfig, long deltaTime) {
 
             var client = FlappyBirdClient.getInstance();
             var player = client.getManager().getFirstEntityWith(FixedOrthoCameraComponent.class);

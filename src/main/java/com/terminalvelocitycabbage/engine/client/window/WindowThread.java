@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.window;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.client.renderer.TargetProperties;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.util.MutableInstant;
 import org.lwjgl.opengl.GL;
@@ -74,7 +75,8 @@ public class WindowThread extends Thread {
 
                 //Clear the last frame and render a new one
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).render(getProperties(), deltaTime);
+                TargetProperties targetProperties = new TargetProperties(properties.getWidth(), properties.getHeight(), properties.isResized(), properties.getActiveScene());
+                ClientBase.getInstance().getRenderGraphRegistry().get(properties.getActiveScene().getRenderGraph()).render(targetProperties, deltaTime);
                 properties.endFrame();
                 glfwSwapBuffers(windowHandle);
             }

@@ -32,6 +32,17 @@ public class WindowProperties {
                 properties.height,
                 properties.title,
                 properties.initialScene);
+        this.activeScene = properties.activeScene;
+    }
+
+    public WindowProperties(WindowProperties properties, int width, int height) {
+        this(
+                width,
+                height,
+                properties.title,
+                properties.initialScene);
+        this.activeScene = properties.activeScene;
+        this.resized = properties.width != width || properties.height != height;
     }
 
     public WindowProperties(int width, int height, String title, Identifier initialSceneIdentifier) {
@@ -126,6 +137,10 @@ public class WindowProperties {
      */
     public boolean isResized() {
         return resized;
+    }
+
+    public void setResized(boolean resized) {
+        this.resized = resized;
     }
 
     /**
