@@ -146,14 +146,6 @@ public class Framebuffer {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    public RenderTexture getTexture() {
-        return textures.values().stream().findFirst().orElse(null);
-    }
-
-    public RenderTexture getTexture(int index) {
-        return (RenderTexture) textures.values().toArray()[index];
-    }
-
     public RenderTexture getTexture(Identifier identifier) {
         return textures.get(identifier);
     }
