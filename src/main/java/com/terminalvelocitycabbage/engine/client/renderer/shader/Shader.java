@@ -67,11 +67,12 @@ public class Shader {
         //Note the vertex layout attributes for validation on use
         if (shaderType == Type.VERTEX) {
             List<Triplet<Integer, String, String>> layoutAttributes = new ArrayList<>();
-            shaderString.lines().filter(line -> line.startsWith("layout"))
+            shaderString.lines().map(String::trim).filter(line -> line.startsWith("layout") && line.contains(" in ") && line.contains("="))
                     .forEach(line -> {
-                        var info = line.split("=")[1].split(" in ");
-                        var index = info[0].trim().replace(")", "");
-                        var typeName = info[1].trim().split(" ");
+                        var info = line.split("=");
+                        var inSplit = info[1].split(" in ");
+                        var index = inSplit[0].trim().replace(")", "");
+                        var typeName = inSplit[1].trim().split("\\s+");
                         var type = typeName[0];
                         var name = typeName[1].replace(";", "");
                         layoutAttributes.add(new Triplet<>(Integer.parseInt(index), type, name));

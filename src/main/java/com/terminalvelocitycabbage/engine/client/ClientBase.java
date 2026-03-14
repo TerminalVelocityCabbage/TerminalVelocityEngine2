@@ -4,6 +4,7 @@ import com.github.simplenet.Client;
 import com.terminalvelocitycabbage.engine.MainEntrypoint;
 import com.terminalvelocitycabbage.engine.client.input.InputHandler;
 import com.terminalvelocitycabbage.engine.client.renderer.Font;
+import com.terminalvelocitycabbage.engine.client.renderer.Framebuffer;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
@@ -38,6 +39,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     private final Registry<Font> fontRegistry;
     private final SoundManager soundManager;
     private final SoundDeviceManager soundDeviceManager;
+    private final Registry<Framebuffer> framebufferRegistry;
 
     //Scene stuff
     protected final Registry<Mesh> meshRegistry;
@@ -70,6 +72,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         uiContext = new UIContext();
         meshRegistry = new Registry<>();
         modelRegistry = new Registry<>();
+        framebufferRegistry = new Registry<>();
         client = new Client();
     }
 
@@ -107,8 +110,9 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry, manager, fileSystem));
         var configureTexturesEvent = new ConfigureTexturesEvent(fileSystem);
         eventDispatcher.dispatchEvent(configureTexturesEvent);
-        textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures());
+        textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures(), configureTexturesEvent.getRenderTextures());
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
+        eventDispatcher.dispatchEvent(new FramebufferRegistrationEvent(framebufferRegistry));
         eventDispatcher.dispatchEvent(new FontRegistrationEvent(fontRegistry));
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry, fileSystem, routineRegistry));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
@@ -243,6 +247,10 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     public Registry<Model> getModelRegistry() {
         return modelRegistry;
+    }
+
+    public Registry<Framebuffer> getFramebufferRegistry() {
+        return framebufferRegistry;
     }
 
     public TextureCache getTextureCache() {

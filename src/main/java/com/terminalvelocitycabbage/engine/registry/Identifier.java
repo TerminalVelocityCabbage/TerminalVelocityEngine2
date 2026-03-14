@@ -18,8 +18,13 @@ public record Identifier(
 	 * @return an identifier with the same format
 	 */
 	public static Identifier fromString(String identifierString) {
-		if (!isValid(identifierString)) Log.error("Tried to parse invalid identifier string: " + identifierString);
 		var split = identifierString.split(":");
+        if (split.length != 3) {
+             Log.error("Tried to parse invalid identifier string: " + identifierString);
+             if (split.length == 2) return new Identifier(split[0], "unknown", split[1]);
+             if (split.length == 1) return new Identifier("unknown", "unknown", split[0]);
+             return new Identifier("unknown", "unknown", "unknown");
+        }
 		return new Identifier(split[0], split[1], split[2]);
 	}
 

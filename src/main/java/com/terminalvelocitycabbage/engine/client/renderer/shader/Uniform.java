@@ -83,9 +83,13 @@ public class Uniform {
         setUniform(uniformLocation, color);
     }
 
+    public void setUniform(boolean booleanValue) {
+        setUniform(uniformLocation, booleanValue ? 1 : 0);
+    }
+
     public void setUniform(Matrix3f matrix3f) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformMatrix4fv(uniformLocation, false, matrix3f.get(stack.mallocFloat(9)));
+            glUniformMatrix3fv(uniformLocation, false, matrix3f.get(stack.mallocFloat(9)));
         }
     }
 

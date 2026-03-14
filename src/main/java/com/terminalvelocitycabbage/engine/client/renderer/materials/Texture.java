@@ -91,6 +91,7 @@ public abstract class Texture {
      */
     public void cleanup() {
         glDeleteTextures(getTextureID());
+        textureID = 0;
     }
 
     public int getTextureID() {
