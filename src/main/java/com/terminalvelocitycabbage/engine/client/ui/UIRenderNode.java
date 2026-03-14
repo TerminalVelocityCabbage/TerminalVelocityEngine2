@@ -377,7 +377,8 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                         .childOffset(new Vector2f(0, contentOffset))
                         .build(),
                 containerDecl.border(),
-                null
+                containerDecl.textureId(),
+                containerDecl.fboId()
         );
 
         var contentContainerDecl = ElementDeclaration.builder()
@@ -413,7 +414,8 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                         .build(),
                 scrollbarDecl.clip(),
                 scrollbarDecl.border(),
-                null
+                scrollbarDecl.textureId(),
+                scrollbarDecl.fboId()
         );
 
         return container(id, finalContainerDecl, () -> {
@@ -478,19 +480,23 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     }
 
 
-    protected UIElement fbo(Identifier fboId, String props) {
-        return fbo(getUIContext().generateAutoId(), fboId, ElementDeclaration.of(props));
+    protected UIElement texture(Identifier textureId, String props) {
+        return texture(textureId, null, props);
     }
 
-    protected UIElement fbo(int id, Identifier fboId, String props) {
-        return fbo(id, fboId, ElementDeclaration.of(props));
+    protected UIElement texture(Identifier textureId, Identifier fboId, String props) {
+        return texture(getUIContext().generateAutoId(), textureId, fboId, ElementDeclaration.of(props));
     }
 
-    protected UIElement fbo(Identifier fboId, ElementDeclaration declaration) {
-        return fbo(getUIContext().generateAutoId(), fboId, declaration);
+    protected UIElement texture(int id, Identifier textureId, Identifier fboId, String props) {
+        return texture(id, textureId, fboId, ElementDeclaration.of(props));
     }
 
-    protected UIElement fbo(int id, Identifier fboId, ElementDeclaration declaration) {
+    protected UIElement texture(Identifier textureId, Identifier fboId, ElementDeclaration declaration) {
+        return texture(getUIContext().generateAutoId(), textureId, fboId, declaration);
+    }
+
+    protected UIElement texture(int id, Identifier textureId, Identifier fboId, ElementDeclaration declaration) {
         ElementDeclaration finalDecl = new ElementDeclaration(
                 declaration.layout(),
                 declaration.backgroundColor(),
@@ -499,6 +505,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                 declaration.floating(),
                 declaration.clip(),
                 declaration.border(),
+                textureId,
                 fboId
         );
         return container(id, finalDecl, null);
@@ -797,24 +804,30 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
             }
         }
 
-        // 1.5 FBO
-        if (decl.fboId() != null) {
-            Framebuffer fbo = ClientBase.getInstance().getFramebufferRegistry().get(decl.fboId());
-            if (fbo != null) {
-                fbo.init();
-                Texture texture = fbo.getTexture();
-                if (texture != null) {
-                    int nvgImage = getOrCreateNvgImage(nvg, texture);
-                    if (nvgImage != 0) {
-                        try (MemoryStack stack = stackPush()) {
-                            NVGPaint paint = NVGPaint.malloc(stack);
-                            nvgImagePattern(nvg, x, y, w, h, 0, nvgImage, 1.0f, paint);
+        // 1.5 Texture/FBO
+        if (decl.textureId() != null || decl.fboId() != null) {
+            Texture texture = null;
+            if (decl.fboId() != null) {
+                Framebuffer fbo = ClientBase.getInstance().getFramebufferRegistry().get(decl.fboId());
+                if (fbo != null && decl.textureId() != null) {
+                    fbo.init();
+                    texture = fbo.getTexture(decl.textureId());
+                }
+            } else if (decl.textureId() != null) {
+                texture = ClientBase.getInstance().getTextureCache().getTexture(decl.textureId());
+            }
 
-                            nvgBeginPath(nvg);
-                            nvgRoundedRectVarying(nvg, x, y, w, h, cr.topLeft(), cr.topRight(), cr.bottomRight(), cr.bottomLeft());
-                            nvgFillPaint(nvg, paint);
-                            nvgFill(nvg);
-                        }
+            if (texture != null) {
+                int nvgImage = getOrCreateNvgImage(nvg, texture);
+                if (nvgImage != 0) {
+                    try (MemoryStack stack = stackPush()) {
+                        NVGPaint paint = NVGPaint.malloc(stack);
+                        nvgImagePattern(nvg, x, y, w, h, 0, nvgImage, 1.0f, paint);
+
+                        nvgBeginPath(nvg);
+                        nvgRoundedRectVarying(nvg, x, y, w, h, cr.topLeft(), cr.topRight(), cr.bottomRight(), cr.bottomLeft());
+                        nvgFillPaint(nvg, paint);
+                        nvgFill(nvg);
                     }
                 }
             }

@@ -15,6 +15,7 @@ public record ElementDeclaration(
         FloatingElementConfig floating,
         ClipElementConfig clip,
         BorderElementConfig border,
+        Identifier textureId,
         Identifier fboId
 ) {
 
@@ -148,6 +149,7 @@ public record ElementDeclaration(
                 case "atlas" -> builder.imageBuilder().atlasIdentifier(Identifier.fromString(val));
                 case "img-rounded" -> builder.imageBuilder().cornerRadius(new CornerRadius(parseDim(val).value()));
                 case "img-bg" -> builder.imageBuilder().backgroundColor(parseColor(val));
+                case "tex" -> builder.textureId(Identifier.fromString(val));
                 case "fbo" -> builder.fbo(Identifier.fromString(val));
             }
         }
@@ -229,6 +231,7 @@ public record ElementDeclaration(
         private ClipElementConfig.Builder clipBuilder;
         private BorderWidth borderWidth;
         private Color borderColor;
+        private Identifier textureId;
         private Identifier fboId;
 
         public LayoutConfig.Builder layoutBuilder() {
@@ -303,6 +306,11 @@ public record ElementDeclaration(
             return this;
         }
 
+        public Builder textureId(Identifier textureId) {
+            this.textureId = textureId;
+            return this;
+        }
+
         public Builder fbo(Identifier fboId) {
             this.fboId = fboId;
             return this;
@@ -317,6 +325,7 @@ public record ElementDeclaration(
                     floatingBuilder == null ? null : floatingBuilder.build(),
                     clipBuilder == null ? null : clipBuilder.build(),
                     new BorderElementConfig(borderColor, borderWidth),
+                    textureId,
                     fboId
             );
         }
