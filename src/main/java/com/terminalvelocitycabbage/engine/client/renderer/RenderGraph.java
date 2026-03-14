@@ -18,6 +18,7 @@ import com.terminalvelocitycabbage.templates.events.RenderGraphStageExecutionEve
 import org.lwjgl.opengl.GLCapabilities;
 
 import javax.management.ReflectionException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,10 +42,22 @@ public class RenderGraph {
         this.renderConfig = new HeterogeneousMap();
         this.graphNodes = new HashMap<>();
         this.renderPath = renderPathBuilder.build(this);
+        var routes = new ArrayList<NodeRoute>();
         for (Pair<Toggle, ? extends GraphNode> togglePair : graphNodes.values()) {
             if (togglePair.getValue1() instanceof NodeRoute route) {
-                route.init(this);
+                routes.add(route);
             }
+        }
+        int i = 0;
+        while (i < routes.size()) {
+            var route = routes.get(i);
+            route.init(this);
+            for (Pair<Toggle, ? extends GraphNode> togglePair : graphNodes.values()) {
+                if (togglePair.getValue1() instanceof NodeRoute newRoute && !routes.contains(newRoute)) {
+                    routes.add(newRoute);
+                }
+            }
+            i++;
         }
     }
 

@@ -48,8 +48,13 @@ public class GameFileSystem {
      * @param fileName The file name that this resource can be found as
      */
     public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceCategory resourceCategory, String fileName) {
-        String nameWithoutExtension = fileName.split("\\.")[0];
-        Identifier resourceIdentifier = new Identifier(sourceIdentifier.namespace(), resourceCategory.name(), nameWithoutExtension);
+        String identifierName;
+        if (resourceCategory.name().equals("shader")) {
+            identifierName = fileName;
+        } else {
+            identifierName = fileName.split("\\.")[0];
+        }
+        Identifier resourceIdentifier = new Identifier(sourceIdentifier.namespace(), resourceCategory.name(), identifierName);
         return resourceLocationRegistry.getAndRegister(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceCategory, resourceIdentifier, fileName));
     }
 

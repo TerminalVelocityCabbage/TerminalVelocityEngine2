@@ -20,12 +20,46 @@ public class TextureCache {
     private final Map<Identifier, Texture> generatedTextures;
     private final Map<Identifier, Atlas> generatedAtlases;
 
+    private final Texture defaultTexture;
+
     public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures, Map<Identifier, RenderTexture> renderTextures) {
         this.generatedTextures = new HashMap<>();
         this.generatedAtlases = new HashMap<>();
         this.texturesToCompileToAtlas = texturesToCompileToAtlas;
         this.singleTextures = singleTextures;
         this.generatedTextures.putAll(renderTextures);
+        this.defaultTexture = new DefaultTexture();
+    }
+
+    private static class DefaultTexture extends Texture {
+
+        private java.nio.ByteBuffer buffer;
+
+        public DefaultTexture() {
+            this.width = 2;
+            this.height = 2;
+            this.buffer = java.nio.ByteBuffer.allocateDirect(16);
+            for (int i = 0; i < 4; i++) {
+                buffer.put((byte) 255).put((byte) 0).put((byte) 255).put((byte) 255);
+            }
+            buffer.flip();
+        }
+
+        @Override
+        public int getTextureID() {
+            if (textureID == 0) {
+                generateOpenGLTexture(width, height, 4, buffer);
+            }
+            return super.getTextureID();
+        }
+
+        @Override
+        public void bind() {
+            if (textureID == 0) {
+                generateOpenGLTexture(width, height, 4, buffer);
+            }
+            super.bind();
+        }
     }
 
     public void generateAtlas(Identifier atlasIdentifier) {
@@ -54,7 +88,7 @@ public class TextureCache {
             return generatedTexture;
         } else {
             Log.warn("Texture " + texture + " not found in cache, returning default texture");
-            return generatedTextures.get(null); //TODO replace null with default texture
+            return defaultTexture;
         }
     }
 

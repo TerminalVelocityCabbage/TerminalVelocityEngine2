@@ -51,6 +51,10 @@ public class ConfigureTexturesEvent extends Event {
         renderTextures.putIfAbsent(textureIdentifier, new RenderTexture(width, height));
     }
 
+    public void addRenderTexture(Identifier textureIdentifier, int width, int height, int internalFormat, int format, int type) {
+        renderTextures.putIfAbsent(textureIdentifier, new RenderTexture(width, height, internalFormat, format, type));
+    }
+
     public Map<Identifier, Map<Identifier, Resource>> getTexturesToCompileToAtlas() {
         return texturesToCompileToAtlas;
     }
