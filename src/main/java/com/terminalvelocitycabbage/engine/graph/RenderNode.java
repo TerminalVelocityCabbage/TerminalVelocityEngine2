@@ -21,7 +21,7 @@ public abstract non-sealed class RenderNode implements GraphNode {
     final ShaderProgramConfig shaderProgramConfig;
     ShaderProgram shaderProgram;
     Identifier targetFramebufferId;
-    private int lastFboWidth, lastFboHeight;
+    private TargetProperties currentFboProperties;
 
     public RenderNode(ShaderProgramConfig shaderProgramConfig) {
         this.shaderProgramConfig = shaderProgramConfig;
@@ -58,10 +58,12 @@ public abstract non-sealed class RenderNode implements GraphNode {
             targetFramebuffer.init();
             targetFramebuffer.bind();
             glViewport(0, 0, targetFramebuffer.getWidth(), targetFramebuffer.getHeight());
-            boolean fboResized = targetFramebuffer.getWidth() != lastFboWidth || targetFramebuffer.getHeight() != lastFboHeight;
-            currentProperties = new TargetProperties(targetFramebuffer.getWidth(), targetFramebuffer.getHeight(), fboResized, scene, targetFramebuffer);
-            lastFboWidth = targetFramebuffer.getWidth();
-            lastFboHeight = targetFramebuffer.getHeight();
+            if (currentFboProperties == null) {
+                currentFboProperties = new TargetProperties(targetFramebuffer.getWidth(), targetFramebuffer.getHeight(), targetFramebuffer.isResized(), scene, targetFramebuffer);
+            } else {
+                currentFboProperties.update(targetFramebuffer.getWidth(), targetFramebuffer.getHeight(), targetFramebuffer.isResized(), scene, targetFramebuffer);
+            }
+            currentProperties = currentFboProperties;
         }
 
         render(scene, currentProperties, renderConfig, deltaTime);
@@ -69,6 +71,7 @@ public abstract non-sealed class RenderNode implements GraphNode {
         if (targetFramebuffer != null) {
             targetFramebuffer.unbind();
             glViewport(0, 0, properties.getWidth(), properties.getHeight());
+            targetFramebuffer.resetResized();
         }
     }
 

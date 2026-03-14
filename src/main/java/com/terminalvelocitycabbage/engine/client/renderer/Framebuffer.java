@@ -6,7 +6,9 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.glDrawBuffers;
@@ -16,47 +18,42 @@ public class Framebuffer {
 
     private int fboId;
     private int rboId;
-    private final List<RenderTexture> textures = new ArrayList<>();
+    private final Map<Identifier, RenderTexture> textures = new LinkedHashMap<>();
     private final List<Identifier> textureIds = new ArrayList<>();
     private RenderTexture depthTexture;
     private Identifier depthTextureId;
     private boolean useDepthTexture;
     private int width;
     private int height;
+    private boolean resized;
 
     public Framebuffer(int width, int height) {
-        this(width, height, (Identifier) null);
+        this(width, height, (Identifier[]) null);
     }
 
-    public Framebuffer(int width, int height, Identifier textureId) {
+    public Framebuffer(int width, int height, Identifier... textureIds) {
+        this(width, height, true, textureIds);
+    }
+
+    public Framebuffer(int width, int height, boolean useDepthTexture, Identifier... textureIds) {
         this.width = width;
         this.height = height;
-        if (textureId != null) {
-            this.textureIds.add(textureId);
-        }
-    }
 
-    public Framebuffer(int width, int height, List<Identifier> textureIds) {
-        this(width, height, textureIds, null);
-    }
-
-    public Framebuffer(int width, int height, List<Identifier> textureIds, Identifier depthTextureId) {
-        this.width = width;
-        this.height = height;
         if (textureIds != null) {
-            this.textureIds.addAll(textureIds);
-        }
-        this.depthTextureId = depthTextureId;
-        this.useDepthTexture = depthTextureId != null;
-    }
-
-    public Framebuffer(int width, int height, List<Identifier> textureIds, boolean useDepthTexture) {
-        this.width = width;
-        this.height = height;
-        if (textureIds != null) {
-            this.textureIds.addAll(textureIds);
+            this.textureIds.addAll(List.of(textureIds));
         }
         this.useDepthTexture = useDepthTexture;
+    }
+
+    public Framebuffer(int width, int height, Identifier depthTextureId, Identifier... textureIds) {
+        this.width = width;
+        this.height = height;
+
+        if (textureIds != null) {
+            this.textureIds.addAll(List.of(textureIds));
+        }
+        this.depthTextureId = depthTextureId;
+        this.useDepthTexture = true;
     }
 
     public void init() {
@@ -67,22 +64,27 @@ public class Framebuffer {
 
         textures.clear();
         for (Identifier id : textureIds) {
-            var tex = (RenderTexture) ClientBase.getInstance().getTextureCache().getTexture(id);
-            textures.add(tex);
+            var texture = ClientBase.getInstance().getTextureCache().getTexture(id);
+            if (texture instanceof RenderTexture tex) {
+                textures.put(id, tex);
+            } else {
+                Log.error("Texture " + id + " is not a RenderTexture!");
+            }
         }
 
         if (textures.isEmpty() && textureIds.isEmpty()) {
             var tex = new RenderTexture(width, height);
-            textures.add(tex);
+            textures.put(new Identifier("engine", "texture", "color0"), tex);
         }
 
         int[] attachments = new int[textures.size()];
-        for (int i = 0; i < textures.size(); i++) {
-            var tex = textures.get(i);
+        int i = 0;
+        for (RenderTexture tex : textures.values()) {
             tex.setDimensions(width, height);
             tex.init();
             attachments[i] = GL_COLOR_ATTACHMENT0 + i;
             glFramebufferTexture2D(GL_FRAMEBUFFER, attachments[i], GL_TEXTURE_2D, tex.getTextureID(), 0);
+            i++;
         }
 
         if (attachments.length > 0) {
@@ -91,7 +93,13 @@ public class Framebuffer {
 
         if (useDepthTexture) {
             if (depthTextureId != null) {
-                depthTexture = (RenderTexture) ClientBase.getInstance().getTextureCache().getTexture(depthTextureId);
+                var texture = ClientBase.getInstance().getTextureCache().getTexture(depthTextureId);
+                if (texture instanceof RenderTexture tex) {
+                    depthTexture = tex;
+                } else {
+                    Log.error("Depth texture " + depthTextureId + " is not a RenderTexture!");
+                    depthTexture = new RenderTexture(width, height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT);
+                }
             } else {
                 depthTexture = new RenderTexture(width, height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT);
             }
@@ -117,8 +125,17 @@ public class Framebuffer {
         if (width <= 0 || height <= 0) return;
         this.width = width;
         this.height = height;
+        this.resized = true;
         cleanup();
         init();
+    }
+
+    public boolean isResized() {
+        return resized;
+    }
+
+    public void resetResized() {
+        resized = false;
     }
 
     public void bind() {
@@ -130,11 +147,15 @@ public class Framebuffer {
     }
 
     public RenderTexture getTexture() {
-        return getTexture(0);
+        return textures.values().stream().findFirst().orElse(null);
     }
 
     public RenderTexture getTexture(int index) {
-        return textures.get(index);
+        return (RenderTexture) textures.values().toArray()[index];
+    }
+
+    public RenderTexture getTexture(Identifier identifier) {
+        return textures.get(identifier);
     }
 
     public RenderTexture getDepthTexture() {
@@ -144,8 +165,12 @@ public class Framebuffer {
     public void cleanup() {
         glDeleteFramebuffers(fboId);
         if (rboId != 0) glDeleteRenderbuffers(rboId);
-        textures.forEach(RenderTexture::cleanup);
+        textures.values().forEach(RenderTexture::cleanup);
         if (depthTexture != null) depthTexture.cleanup();
+        fboId = 0;
+        rboId = 0;
+        textures.clear();
+        depthTexture = null;
     }
 
     public int getWidth() {

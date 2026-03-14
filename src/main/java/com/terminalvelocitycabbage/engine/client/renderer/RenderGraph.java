@@ -48,8 +48,7 @@ public class RenderGraph {
                 routes.add(route);
             }
         }
-        int i = 0;
-        while (i < routes.size()) {
+        for (int i = 0; i < routes.size(); i++) {
             var route = routes.get(i);
             route.init(this);
             for (Pair<Toggle, ? extends GraphNode> togglePair : graphNodes.values()) {
@@ -57,7 +56,6 @@ public class RenderGraph {
                     routes.add(newRoute);
                 }
             }
-            i++;
         }
     }
 

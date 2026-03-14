@@ -4,6 +4,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,12 +34,12 @@ public class TextureCache {
 
     private static class DefaultTexture extends Texture {
 
-        private java.nio.ByteBuffer buffer;
+        private ByteBuffer buffer;
 
         public DefaultTexture() {
             this.width = 2;
             this.height = 2;
-            this.buffer = java.nio.ByteBuffer.allocateDirect(16);
+            this.buffer = ByteBuffer.allocateDirect(16);
             for (int i = 0; i < 4; i++) {
                 buffer.put((byte) 255).put((byte) 0).put((byte) 255).put((byte) 255);
             }
