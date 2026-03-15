@@ -11,41 +11,41 @@ public class SquareDataMesh extends DataMesh {
 
     @Override
     public Vertex[] getVertices(VertexFormat format) {
-        if (format.hasComponent(VertexAttribute.RGB_COLOR)) {
-            return new Vertex[] {
-                    new Vertex(format)
-                            .setXYZPosition(-0.5f, 0.5f, 0f)
-                            .setRGBColor(0.5f, 0.0f, 0.0f)
-                            .setUV(0, 0),
-                    new Vertex(format)
-                            .setXYZPosition(-0.5f, -0.5f, 0f)
-                            .setRGBColor(0.0f, 0.5f, 0.0f)
-                            .setUV(0, 1),
-                    new Vertex(format)
-                            .setXYZPosition(0.5f, -0.5f, 0f)
-                            .setRGBColor(0.0f, 0.0f, 0.5f)
-                            .setUV(1, 1),
-                    new Vertex(format)
-                            .setXYZPosition(0.5f, 0.5f, 0f)
-                            .setRGBColor(0.0f, 0.5f, 0.5f)
-                            .setUV(1, 0)
-            };
-        } else {
-            return new Vertex[] {
-                    new Vertex(format)
-                            .setXYZPosition(-0.5f, 0.5f, 0f)
-                            .setUV(0, 0),
-                    new Vertex(format)
-                            .setXYZPosition(-0.5f, -0.5f, 0f)
-                            .setUV(0, 1),
-                    new Vertex(format)
-                            .setXYZPosition(0.5f, -0.5f, 0f)
-                            .setUV(1, 1),
-                    new Vertex(format)
-                            .setXYZPosition(0.5f, 0.5f, 0f)
-                            .setUV(1, 0)
-            };
+        var vertices = new Vertex[] {
+                new Vertex(format),
+                new Vertex(format),
+                new Vertex(format),
+                new Vertex(format)
+        };
+
+        if (format.hasComponent(VertexAttribute.XYZ_POSITION)) {
+            vertices[0].setXYZPosition(-0.5f, 0.5f, 0f);
+            vertices[1].setXYZPosition(-0.5f, -0.5f, 0f);
+            vertices[2].setXYZPosition(0.5f, -0.5f, 0f);
+            vertices[3].setXYZPosition(0.5f, 0.5f, 0f);
         }
+
+        if (format.hasComponent(VertexAttribute.UV)) {
+            vertices[0].setUV(0, 0);
+            vertices[1].setUV(0, 1);
+            vertices[2].setUV(1, 1);
+            vertices[3].setUV(1, 0);
+        }
+
+        if (format.hasComponent(VertexAttribute.RGB_COLOR)) {
+            vertices[0].setRGBColor(0.5f, 0.0f, 0.0f);
+            vertices[1].setRGBColor(0.0f, 0.5f, 0.0f);
+            vertices[2].setRGBColor(0.0f, 0.0f, 0.5f);
+            vertices[3].setRGBColor(0.0f, 0.5f, 0.5f);
+        }
+
+        if (format.hasComponent(VertexAttribute.XYZ_NORMAL)) {
+            for (Vertex vertex : vertices) {
+                vertex.setXYZNormal(0, 0, 1);
+            }
+        }
+
+        return vertices;
     }
 
     @Override

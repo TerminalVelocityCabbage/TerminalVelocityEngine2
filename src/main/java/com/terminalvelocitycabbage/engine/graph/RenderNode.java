@@ -10,7 +10,9 @@ import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.HeterogeneousMap;
 
-import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 
 /**
  * A node for an {@link RenderGraph}, specifically for executing code that draws to a target.
@@ -22,6 +24,7 @@ public abstract non-sealed class RenderNode implements GraphNode {
     ShaderProgram shaderProgram;
     Identifier targetFramebufferId;
     private TargetProperties currentFboProperties;
+    private boolean autoClear = true;
 
     public RenderNode(ShaderProgramConfig shaderProgramConfig) {
         this.shaderProgramConfig = shaderProgramConfig;
@@ -58,6 +61,9 @@ public abstract non-sealed class RenderNode implements GraphNode {
             targetFramebuffer.init();
             targetFramebuffer.bind();
             glViewport(0, 0, targetFramebuffer.getWidth(), targetFramebuffer.getHeight());
+            if (autoClear) {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
             if (currentFboProperties == null) {
                 currentFboProperties = new TargetProperties(targetFramebuffer.getWidth(), targetFramebuffer.getHeight(), targetFramebuffer.isResized(), scene, targetFramebuffer);
             } else {
@@ -69,10 +75,28 @@ public abstract non-sealed class RenderNode implements GraphNode {
         render(scene, currentProperties, renderConfig, deltaTime);
 
         if (targetFramebuffer != null) {
-            targetFramebuffer.unbind();
+            if (properties.getFramebuffer() != null) {
+                properties.getFramebuffer().bind();
+            } else {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
             glViewport(0, 0, properties.getWidth(), properties.getHeight());
             targetFramebuffer.resetResized();
         }
+    }
+
+    /**
+     * @return whether this node should automatically clear the target framebuffer before rendering
+     */
+    public boolean isAutoClear() {
+        return autoClear;
+    }
+
+    /**
+     * @param autoClear whether this node should automatically clear the target framebuffer before rendering
+     */
+    public void setAutoClear(boolean autoClear) {
+        this.autoClear = autoClear;
     }
 
     /**

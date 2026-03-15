@@ -119,6 +119,11 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         // 5. Render
         long nvg = ClientBase.getInstance().getNvgContext();
 
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         nvgBeginFrame(nvg, properties.getWidth(), properties.getHeight(), 1.0f); // TODO devicePixelRatio
         renderElement(nvg, context.getRootElement());
         nvgEndFrame(nvg);

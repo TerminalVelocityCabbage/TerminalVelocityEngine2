@@ -100,7 +100,7 @@ public class Shader {
     public boolean validate(VertexFormat vertexFormat) {
         if (shaderType != Type.VERTEX) return true;
         var formatAttributes = vertexFormat.getAttributes();
-        for (int i = 0; i < formatAttributes.size(); i++) {
+        for (int i = 0; i < Math.min(formatAttributes.size(), layoutTypes.size()); i++) {
             var currentExpectedAttribute = formatAttributes.get(i);
             var currentActualAttribute = layoutTypes.get(i);
             if (
@@ -113,6 +113,11 @@ public class Shader {
                         " but got: layout (location=|" + i + "|) in |" + currentActualAttribute.getValue1() + "| |" + currentActualAttribute.getValue2() + "|;");
                 return false;
             }
+        }
+        if (layoutTypes.size() > formatAttributes.size()) {
+            Log.error("Vertex shader " + shaderSourceIdentifier.toString() + " has more attributes than the provided vertex format",
+                    "Shader attributes: " + layoutTypes.size() + ", Format attributes: " + formatAttributes.size());
+            return false;
         }
         return true;
     }
