@@ -4,6 +4,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,11 +21,46 @@ public class TextureCache {
     private final Map<Identifier, Texture> generatedTextures;
     private final Map<Identifier, Atlas> generatedAtlases;
 
-    public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures) {
+    private final Texture defaultTexture;
+
+    public TextureCache(Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas, Map<Identifier, Resource> singleTextures, Map<Identifier, RenderTexture> renderTextures) {
         this.generatedTextures = new HashMap<>();
         this.generatedAtlases = new HashMap<>();
         this.texturesToCompileToAtlas = texturesToCompileToAtlas;
         this.singleTextures = singleTextures;
+        this.generatedTextures.putAll(renderTextures);
+        this.defaultTexture = new DefaultTexture();
+    }
+
+    private static class DefaultTexture extends Texture {
+
+        private ByteBuffer buffer;
+
+        public DefaultTexture() {
+            this.width = 2;
+            this.height = 2;
+            this.buffer = ByteBuffer.allocateDirect(16);
+            for (int i = 0; i < 4; i++) {
+                buffer.put((byte) 255).put((byte) 0).put((byte) 255).put((byte) 255);
+            }
+            buffer.flip();
+        }
+
+        @Override
+        public int getTextureID() {
+            if (textureID == 0) {
+                generateOpenGLTexture(width, height, 4, buffer);
+            }
+            return super.getTextureID();
+        }
+
+        @Override
+        public void bind() {
+            if (textureID == 0) {
+                generateOpenGLTexture(width, height, 4, buffer);
+            }
+            super.bind();
+        }
     }
 
     public void generateAtlas(Identifier atlasIdentifier) {
@@ -36,6 +72,7 @@ public class TextureCache {
             this.generatedTextures.put(textureId, atlas);
         }
     }
+
 
     /**
      * @param texture The identifier for the texture you wish to retrieve from this cache
@@ -52,7 +89,7 @@ public class TextureCache {
             return generatedTexture;
         } else {
             Log.warn("Texture " + texture + " not found in cache, returning default texture");
-            return generatedTextures.get(null); //TODO replace null with default texture
+            return defaultTexture;
         }
     }
 

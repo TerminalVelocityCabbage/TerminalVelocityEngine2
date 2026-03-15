@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.templates.events;
 
 import com.terminalvelocitycabbage.engine.TerminalVelocityEngine;
+import com.terminalvelocitycabbage.engine.client.renderer.materials.RenderTexture;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
@@ -19,12 +20,14 @@ public class ConfigureTexturesEvent extends Event {
 
     private final Map<Identifier, Map<Identifier, Resource>> texturesToCompileToAtlas;
     private final Map<Identifier, Resource> singleTextures;
+    private final Map<Identifier, RenderTexture> renderTextures;
 
     public ConfigureTexturesEvent(GameFileSystem fileSystem) {
         super(EVENT);
         this.fileSystem = fileSystem;
         texturesToCompileToAtlas = new HashMap<>();
         singleTextures = new HashMap<>();
+        renderTextures = new HashMap<>();
     }
 
     public Identifier registerAtlas(String namespace, String atlasName) {
@@ -44,11 +47,23 @@ public class ConfigureTexturesEvent extends Event {
         }
     }
 
+    public void addRenderTexture(Identifier textureIdentifier, int width, int height) {
+        renderTextures.putIfAbsent(textureIdentifier, new RenderTexture(width, height));
+    }
+
+    public void addRenderTexture(Identifier textureIdentifier, int width, int height, int internalFormat, int format, int type) {
+        renderTextures.putIfAbsent(textureIdentifier, new RenderTexture(width, height, internalFormat, format, type));
+    }
+
     public Map<Identifier, Map<Identifier, Resource>> getTexturesToCompileToAtlas() {
         return texturesToCompileToAtlas;
     }
 
     public Map<Identifier, Resource> getSingleTextures() {
         return singleTextures;
+    }
+
+    public Map<Identifier, RenderTexture> getRenderTextures() {
+        return renderTextures;
     }
 }

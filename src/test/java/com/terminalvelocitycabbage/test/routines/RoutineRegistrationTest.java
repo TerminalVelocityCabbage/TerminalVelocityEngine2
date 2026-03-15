@@ -66,7 +66,7 @@ public class RoutineRegistrationTest {
         GameFileSystem fileSystem = new GameFileSystem() {
             @Override
             public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
-                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test.routine.toml")) {
+                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test")) {
                     return new Resource() {
                         @Override public InputStream openStream() throws IOException { return null; }
                         @Override public DataInputStream asDataStream() { return null; }
@@ -124,7 +124,7 @@ public class RoutineRegistrationTest {
         GameFileSystem fileSystem = new GameFileSystem() {
             @Override
             public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
-                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_order.routine.toml")) {
+                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_order")) {
                     return new Resource() {
                         @Override public InputStream openStream() throws IOException { return null; }
                         @Override public DataInputStream asDataStream() { return null; }
@@ -176,7 +176,7 @@ public class RoutineRegistrationTest {
         GameFileSystem fileSystem = new GameFileSystem() {
             @Override
             public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
-                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_parallel_order.routine.toml")) {
+                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_parallel_order")) {
                     return new Resource() {
                         @Override public InputStream openStream() throws IOException { return null; }
                         @Override public DataInputStream asDataStream() { return null; }

@@ -18,6 +18,7 @@ import com.terminalvelocitycabbage.templates.events.RenderGraphStageExecutionEve
 import org.lwjgl.opengl.GLCapabilities;
 
 import javax.management.ReflectionException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,9 +42,19 @@ public class RenderGraph {
         this.renderConfig = new HeterogeneousMap();
         this.graphNodes = new HashMap<>();
         this.renderPath = renderPathBuilder.build(this);
+        var routes = new ArrayList<NodeRoute>();
         for (Pair<Toggle, ? extends GraphNode> togglePair : graphNodes.values()) {
             if (togglePair.getValue1() instanceof NodeRoute route) {
-                route.init(this);
+                routes.add(route);
+            }
+        }
+        for (int i = 0; i < routes.size(); i++) {
+            var route = routes.get(i);
+            route.init(this);
+            for (Pair<Toggle, ? extends GraphNode> togglePair : graphNodes.values()) {
+                if (togglePair.getValue1() instanceof NodeRoute newRoute && !routes.contains(newRoute)) {
+                    routes.add(newRoute);
+                }
             }
         }
     }
@@ -101,12 +112,12 @@ public class RenderGraph {
 
     /**
      * Calls the render method on the root render path which passes it on down the line depending on the conditional routes
-     * @param windowProperties The current snapshot of the calling window's properties
+     * @param properties The current properties of the render target
      * @param deltaTime The time passed since the last frame was started
      */
-    public void render(WindowProperties windowProperties, long deltaTime) {
+    public void render(TargetProperties properties, long deltaTime) {
         if (!initialized) Log.error("Tried to render before render graph was initialized");
-        renderPath.render(windowProperties, deltaTime);
+        renderPath.render(properties, deltaTime);
     }
 
     public void cleanup() {
@@ -140,21 +151,21 @@ public class RenderGraph {
         }
 
         //Renders this path
-        public void render(WindowProperties windowProperties, long deltaTime) {
+        public void render(TargetProperties properties, long deltaTime) {
             graphNodes.forEach((identifier, graphNode) -> {
                 boolean enabled = renderGraph.nodeEnabled(identifier);
                 //Publish an event before this GraphNode so mods can inject their own logic into these renderers
-                ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.pre(identifier), windowProperties, deltaTime, enabled));
+                ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.pre(identifier), properties, deltaTime, enabled));
                 //Execute all nodes in the graph
                 if (enabled && graphNode != null) {
                     switch (graphNode.getValue1()) {
                         case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher(), deltaTime); //We assume that the server is not rendering anything
-                        case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, renderGraph.getRenderConfig(), deltaTime);
-                        case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities, ClientBase.getInstance().getStateHandler()).render(windowProperties, deltaTime);
+                        case RenderNode renderNode -> renderNode.executeRenderStage(properties.getScene(), properties, renderGraph.getRenderConfig(), deltaTime);
+                        case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities, ClientBase.getInstance().getStateHandler()).render(properties, deltaTime);
                     }
                 }
                 //Publish an event before this GraphNode so mods can inject their own logic into these renderers
-                ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.post(identifier), windowProperties, deltaTime, enabled));
+                ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.post(identifier), properties, deltaTime, enabled));
             });
         }
 
@@ -162,6 +173,7 @@ public class RenderGraph {
 
             private final Map<Identifier, Pair<Toggle, ? extends GraphNode>> graphNodes;
             private final HeterogeneousMap renderConfig;
+            private Identifier currentTarget = null;
 
             public static final RenderGraph.RenderPath.Config EMPTY_ROUTE = RenderGraph.RenderPath.builder();
 
@@ -208,10 +220,22 @@ public class RenderGraph {
              */
             public Config addRenderNode(Identifier identifier, Class<? extends RenderNode> renderNode, ShaderProgramConfig config, boolean automaticallyEnable) {
                 try {
-                    graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), ClassUtils.createInstance(renderNode, config)));
+                    RenderNode node = ClassUtils.createInstance(renderNode, config);
+                    node.setTargetFramebufferId(currentTarget);
+                    graphNodes.put(identifier, new Pair<>(new Toggle(automaticallyEnable), node));
                 } catch (ReflectionException e) {
                     Log.crash("Could not add node " + identifier + " to graph node " + renderNode, new RuntimeException(e));
                 }
+                return this;
+            }
+
+            /**
+             * Sets the target framebuffer for all nodes added to the graph after this call until it's changed again
+             * @param framebufferId The identifier of the framebuffer to set as the target, or null for the window
+             * @return this Builder (for easy changing of methods)
+             */
+            public Config setTarget(Identifier framebufferId) {
+                this.currentTarget = framebufferId;
                 return this;
             }
 

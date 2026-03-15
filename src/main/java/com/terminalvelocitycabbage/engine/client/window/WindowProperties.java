@@ -26,14 +26,6 @@ public class WindowProperties {
         this(600, 400, "Default Title", null);
     }
 
-    public WindowProperties(WindowProperties properties) {
-        this(
-                properties.width,
-                properties.height,
-                properties.title,
-                properties.initialScene);
-    }
-
     public WindowProperties(int width, int height, String title, Identifier initialSceneIdentifier) {
         this.width = width;
         this.height = height;
@@ -126,6 +118,10 @@ public class WindowProperties {
      */
     public boolean isResized() {
         return resized;
+    }
+
+    public void setResized(boolean resized) {
+        this.resized = resized;
     }
 
     /**

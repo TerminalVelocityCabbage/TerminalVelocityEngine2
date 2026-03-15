@@ -67,11 +67,12 @@ public class Shader {
         //Note the vertex layout attributes for validation on use
         if (shaderType == Type.VERTEX) {
             List<Triplet<Integer, String, String>> layoutAttributes = new ArrayList<>();
-            shaderString.lines().filter(line -> line.startsWith("layout"))
+            shaderString.lines().map(String::trim).filter(line -> line.startsWith("layout") && line.contains(" in ") && line.contains("="))
                     .forEach(line -> {
-                        var info = line.split("=")[1].split(" in ");
-                        var index = info[0].trim().replace(")", "");
-                        var typeName = info[1].trim().split(" ");
+                        var info = line.split("=");
+                        var inSplit = info[1].split(" in ");
+                        var index = inSplit[0].trim().replace(")", "");
+                        var typeName = inSplit[1].trim().split("\\s+");
                         var type = typeName[0];
                         var name = typeName[1].replace(";", "");
                         layoutAttributes.add(new Triplet<>(Integer.parseInt(index), type, name));
@@ -99,7 +100,7 @@ public class Shader {
     public boolean validate(VertexFormat vertexFormat) {
         if (shaderType != Type.VERTEX) return true;
         var formatAttributes = vertexFormat.getAttributes();
-        for (int i = 0; i < formatAttributes.size(); i++) {
+        for (int i = 0; i < Math.min(formatAttributes.size(), layoutTypes.size()); i++) {
             var currentExpectedAttribute = formatAttributes.get(i);
             var currentActualAttribute = layoutTypes.get(i);
             if (
@@ -112,6 +113,11 @@ public class Shader {
                         " but got: layout (location=|" + i + "|) in |" + currentActualAttribute.getValue1() + "| |" + currentActualAttribute.getValue2() + "|;");
                 return false;
             }
+        }
+        if (layoutTypes.size() > formatAttributes.size()) {
+            Log.error("Vertex shader " + shaderSourceIdentifier.toString() + " has more attributes than the provided vertex format",
+                    "Shader attributes: " + layoutTypes.size() + ", Format attributes: " + formatAttributes.size());
+            return false;
         }
         return true;
     }
