@@ -99,9 +99,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         client.postDisconnect(this::onDisconnected);
         eventDispatcher.dispatchEvent(new ResourceCategoryRegistrationEvent(fileSystem.getResourceCategoryRegistry()));
         eventDispatcher.dispatchEvent(new ResourceSourceRegistrationEvent(fileSystem.getSourceRegistry(), getInstance()));
-        for (ResourceCategory category : fileSystem.getResourceCategoryRegistry().getRegistryContents().values()) {
-            eventDispatcher.dispatchEvent(new ResourceRegistrationEvent(fileSystem, category));
-        }
         fileSystem.init();
         eventDispatcher.dispatchEvent(new GameStateRegistrationEvent(stateHandler));
         eventDispatcher.dispatchEvent(new InputHandlerRegistrationEvent(inputHandler));

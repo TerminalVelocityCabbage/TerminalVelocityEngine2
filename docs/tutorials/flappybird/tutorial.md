@@ -109,7 +109,6 @@ To listen to events, just get the event dispatcher with `getEventDispatcher()` a
 The events we need to listen to are:
 - `ResourceCategoryRegistrationEvent`
 - `ResourceSourceRegistrationEvent`
-- `ResourceRegistrationEvent` for shaders and textures (more later)
 
 See below for an example of how to listen to these events:
 ```java
@@ -118,8 +117,6 @@ public FlappyBirdClient(String namespace, int ticksPerSecond) {
     //Listen to events
     getEventDispatcher().listenToEvent(ResourceCategoryRegistrationEvent.EVENT, e -> { });
     getEventDispatcher().listenToEvent(ResourceSourceRegistrationEvent.EVENT, e -> { });
-    getEventDispatcher().listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.SHADER), e -> { });
-    getEventDispatcher().listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.TEXTURE), e -> { });
     getEventDispatcher().listenToEvent(ConfigureTextures.EVENT, e -> { });
 }
 ```
@@ -149,21 +146,17 @@ getEventDispatcher().listenToEvent(ResourceSourceRegistrationEvent.EVENT, (Resou
 
 ### Registering Shaders
 
-Shaders require a bit more setup - we need to not only register the shader resources, but also configure a shader program for the renderer to use. Here we specify the mesh format, and define all the uniforms that this shader needs to run in addition to all of the shader stages that are required.
+Shaders are now automatically registered by the filesystem, but we still need to configure a shader program for the renderer to use. Here we specify the mesh format, and define all the uniforms that this shader needs to run in addition to all of the shader stages that are required.
 ```java
-getEventDispatcher().listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.SHADER), e -> {
-    ResourceRegistrationEvent event = (ResourceRegistrationEvent) e;
-    //Register shader resources
-    DEFAULT_VERTEX_SHADER = event.registerResource(CLIENT_RESOURCE_SOURCE, ResourceCategory.SHADER, "default.vert").getIdentifier();
-    DEFAULT_FRAGMENT_SHADER = event.registerResource(CLIENT_RESOURCE_SOURCE, ResourceCategory.SHADER, "default.frag").getIdentifier();
-    //Configure the shader program
-    DEFAULT_SHADER_PROGRAM_CONFIG = ShaderProgramConfig.builder()
-            .vertexFormat(MESH_FORMAT)
-            .addShader(Shader.Type.VERTEX, DEFAULT_VERTEX_SHADER)
-            .addShader(Shader.Type.FRAGMENT, DEFAULT_FRAGMENT_SHADER)
-            .addUniform(new Uniform("textureSampler"))
-            .build();
-});
+//Define the shader program
+DEFAULT_VERTEX_SHADER = ResourceCategory.SHADER.identifierOf(ID, "default_vertex");
+DEFAULT_FRAGMENT_SHADER = ResourceCategory.SHADER.identifierOf(ID, "default_fragment");
+DEFAULT_SHADER_PROGRAM_CONFIG = ShaderProgramConfig.builder()
+        .vertexFormat(MESH_FORMAT)
+        .addShader(Shader.Type.VERTEX, DEFAULT_VERTEX_SHADER)
+        .addShader(Shader.Type.FRAGMENT, DEFAULT_FRAGMENT_SHADER)
+        .addUniform(new Uniform("textureSampler"))
+        .build();
 ```
 To configure the mesh format you just need to tell it what the vertex format for the elements rendered with this shader looks like. These need to match the layouts defined in the shaders themselves:
 ```java
@@ -175,12 +168,9 @@ public static final VertexFormat MESH_FORMAT = VertexFormat.builder()
 
 ### Registering Textures
 
-Like shaders textures require two steps. Registering texture resources and configuring textures to use an atlas. Technically the seccond step is optional, but it is best practice to register your textures to an atlas to reduce uploads to the gpu in the form of texture binds.
+Like shaders textures are now automatically registered by the filesystem. We still need to configure textures to use an atlas. Technically this step is optional, but it is best practice to register your textures to an atlas to reduce uploads to the gpu in the form of texture binds.
 ```java
-getEventDispatcher().listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.TEXTURE), e -> {
-    //Register texture resources
-    BIRD_TEXTURE = ((ResourceRegistrationEvent) e).registerResource(CLIENT_RESOURCE_SOURCE, ResourceCategory.TEXTURE, "bird.png").getIdentifier();
-});
+BIRD_TEXTURE = ResourceCategory.TEXTURE.identifierOf(ID, "bird");
 getEventDispatcher().listenToEvent(ConfigureTexturesEvent.EVENT, e -> {
     ConfigureTexturesEvent event = (ConfigureTexturesEvent) e;
     //Register a default atlas with the name "atlas"

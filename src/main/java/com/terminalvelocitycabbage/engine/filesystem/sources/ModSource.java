@@ -7,6 +7,10 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.types.JarResource;
 import com.terminalvelocitycabbage.engine.mod.Mod;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -40,6 +44,24 @@ public class ModSource extends ResourceSource {
         }
 
         return new JarResource(jarFile, entry);
+    }
+
+    @Override
+    public Collection<String> enumerateResources(ResourceCategory category) {
+        String path = category.getAssetsPath(namespace) + "/";
+        List<String> resources = new ArrayList<>();
+        Enumeration<JarEntry> entries = mod.getJarFile().entries();
+        while (entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+            String name = entry.getName();
+            if (name.startsWith(path) && !entry.isDirectory()) {
+                String fileName = name.substring(path.length());
+                if (!fileName.contains("/")) {
+                    resources.add(fileName);
+                }
+            }
+        }
+        return resources;
     }
 
 }

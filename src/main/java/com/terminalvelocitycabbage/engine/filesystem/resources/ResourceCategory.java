@@ -58,4 +58,8 @@ public record ResourceCategory(String name, String plural) {
     public String getAssetsPath(String namespace) {
         return "assets/" + namespace + "/" + plural;
     }
+
+    public Identifier identifierOf(String namespace, String name) {
+        return new Identifier(namespace, this.name(), name);
+    }
 }

@@ -3,6 +3,8 @@ package com.terminalvelocitycabbage.engine.filesystem.resources;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
+import java.util.Collection;
+
 /**
  * Defines a set of resource roots for an entrypoint or asset pack. This is the literal set of resource locations as
  * they exist as file in the game or mod etc. artifacts. From this they will be compiled and added to the virtual
@@ -43,6 +45,12 @@ public abstract class ResourceSource {
      * @return A resource in this resource source to be loaded into the filesystem
      */
     public abstract Resource getResource(String path, ResourceCategory resourceCategory);
+
+    /**
+     * @param category The type of resource being retrieved
+     * @return A collection of resource names in this resource source to be loaded into the filesystem
+     */
+    public abstract Collection<String> enumerateResources(ResourceCategory category);
 
     /**
      * Registers all the default {@link ResourceCategory}s to this source root registry

@@ -140,6 +140,6 @@ public class SceneRegistrationEvent extends RegistryEvent<Scene> {
     }
 
     public Identifier sceneIdentifierOf(String namespace, String name) {
-        return new Identifier(namespace, "scene", name + ".scene.toml");
+        return ResourceCategory.SCENE.identifierOf(namespace, name);
     }
 }

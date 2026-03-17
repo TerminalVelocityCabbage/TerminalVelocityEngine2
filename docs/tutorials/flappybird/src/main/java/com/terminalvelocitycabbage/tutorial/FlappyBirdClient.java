@@ -88,26 +88,20 @@ public class FlappyBirdClient extends ClientBase {
             //register this source
             CLIENT_RESOURCE_SOURCE = ((ResourceSourceRegistrationEvent) e).registerResourceSource(ID, "main", mainSource);
         });
-        getEventDispatcher().listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.SHADER), e -> {
-            ResourceRegistrationEvent event = (ResourceRegistrationEvent) e;
-            //Register shader resources
-            DEFAULT_VERTEX_SHADER = event.registerResource(CLIENT_RESOURCE_SOURCE, ResourceCategory.SHADER, "default.vert").getIdentifier();
-            DEFAULT_FRAGMENT_SHADER = event.registerResource(CLIENT_RESOURCE_SOURCE, ResourceCategory.SHADER, "default.frag").getIdentifier();
-            //Configure the shader program
-            DEFAULT_SHADER_PROGRAM_CONFIG = ShaderProgramConfig.builder()
-                    .vertexFormat(MESH_FORMAT)
-                    .addShader(Shader.Type.VERTEX, DEFAULT_VERTEX_SHADER)
-                    .addShader(Shader.Type.FRAGMENT, DEFAULT_FRAGMENT_SHADER)
-                    .addUniform(new Uniform("textureSampler"))
-                    .addUniform(new Uniform("projectionMatrix"))
-                    .addUniform(new Uniform("viewMatrix"))
-                    .addUniform(new Uniform("modelMatrix"))
-                    .build();
-        });
-        getEventDispatcher().listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.TEXTURE), e -> {
-            //Register texture resources
-            BIRD_TEXTURE = ((ResourceRegistrationEvent) e).registerResource(CLIENT_RESOURCE_SOURCE, ResourceCategory.TEXTURE, "bird.png").getIdentifier();
-        });
+        //Define the shader program
+        DEFAULT_VERTEX_SHADER = ResourceCategory.SHADER.identifierOf(ID, "default_vertex");
+        DEFAULT_FRAGMENT_SHADER = ResourceCategory.SHADER.identifierOf(ID, "default_fragment");
+        DEFAULT_SHADER_PROGRAM_CONFIG = ShaderProgramConfig.builder()
+                .vertexFormat(MESH_FORMAT)
+                .addShader(Shader.Type.VERTEX, DEFAULT_VERTEX_SHADER)
+                .addShader(Shader.Type.FRAGMENT, DEFAULT_FRAGMENT_SHADER)
+                .addUniform(new Uniform("textureSampler"))
+                .addUniform(new Uniform("projectionMatrix"))
+                .addUniform(new Uniform("viewMatrix"))
+                .addUniform(new Uniform("modelMatrix"))
+                .build();
+        BIRD_TEXTURE = ResourceCategory.TEXTURE.identifierOf(ID, "bird");
+
         getEventDispatcher().listenToEvent(ConfigureTexturesEvent.EVENT, e -> {
             ConfigureTexturesEvent event = (ConfigureTexturesEvent) e;
             //Register a default atlas

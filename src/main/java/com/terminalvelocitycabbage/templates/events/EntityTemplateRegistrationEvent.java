@@ -67,6 +67,6 @@ public class EntityTemplateRegistrationEvent extends Event {
     }
 
     public Identifier entityIdentifierOf(String namespace, String name) {
-        return new Identifier(namespace, "entity", name + ".entity.toml");
+        return ResourceCategory.ENTITY.identifierOf(namespace, name);
     }
 }

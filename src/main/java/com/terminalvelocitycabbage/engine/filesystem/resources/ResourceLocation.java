@@ -11,7 +11,8 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 public record ResourceLocation(
         Identifier resourceSourceIdentifier,
         ResourceCategory type,
-        Identifier resourceIdentifier
+        Identifier resourceIdentifier,
+        String fileName
 ) {
 
 }

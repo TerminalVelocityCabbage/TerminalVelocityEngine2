@@ -48,8 +48,9 @@ public class GameFileSystem {
      * @param fileName The file name that this resource can be found as
      */
     public RegistryPair<ResourceLocation> registerResource(Identifier sourceIdentifier, ResourceCategory resourceCategory, String fileName) {
-        Identifier resourceIdentifier = new Identifier(sourceIdentifier.namespace(), resourceCategory.name(), fileName);
-        return resourceLocationRegistry.getAndRegister(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceCategory, resourceIdentifier));
+        String nameWithoutExtension = fileName.split("\\.")[0];
+        Identifier resourceIdentifier = new Identifier(sourceIdentifier.namespace(), resourceCategory.name(), nameWithoutExtension);
+        return resourceLocationRegistry.getAndRegister(resourceIdentifier, new ResourceLocation(sourceIdentifier, resourceCategory, resourceIdentifier, fileName));
     }
 
     /**
@@ -76,16 +77,30 @@ public class GameFileSystem {
             fileSystemContents.put(type, new HashMap<>());
         }
 
+        //Scan sources for resources
+        for (Map.Entry<Identifier, ResourceSource> sourceEntry : sourceRegistry.getRegistryContents().entrySet()) {
+            Identifier sourceIdentifier = sourceEntry.getKey();
+            ResourceSource source = sourceEntry.getValue();
+            for (ResourceCategory category : resourceCategoryRegistry.getRegistryContents().values()) {
+                Collection<String> resourceNames = source.enumerateResources(category);
+                for (String resourceName : resourceNames) {
+                    registerResource(sourceIdentifier, category, resourceName);
+                }
+            }
+        }
+
         //Compile filesystem
         for (Map.Entry<Identifier, ResourceLocation> entry : resourceLocationRegistry.getRegistryContents().entrySet()) {
             //Where the resource exists
             ResourceLocation resourceLocation = entry.getValue();
             //Get the resource from its resource location and make it available on this file system
             Resource resource = sourceRegistry.get(resourceLocation.resourceSourceIdentifier())
-                    .getResource(resourceLocation.resourceIdentifier().name(), resourceLocation.type());
+                    .getResource(resourceLocation.fileName(), resourceLocation.type());
             //Get the resource type and put this resource into it to be used later
             fileSystemContents.get(resourceLocation.type()).put(resourceLocation.resourceIdentifier(), resource);
         }
+
+        listResources();
     }
 
     /**
