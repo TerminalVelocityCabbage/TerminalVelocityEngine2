@@ -1,49 +1,37 @@
 package com.terminalvelocitycabbage.editor.registry;
 
+import com.terminalvelocitycabbage.editor.Editor;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.FontRegistrationEvent;
-import com.terminalvelocitycabbage.templates.events.ResourceRegistrationEvent;
 
-import static com.terminalvelocitycabbage.editor.Editor.ENGINE_RESOURCE_SOURCE;
 import static com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory.FONT;
 
 public class EditorFonts {
 
-    public static Identifier THIN;
-    public static Identifier EXTRA_LIGHT;
-    public static Identifier LIGHT;
-    public static Identifier REGULAR;
-    public static Identifier MEDIUM;
-    public static Identifier SEMI_BOLD;
-    public static Identifier BOLD;
-    public static Identifier EXTRA_BOLD;
-    public static Identifier BLACK;
+    public static final Identifier THIN = FONT.identifierOf(Editor.ID, "outfit_thin");
+    public static final Identifier EXTRA_LIGHT = FONT.identifierOf(Editor.ID, "outfit_extralight");
+    public static final Identifier LIGHT = FONT.identifierOf(Editor.ID, "outfit_light");
+    public static final Identifier REGULAR = FONT.identifierOf(Editor.ID, "outfit_regular");
+    public static final Identifier MEDIUM = FONT.identifierOf(Editor.ID, "outfit_medium");
+    public static final Identifier SEMI_BOLD = FONT.identifierOf(Editor.ID, "outfit_semibold");
+    public static final Identifier BOLD = FONT.identifierOf(Editor.ID, "outfit_bold");
+    public static final Identifier EXTRA_BOLD = FONT.identifierOf(Editor.ID, "outfit_extrabold");
+    public static final Identifier BLACK = FONT.identifierOf(Editor.ID, "outfit_black");
 
     public static void init(EventDispatcher eventDispatcher) {
-        eventDispatcher.listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(FONT), e -> {
-            ResourceRegistrationEvent event = (ResourceRegistrationEvent) e;
-            THIN = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_thin.ttf").getIdentifier();
-            EXTRA_LIGHT = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_extralight.ttf").getIdentifier();
-            LIGHT = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_light.ttf").getIdentifier();
-            REGULAR = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_regular.ttf").getIdentifier();
-            MEDIUM = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_medium.ttf").getIdentifier();
-            SEMI_BOLD = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_semibold.ttf").getIdentifier();
-            BOLD = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_bold.ttf").getIdentifier();
-            EXTRA_BOLD = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_extrabold.ttf").getIdentifier();
-            BLACK = event.registerResource(ENGINE_RESOURCE_SOURCE, FONT, "outfit_black.ttf").getIdentifier();
-        });
-        eventDispatcher.listenToEvent(FontRegistrationEvent.EVENT, e -> {
-            FontRegistrationEvent event = (FontRegistrationEvent) e;
-            event.registerFont(THIN);
-            event.registerFont(EXTRA_LIGHT);
-            event.registerFont(LIGHT);
-            event.registerFont(REGULAR);
-            event.registerFont(MEDIUM);
-            event.registerFont(SEMI_BOLD);
-            event.registerFont(BOLD);
-            event.registerFont(EXTRA_BOLD);
-            event.registerFont(BLACK);
-        });
+        registerFont(eventDispatcher, THIN);
+        registerFont(eventDispatcher, EXTRA_LIGHT);
+        registerFont(eventDispatcher, LIGHT);
+        registerFont(eventDispatcher, REGULAR);
+        registerFont(eventDispatcher, MEDIUM);
+        registerFont(eventDispatcher, SEMI_BOLD);
+        registerFont(eventDispatcher, BOLD);
+        registerFont(eventDispatcher, EXTRA_BOLD);
+        registerFont(eventDispatcher, BLACK);
+    }
+
+    public static void registerFont(EventDispatcher eventDispatcher, Identifier name) {
+        eventDispatcher.listenToEvent(FontRegistrationEvent.EVENT, e -> ((FontRegistrationEvent) e).registerFont(name));
     }
 }

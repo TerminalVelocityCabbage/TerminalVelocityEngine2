@@ -33,6 +33,10 @@ public class ConfigureTexturesEvent extends Event {
         return atlasIdentifier;
     }
 
+    public void registerAtlas(Identifier identifier) {
+        texturesToCompileToAtlas.putIfAbsent(identifier, new HashMap<>());
+    }
+
     public void addTexture(Identifier textureIdentifier, Identifier... atlasIdentifiers) {
         if (atlasIdentifiers.length == 0) {
             singleTextures.putIfAbsent(textureIdentifier, fileSystem.getResource(ResourceCategory.TEXTURE, textureIdentifier));

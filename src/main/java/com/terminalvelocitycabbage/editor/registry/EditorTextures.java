@@ -2,43 +2,44 @@ package com.terminalvelocitycabbage.editor.registry;
 
 import com.terminalvelocitycabbage.editor.Editor;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.ConfigureTexturesEvent;
-import com.terminalvelocitycabbage.templates.events.ResourceRegistrationEvent;
+
+import static com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory.TEXTURE;
 
 public class EditorTextures {
 
-    public static Identifier UI_ATLAS;
+    public static final Identifier UI_ATLAS = new Identifier(Editor.ID, "atlas", "ui_atlas");
 
-    public static Identifier TRANSLATE_ICON;
-    public static Identifier ROTATE_ICON;
-    public static Identifier SCALE_ICON;
-    public static Identifier CARET_OPEN_ICON;
-    public static Identifier CARET_CLOSED_ICON;
+    public static final Identifier TRANSLATE_ICON = TEXTURE.identifierOf(Editor.ID, "translate_icon");
+    public static final Identifier ROTATE_ICON = TEXTURE.identifierOf(Editor.ID, "rotate_icon");
+    public static final Identifier SCALE_ICON = TEXTURE.identifierOf(Editor.ID, "scale_icon");
+    public static final Identifier CARET_OPEN_ICON = TEXTURE.identifierOf(Editor.ID, "caret_open_icon");
+    public static final Identifier CARET_CLOSED_ICON = TEXTURE.identifierOf(Editor.ID, "caret_closed_icon");
 
     public static void init(EventDispatcher eventDispatcher) {
 
-        eventDispatcher.listenToEvent(ResourceRegistrationEvent.getEventNameFromCategory(ResourceCategory.TEXTURE), e -> {
-            ResourceRegistrationEvent event = (ResourceRegistrationEvent) e;
+        registerAtlas(eventDispatcher, UI_ATLAS);
 
-            TRANSLATE_ICON = registerTexture(eventDispatcher, event, "translate_icon.png");
-            ROTATE_ICON = registerTexture(eventDispatcher, event, "rotate_icon.png");
-            SCALE_ICON = registerTexture(eventDispatcher, event, "scale_icon.png");
-            CARET_OPEN_ICON = registerTexture(eventDispatcher, event, "caret_open_icon.png");
-            CARET_CLOSED_ICON = registerTexture(eventDispatcher, event, "caret_closed_icon.png");
+        registerTexture(eventDispatcher, TRANSLATE_ICON, UI_ATLAS);
+        registerTexture(eventDispatcher, ROTATE_ICON, UI_ATLAS);
+        registerTexture(eventDispatcher, SCALE_ICON, UI_ATLAS);
+        registerTexture(eventDispatcher, CARET_OPEN_ICON, UI_ATLAS);
+        registerTexture(eventDispatcher, CARET_CLOSED_ICON, UI_ATLAS);
+    }
+
+    private static void registerAtlas(EventDispatcher eventDispatcher, Identifier atlasIdentifier) {
+        eventDispatcher.listenToEvent(ConfigureTexturesEvent.EVENT, e -> {
+            ConfigureTexturesEvent event = (ConfigureTexturesEvent) e;
+            event.registerAtlas(atlasIdentifier);
         });
     }
 
-    private static Identifier registerTexture(EventDispatcher eventDispatcher, ResourceRegistrationEvent event, String textureName) {
-        Identifier textureIdentifier = event.registerResource(Editor.ENGINE_RESOURCE_SOURCE, ResourceCategory.TEXTURE, textureName).getIdentifier();
+    private static void registerTexture(EventDispatcher eventDispatcher, Identifier textureIdentifier, Identifier... atlasIdentifiers) {
         eventDispatcher.listenToEvent(ConfigureTexturesEvent.EVENT, e -> {
-            ConfigureTexturesEvent configureEvent = (ConfigureTexturesEvent) e;
-
-            UI_ATLAS = configureEvent.registerAtlas(Editor.getInstance().getNamespace(), "ui_atlas");
-            configureEvent.addTexture(textureIdentifier, UI_ATLAS);
+            ConfigureTexturesEvent event = (ConfigureTexturesEvent) e;
+            event.addTexture(textureIdentifier, atlasIdentifiers);
         });
-        return textureIdentifier;
     }
 
     public static void generateAtlases() {
