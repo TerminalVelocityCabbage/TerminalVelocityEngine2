@@ -37,7 +37,7 @@ public abstract class Editor<T extends ClientBase> extends ClientBase {
     public void registerEventListeners(EventDispatcher dispatcher) {
         gameClient.registerEventListeners(dispatcher);
         dispatcher.listenToEvent(ResourceCategoryRegistrationEvent.EVENT, event -> {
-            ResourceCategory.registerEngineDefaults(((ResourceCategoryRegistrationEvent) event).getRegistry(), getNamespace());
+            ResourceCategory.registerEngineDefaults(((ResourceCategoryRegistrationEvent) event).getRegistry());
         });
         dispatcher.listenToEvent(ResourceSourceRegistrationEvent.EVENT, event -> {
             ResourceSource mainSource = new MainSource(getInstance(), getNamespace());
@@ -52,11 +52,11 @@ public abstract class Editor<T extends ClientBase> extends ClientBase {
                             .textureAtlases(UI_ATLAS)
                             .build());
         });
-        EditorFonts.init(getEventDispatcher());
-        EditorRenderGraphs.init(getEventDispatcher());
-        EditorInput.init(getEventDispatcher());
-        EditorTextures.init(getEventDispatcher());
-        EditorStates.init(getEventDispatcher());
+        EditorFonts.init(dispatcher);
+        EditorRenderGraphs.init(dispatcher);
+        EditorInput.init(dispatcher);
+        EditorTextures.init(dispatcher);
+        EditorStates.init(dispatcher);
     }
 
     @Override

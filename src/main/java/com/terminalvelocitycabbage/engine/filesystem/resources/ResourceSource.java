@@ -36,7 +36,7 @@ public abstract class ResourceSource {
      * @param type The type of resource being retrieved
      */
     public void registerDefaultSourceRoot(String namespace, ResourceCategory type) {
-        getResourceRootRegistry().getAndRegister(type.createIdentifier(namespace), type.getAssetsPath(namespace));
+        getResourceRootRegistry().getAndRegister(type.createIdentifier(), type.getAssetsPath(namespace));
     }
 
     /**
