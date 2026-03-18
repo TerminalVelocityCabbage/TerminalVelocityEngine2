@@ -2,12 +2,19 @@ package com.terminalvelocitycabbage.editor.rendernodes;
 
 import com.terminalvelocitycabbage.editor.Editor;
 import com.terminalvelocitycabbage.editor.registry.EditorTextures;
-import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.ui.UI;
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceSource;
+import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
+import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
+import com.terminalvelocitycabbage.engine.state.State;
+import com.terminalvelocitycabbage.engine.util.StringUtils;
 
+import java.util.Map;
+
+import static com.terminalvelocitycabbage.engine.client.ui.UI.LayoutDirection.TOP_TO_BOTTOM;
 import static com.terminalvelocitycabbage.engine.client.ui.UI.UIUnit.PIXELS;
 
 public class DrawEditorUIRenderNode extends EditorUIRenderNode {
@@ -19,11 +26,11 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
     @Override
     protected void declareUI() {
 
-        container(props(UI.pT(10, PIXELS), UI.gap(5, PIXELS), UI.backgroundColor(BACKGROUND_COLOR), UI.grow(), UI.layout(UI.LayoutDirection.TOP_TO_BOTTOM)), () -> {
+        container(props(UI.pT(10, PIXELS), UI.gap(5, PIXELS), UI.backgroundColor(BACKGROUND_COLOR), UI.grow(), UI.layout(TOP_TO_BOTTOM)), () -> {
             //optionsBar();
             container(props(UI.gap(5, PIXELS), UI.grow(), UI.backgroundColor(BACKGROUND_COLOR), UI.layout(UI.LayoutDirection.LEFT_TO_RIGHT)), () -> {
                 hierarchy();
-                container(props(UI.gap(5, PIXELS), UI.backgroundColor(BACKGROUND_COLOR), UI.grow(), UI.layout(UI.LayoutDirection.TOP_TO_BOTTOM)), () -> {
+                container(props(UI.gap(5, PIXELS), UI.backgroundColor(BACKGROUND_COLOR), UI.grow(), UI.layout(TOP_TO_BOTTOM)), () -> {
                     scene();
                     browser();
                 });
@@ -97,16 +104,31 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
     }
 
     private void assetBrowser() {
+
+        State<ResourceCategory> selectedCategory = new State<>(ResourceCategory.FONT);
+
+        Editor editor = (Editor) Editor.getInstance();
+        GameFileSystem fileSystem = editor.getFileSystem();
+
         container(props(UI.backgroundColor(BORDER_COLOR), UI.grow(), UI.gap(5, PIXELS), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT)), () -> {
-            container(props(UI.width(240, PIXELS), UI.growY(),UI.backgroundColor(ELEMENT_COLOR)), () -> {
-                Editor editor = (Editor) Editor.getInstance();
-                ClientBase client = editor.getGameClient();
-                for (ResourceSource source : client.getFileSystem().getSourceRegistry().getRegistryContents().values()) {
-                    text(source.toString(), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
-                }
+            container(props(UI.width(240, PIXELS), UI.growY(),UI.backgroundColor(ELEMENT_COLOR), UI.layout(TOP_TO_BOTTOM)), () -> {
+                verticalScrollableContainer("asset_category_container", () -> {
+                    //TODO make this a button to update the state above
+                    for (ResourceCategory category : fileSystem.getResourceCategoryRegistry().getRegistryContents().values()) {
+                        text(StringUtils.convertSnakeCaseToCapitalized(category.plural()), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(TEXT_COLOR)));
+                    }
+                });
             });
             container(props(UI.grow(), UI.backgroundColor(ELEMENT_COLOR)), () -> {
-                text("Asset List TODO", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                verticalScrollableContainer("asset_container_by_category", () -> {
+                    if (selectedCategory.getValue() != null) {
+                        Map<Identifier, Resource> resourcesOfType = fileSystem.getResourcesOfType(selectedCategory.getValue());
+                        //TODO make this update a state for the currently previewed element in the viewport
+                        for (Identifier resourceIdentifier : resourcesOfType.keySet()) {
+                            text(resourceIdentifier.toString(), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                        }
+                    }
+                });
             });
         });
     }
@@ -126,7 +148,7 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
     }
 
     private void elementInspector() {
-        container(props(UI.grow(), UI.direction(UI.LayoutDirection.TOP_TO_BOTTOM)), () -> {
+        container(props(UI.grow(), UI.direction(TOP_TO_BOTTOM)), () -> {
             //TODO change this to show the components of the selected entity
             for (Class<?> componentC : Editor.getInstance().getManager().getComponents()) {
                 component(componentC);

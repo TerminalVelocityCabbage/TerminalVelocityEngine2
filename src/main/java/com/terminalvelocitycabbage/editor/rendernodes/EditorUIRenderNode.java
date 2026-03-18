@@ -12,6 +12,8 @@ import com.terminalvelocitycabbage.templates.events.UICharInputEvent;
 import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 
+import java.util.List;
+
 import static com.terminalvelocitycabbage.editor.registry.EditorTextures.*;
 import static com.terminalvelocitycabbage.engine.client.ui.UI.UIUnit.PIXELS;
 
@@ -150,6 +152,13 @@ public abstract class EditorUIRenderNode extends UIRenderNode {
 
     public void horizontalDivider() {
         container(props(UI.height(3, PIXELS), UI.backgroundColor(ULTRA_DARK), UI.growX()), () -> {});
+    }
+
+    public void verticalScrollableContainer(String id, Runnable action) {
+        scrollableContainer(id,
+                props(UI.pB(25, PIXELS), UI.backgroundColor(ELEMENT_COLOR), UI.layout(UI.LayoutDirection.TOP_TO_BOTTOM), UI.grow(), UI.p(10, PIXELS), UI.gap(5, PIXELS)),
+                props(UI.backgroundColor(LABEL_COLOR), UI.width(10, PIXELS), UI.fitY()),
+                action);
     }
 
     public void component(Class componentClass) {

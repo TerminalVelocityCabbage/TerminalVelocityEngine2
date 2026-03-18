@@ -332,7 +332,7 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         UIElement containerElement = new UIElement(id, getUIContext());
         UIElement contentElement = new UIElement(contentContainerId, getUIContext());
 
-        float containerHeight = containerElement.height();
+        float containerHeight = containerElement.height() - 10;
         float contentHeight = contentElement.preferredHeight();
 
         float scrollableRange = Math.max(0, contentHeight - containerHeight);
@@ -382,7 +382,8 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
                         .wrap(containerDecl.layout().wrap())
                         .childGap(containerDecl.layout().childGap())
                         .childAlignment(containerDecl.layout().childAlignment())
-                        .aspectRatio(containerDecl.layout().aspectRatio()))
+                        .aspectRatio(containerDecl.layout().aspectRatio())
+                        .padding(containerDecl.layout().padding()))
                 .build();
 
         var finalScrollbarDecl = new ElementDeclaration(
