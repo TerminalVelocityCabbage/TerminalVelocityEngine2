@@ -11,6 +11,7 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.state.State;
 import com.terminalvelocitycabbage.engine.util.StringUtils;
+import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 
 import java.util.Map;
 
@@ -98,24 +99,24 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
                 UI.growX(), UI.height(240, PIXELS), UI.backgroundColor(BACKGROUND_COLOR)
         ), () -> {
             tabbedMenu("browserTabs",
-                    new Tab("Asset Browser", this::assetBrowser)
+                    new Tab("Filesystem", this::assetBrowser)
             );
         });
     }
 
     private void assetBrowser() {
 
-        State<ResourceCategory> selectedCategory = new State<>(ResourceCategory.FONT);
+        State<ResourceCategory> selectedCategory = useState(null);
 
         Editor editor = (Editor) Editor.getInstance();
         GameFileSystem fileSystem = editor.getFileSystem();
 
         container(props(UI.backgroundColor(BORDER_COLOR), UI.grow(), UI.gap(5, PIXELS), UI.direction(UI.LayoutDirection.LEFT_TO_RIGHT)), () -> {
-            container(props(UI.width(240, PIXELS), UI.growY(),UI.backgroundColor(ELEMENT_COLOR), UI.layout(TOP_TO_BOTTOM)), () -> {
+            container(props(UI.width(200, PIXELS), UI.growY(),UI.backgroundColor(ELEMENT_COLOR), UI.layout(TOP_TO_BOTTOM)), () -> {
                 verticalScrollableContainer("asset_category_container", () -> {
                     //TODO make this a button to update the state above
                     for (ResourceCategory category : fileSystem.getResourceCategoryRegistry().getRegistryContents().values()) {
-                        text(StringUtils.convertSnakeCaseToCapitalized(category.plural()), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(TEXT_COLOR)));
+                        resourceCategorySelector(selectedCategory, category);
                     }
                 });
             });
@@ -125,12 +126,24 @@ public class DrawEditorUIRenderNode extends EditorUIRenderNode {
                         Map<Identifier, Resource> resourcesOfType = fileSystem.getResourcesOfType(selectedCategory.getValue());
                         //TODO make this update a state for the currently previewed element in the viewport
                         for (Identifier resourceIdentifier : resourcesOfType.keySet()) {
-                            text(resourceIdentifier.toString(), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                            text(resourceIdentifier.toString(), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(TEXT_COLOR)));
                         }
+                        if (resourcesOfType.isEmpty()) {
+                            text("No " + selectedCategory.getValue().plural() + " registered to this filesystem", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
+                        }
+                    } else {
+                        text("Select a resource category to view resources", props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(LABEL_COLOR)));
                     }
                 });
             });
         });
+    }
+
+    private void resourceCategorySelector(State<ResourceCategory> selectedCategory, ResourceCategory category) {
+        int buttonID = id(category.name() + "_button");
+        if (heardEvent(buttonID, UIClickEvent.EVENT) instanceof UIClickEvent) selectedCategory.setValue(category);
+
+        text(buttonID, StringUtils.convertSnakeCaseToCapitalized(category.plural()), props(UI.font(REGULAR_FONT), UI.textSize(15, PIXELS), UI.textColor(TEXT_COLOR)));
     }
 
     private void inspector() {

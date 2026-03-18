@@ -171,6 +171,10 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
         return new UIElement(id, getUIContext());
     }
 
+    protected UIElement text(int id, String text, String props) {
+        return text(id, text, TextElementConfig.of(props));
+    }
+
     protected UIElement text(String text, String props) {
         return text(text, TextElementConfig.of(props));
     }
