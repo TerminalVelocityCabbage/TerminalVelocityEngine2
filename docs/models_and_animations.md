@@ -13,7 +13,7 @@ All files are stored in the `assets` folder of the game, and are stored in toml 
 
 TVE Models are defined in TOML files, known for the easy-to-read nature, no erroneous symbols, and the ability to be easily edited.
 Most of the time users will not need to edit these models directly because tools will be eventually provided to make it easier.
-However for now I want to make it so simple that a user could, if they felt like it, define them manually.
+However, for now I want to make it so simple that a user could, if they felt like it, define them manually.
 
 The model format is divided into the following sections usually in this order:
 1. Metadata: The generic information about the model
@@ -162,7 +162,7 @@ An example of a layer definition:
 ```toml
 [[layer]]
 name = "layer_1" #The name of the layer.
-influence = 1.0 #The influence of this layer on the overall animation.
+influence = 1.0 #The default influence of this layer.
 ```
 ### Keyframes
 Keyframes are the actual transformations that are applied to a bone over time (most of the time).
@@ -189,5 +189,36 @@ grow = [0,0,0] #The grow of bone_1 in pixels.
 
 ## The Animation Controller Format
 Animation controllers define how and when animations are played. These take in some context for the entity being animated 
-and process it into variables that animations may or may not use to determine how to play their animations.   
+and process it into variables that animations may or may not use to determine how to play their animations.
 Animation controllers should be able to toggle animation layers and their influence.
+
+Animation controllers are defined by the following properties:
+- variables: The variables that are used to evaluate context and determine how animations are played.
+- animations: The actual evaluation functions that determine when and how animations are played.
+
+An example of an animation controller definition:
+```toml
+[variables]
+speed = "float" #name = type
+on_ground = "bool"
+above_water = "bool"
+height = "float"
+```
+```toml
+[[animations]]
+name = "idle" #must match an actual name of an animation
+when = "on_ground" #optional boolean expression that determines when this animation should be evaluated. must match a variable name exactly.
+influence = "1.0 - clamp(speed / 5.0, 0.0, 1.0)" #expression that determines the weight of this animation based on some context.
+
+[[animations]]
+name = "fall"
+when = "!on_ground && !above_water" #expression can be negated with !
+influence = "1.0"
+
+[[animations]]
+name = "dive"
+when = "!on_ground && above_water"
+influence = "1.0"
+[animation.layers]
+arm_swinging = "height > 10" #you can control influence of specific layers of an animation here.
+```
