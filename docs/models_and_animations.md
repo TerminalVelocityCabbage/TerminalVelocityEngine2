@@ -5,9 +5,9 @@ Terminal Velocity Engine 2.
 
 ## Files and Their Purposes
 All files are stored in the `assets` folder of the game, and are stored in toml files with a standard file extension and store some specific data related to that type of element:
-- Models: `.model.toml` Stores geometry data and variant information to generate models ingame from.
-- Animations: `.animation.toml` Stores keyframes and transformations for a given model. It is not specific to a model but rather the defined bones within.
-- Animation Controllers: `.animation_controller.toml` Configures how and at what speed/intensity an animation should be played for a given context.
+- `xxx.model.toml` Stores geometry and variant information to generate models ingame from.
+- `xxx.animation.toml` Stores transformations for a given bone over time.
+- `xxx.animation_controller.toml` Configures how and when animations are played.
 
 ## The Model Format
 
@@ -20,6 +20,7 @@ The model format is divided into the following sections usually in this order:
 2. Variants: Variants of this model
 3. Bones: The hierarchy of bones in this model
 4. Cubes: The cubes that make up the meshes of this model
+5. Anchors: Anchor points in the model
 
 We will go over each of these sections in reverse order, since they generally build on top of each other.
 ### Cubes
@@ -38,7 +39,7 @@ uv will be excluded from the mesh entirely.
 An example of a cube definition:
 
 ```toml
-[[cubes]]
+[[cube]]
 name = "cube_1" #Must be an alphanumeric string. must not be null
 parent = "root" #must match the parent or bone name exactly, use "root" for cubes which should be relative to the model origin. Default: "root"
 size = [16, 16, 16] #a size 3 array of integers x,y,z Default: [0,0,0]
@@ -46,7 +47,7 @@ grow = [0.1, 0, 0] #a size 3 array of floats x,y,z Default: [0,0,0]
 position = [0, 1.25, 8] #a size 3 array of floats x,y,z Default: [0,0,0]
 offset = [0, 5.5, 0] #a size 3 array of floats x,y,z Default: [0,0,0]
 rotation = [15.5, 10, 115] #a size 3 array of floats x,y,z. Default: [0,0,0]
-[cubes.textures]
+[cube.textures]
 layer = "texture_1" #Must match the name of a texture layer exactly.
 py_uv = [0,0,16,16] #a size 4 array of integers x1,y1,x2,y2 in pixels mapping to the positive y face of the cube.
 ny_uv = [0,0,16,16] #a size 4 array of integers x1,y1,x2,y2 in pixels mapping to the negative y face of the cube.
@@ -55,6 +56,26 @@ nz_uv = [0,0,16,16] #a size 4 array of integers x1,y1,x2,y2 in pixels mapping to
 px_uv = [0,0,16,16] #a size 4 array of integers x1,y1,x2,y2 in pixels mapping to the positive x face of the cube.
 nx_uv = [0,0,16,16] #a size 4 array of integers x1,y1,x2,y2 in pixels mapping to the negative x face of the cube.
 ```
+### Anchors
+Anchors are points in the model that are parented to cubes or bones that have their positions and rotations reported to
+the game as a way to anchor other things to the model. These things can be like sawing a particle effect at a specific location,
+playing a sound where it originates, or even to control the position of another entity in the game. Anchors are defined by the
+following properties similar to a cube:
+- name: the name of the anchor, used to retrieve it's position and rotation later.
+- parent: the name of the cube or bone this anchor is parented to.
+- position: the position of the anchor relative to its parent's origin.
+- offset: the position of the anchor relative to its local origin.
+- rotation: the rotation of the anchor relative to its origin and parent.
+
+An example of an anchor definition:
+```toml
+[[anchor]]
+name = "anchor_1" #Must be an alphanumeric string
+parent = "cube_3" #Must match the name of a cube or bone exactly.
+position = [0,0,0] #a size 3 array of floats x,y,z.
+offset = [0,0,0] #a size 3 array of floats x,y,z.
+rotation = [0,0,0] #a size 3 array of floats x,y,z.
+```
 ### Bones
 Bones defined the animatable portions of a model. Defined in hierarchical order. Bones are defined by the following properties:
 - name: The name of the bone.
@@ -62,7 +83,7 @@ Bones defined the animatable portions of a model. Defined in hierarchical order.
 - offset: The origin of this bone relative to its parent.
 - rotation: The rotation of this bone relative to its origin.
 ```toml
-[[bones]]
+[[bone]]
 name = "bone_1" #Must be an alphanumeric string
 parent = "root" #Must match the name of a bone exactly.
 offset = [0,0,1.5] #a size 3 array of floats x,y,z. Default: [0,0,0]
@@ -83,7 +104,7 @@ Variants are defined by the following properties:
 
 An example of a variant definition:
 ```toml
-[[variants]]
+[[variant]]
 name = "default" #Must be an alphanumeric string
 bones = ["bone_1", "bone_2"] #Must be an array of bone names
 textures = {layer_1 = "texture_1", layer_2 = "texture_2"}
@@ -91,7 +112,7 @@ textures = {layer_1 = "texture_1", layer_2 = "texture_2"}
 Variants inherit from their parent, or from the default if no parent is specified, so for child variants you can define 
 the differences, duplicate definitions will be ignored.
 ```toml
-[[variants]]
+[[variant]]
 name = "variant_2" #Must be an alphanumeric string
 parent = "variant_1" #Must match the name of a variant exactly.
 bones = ["bone_1", "bone_3"] #Bone 3 is an additional bone included by this variant. Bone 1 is ignored because it is already included by the default variant.
@@ -100,10 +121,73 @@ textures = {layer_2 = "texture_5"} #layer_1 is inherited from the parent variant
 ```
 ### Metadata
 Metadata about the model defines some generic information about the model. Properties of the metadata are:
-- texture_layers: defines the layers of a texture that a cube can reference in it's own properties. 
+- model_version: tells the loader which version of the model format this model is using.
+- texture_layers: defines the layers of a texture that a cube can reference in its own properties.
+- default_variant: defines the default variant of this model.
 ```toml
 [metadata]
 model_version = "1.0.0" #Must be a semantic version string.
 texture_layers = ["layer_1", "layer_2"] #Must be an array of strings.
 default_variant = "default" #Must match the name of a variant exactly.
 ```
+
+## The Animation Format
+Animations are defined in a TOML file. Properties of the animation are:
+- metadata: metadata about the animation.
+- layers: a table of arrays for layers and their max influence.
+- keyframes: a table of arrays for keyframes and their properties.
+- events: generic events that an artist can use to trigger actions in game.
+
+### Metadata
+Metadata about the animation defines some generic information about the animation.
+- duration: The duration of the animation in ticks.
+- tickrate: the default tickrate of this animation per second.
+- looping: whether or not this animation should loop.
+
+An example of an animation metadata definition:
+```toml
+[metadata]
+duration = 15 #The duration of the animation in ticks.
+tickrate = 20 #The default tickrate of this animation per second.
+looping = true #Whether or not this animation should loop.
+```
+### Layers
+Layers are a way to group keyframes of a certain action together.
+Layers are defined by the following properties:
+- name: The name of the layer. This will be used in animation controllers to toggle layers and adjust their influence.
+- influence: The influence of this layer on the overall animation. This is effectivley the max influence of the layer.
+All transformations will be multiplied by this value.
+
+An example of a layer definition:
+```toml
+[[layer]]
+name = "layer_1" #The name of the layer.
+influence = 1.0 #The influence of this layer on the overall animation.
+```
+### Keyframes
+Keyframes are the actual transformations that are applied to a bone over time (most of the time).
+Keyframes are defined by the following properties:
+- layer: The layer of the animation this keyframe applies to.
+- timeframe: The time in ticks at which this keyframe starts and ends.
+- bones: The bones that this keyframe influences.
+
+Bones transformations are defined by the following properties:
+- interpolation: The interpolation method used to interpolate between keyframes. ease in and out or both.
+- position: The change in position of the bone in pixels.
+- rotation: The change in rotation of the bone in degrees.
+- grow: The change in grow of the bone in pixels.
+```toml
+[[keyframe]]
+layer = "layer_1" #The layer of the animation this keyframe applies to.
+timeframe = [0, 15] #The time in ticks at which this keyframe starts and ends.
+[keyframes."bone_1"]
+interpolation = ["linear", "linear"] #none, linear, step, sin, quadratic, cubic, quartic, quintic, exponential, circular, back, elastic, bounce, catmulrom
+position = [0,0,0] #The position of bone_1 in pixels.
+rotation = [0,0,0] #The rotation of bone_1 in degrees.
+grow = [0,0,0] #The grow of bone_1 in pixels.
+```
+
+## The Animation Controller Format
+Animation controllers define how and when animations are played. These take in some context for the entity being animated 
+and process it into variables that animations may or may not use to determine how to play their animations.   
+Animation controllers should be able to toggle animation layers and their influence.
