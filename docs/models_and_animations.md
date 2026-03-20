@@ -80,13 +80,15 @@ rotation = [0,0,0] #a size 3 array of floats x,y,z.
 Bones defined the animatable portions of a model. Defined in hierarchical order. Bones are defined by the following properties:
 - name: The name of the bone.
 - parent: The parent bone of this bone.
-- offset: The origin of this bone relative to its parent.
+- offset: The origin of this bone relative to its internal origin.
+- position: The position of this bone's origin relative to its parent's.
 - rotation: The rotation of this bone relative to its origin.
 ```toml
 [[bone]]
 name = "bone_1" #Must be an alphanumeric string
 parent = "root" #Must match the name of a bone exactly.
 offset = [0,0,1.5] #a size 3 array of floats x,y,z. Default: [0,0,0]
+position = [0,0,1.5] #a size 3 array of floats x,y,z. Default: [0,0,0]
 rotation = [0,0,30.0] #a size 3 array of floats x,y,z. Default: [0,0,0]
 ```
 ### Variants
@@ -140,6 +142,7 @@ Animations are defined in a TOML file. Properties of the animation are:
 
 ### Metadata
 Metadata about the animation defines some generic information about the animation.
+- version: a semantic version string.
 - duration: The duration of the animation in ticks.
 - tickrate: the default tickrate of this animation per second.
 - looping: whether or not this animation should loop.
@@ -147,6 +150,7 @@ Metadata about the animation defines some generic information about the animatio
 An example of an animation metadata definition:
 ```toml
 [metadata]
+version = "1.0.0" #The version of the animation format.
 duration = 15 #The duration of the animation in ticks.
 tickrate = 20 #The default tickrate of this animation per second.
 looping = true #Whether or not this animation should loop.
@@ -174,17 +178,44 @@ Keyframes are defined by the following properties:
 Bones transformations are defined by the following properties:
 - interpolation: The interpolation method used to interpolate between keyframes. ease in and out or both.
 - position: The change in position of the bone in pixels.
+- offset: The change in offset of the bone in pixels.
 - rotation: The change in rotation of the bone in degrees.
 - grow: The change in grow of the bone in pixels.
 ```toml
 [[keyframe]]
 layer = "layer_1" #The layer of the animation this keyframe applies to.
 timeframe = [0, 15] #The time in ticks at which this keyframe starts and ends.
-[keyframes."bone_1"]
+[keyframe."bone_1"]
 interpolation = ["linear", "linear"] #none, linear, step, sin, quadratic, cubic, quartic, quintic, exponential, circular, back, elastic, bounce, catmulrom
 position = [0,0,0] #The position of bone_1 in pixels.
+offset = [0,0,0] #The offset of bone_1 in pixels.
 rotation = [0,0,0] #The rotation of bone_1 in degrees.
 grow = [0,0,0] #The grow of bone_1 in pixels.
+```
+
+### Events
+Events are generic events that an artist can use to trigger actions in game.
+Events are defined by the following properties:
+- name: The name of the event
+- layer: The layer of the animation this event applies to. (optional)
+- type: The type of event that this should execute (sound, generic)
+- timeframe: The start and optionally end time of the event in ticks.
+- anchor: The anchor that this event should be triggered at. (optional)
+
+An example of an event definition:
+```toml
+[[event]]
+name = "roar"
+layer = "layer_1"
+type = "sound"
+timeframe = [10] #plays this stound 10 ticks into the aniumation.
+anchor = "back_of_throat"
+
+[[event]]
+name = "spawn_fire"
+type = "generic"
+timeframe = [0,10] #plays this stound 10 ticks into the aniumation.
+anchor = "back_of_throat"
 ```
 
 ## The Animation Controller Format
