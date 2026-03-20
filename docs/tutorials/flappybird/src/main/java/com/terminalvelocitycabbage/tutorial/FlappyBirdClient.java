@@ -10,8 +10,9 @@ import com.terminalvelocitycabbage.engine.client.input.types.KeyboardInput;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
-import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.MeshCache;
+import com.terminalvelocitycabbage.engine.client.renderer.model.MeshTexturePair;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.Shader;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.ShaderProgramConfig;
 import com.terminalvelocitycabbage.engine.client.renderer.shader.Uniform;
@@ -115,7 +116,7 @@ public class FlappyBirdClient extends ClientBase {
         });
         getEventDispatcher().listenToEvent(ModelConfigRegistrationEvent.EVENT, e -> {
             ModelConfigRegistrationEvent event = (ModelConfigRegistrationEvent) e;
-            BIRD_MODEL = event.registerModel(ID, "brid", SPRITE_MESH, BIRD_TEXTURE);
+            BIRD_MODEL = event.registerModel(ID, "brid", List.of(new MeshTexturePair(SPRITE_MESH, BIRD_TEXTURE)));
         });
         getEventDispatcher().listenToEvent(EntityComponentRegistrationEvent.EVENT, e -> {
             EntityComponentRegistrationEvent event = (EntityComponentRegistrationEvent) e;
@@ -229,13 +230,12 @@ public class FlappyBirdClient extends ClientBase {
             for (Entity entity : entities) {
                 var modelIdentifier = entity.getComponent(ModelComponent.class).getModel();
                 var model = client.getModelRegistry().get(modelIdentifier);
-                var mesh = scene.getMeshCache().getMesh(modelIdentifier);
-                var texture = client.getTextureCache().getTexture(model.getTextureIdentifier());
                 var transformationComponent = entity.getComponent(TransformationComponent.class);
 
-                texture.bind();
                 shaderProgram.getUniform("modelMatrix").setUniform(transformationComponent.getTransformationMatrix());
-                if (mesh.getFormat().equals(shaderProgram.getConfig().getVertexFormat())) mesh.render();
+                if (model.compiledMesh().getFormat().equals(shaderProgram.getConfig().getVertexFormat())) {
+                    model.render(client.getTextureCache());
+                }
             }
 
             shaderProgram.unbind();
