@@ -51,7 +51,7 @@ public class Scene {
         textureAtlases.forEach(client.getTextureCache()::generateAtlas);
 
         // Create Mesh Cache
-        setMeshCache(new MeshCache(client.getModelRegistry(), client.getMeshRegistry(), client.getTextureCache()));
+        setMeshCache(new MeshCache(client.getModelConfigRegistry(), client.getModelRegistry(), client.getMeshRegistry(), client.getTextureCache()));
 
         // Create Entities
         entityInitializers.forEach(initializer -> initializer.accept(manager));

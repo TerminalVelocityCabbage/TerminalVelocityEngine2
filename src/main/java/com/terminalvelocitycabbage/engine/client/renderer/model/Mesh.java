@@ -160,9 +160,26 @@ public class Mesh {
      */
     public void render() {
         if (vertices.length == 0) return;
-        //TODO move this initialization to scenes so that it doesn't hang on first time rendering something
+        bind();
+        draw();
+    }
+
+    /**
+     * Binds this mesh's VAO for rendering
+     */
+    public void bind() {
+        if (vertices.length == 0) return;
         if (!isInitialized()) init();
         glBindVertexArray(getVaoId());
+    }
+
+    /**
+     * Draws this mesh without binding the VAO.
+     * Use this if the VAO is already bound.
+     */
+    public void draw() {
+        if (vertices.length == 0) return;
+        if (!isInitialized()) init();
         glDrawElements(GL_TRIANGLES, getNumIndices(), GL_UNSIGNED_INT, 0);
     }
 
@@ -210,7 +227,7 @@ public class Mesh {
     /**
      * @return The length of the index array
      */
-    private int getNumIndices() {
+    public int getNumIndices() {
         return indices.length;
     }
 
