@@ -33,6 +33,8 @@ import com.terminalvelocitycabbage.templates.ecs.components.*;
 import com.terminalvelocitycabbage.templates.events.*;
 import com.terminalvelocitycabbage.templates.meshes.SquareDataMesh;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class FlappyBirdClient extends ClientBase {
@@ -224,9 +226,16 @@ public class FlappyBirdClient extends ClientBase {
             shaderProgram.getUniform("viewMatrix").setUniform(camera.getViewMatrix(player));
 
 
-            var entities = client.getManager().getEntitiesWith(ModelComponent.class, TransformationComponent.class);
+            //Sort entities for efficient rendering (by texture then by model)
+            List<Entity> entities = new ArrayList<>(client.getManager().getEntitiesWith(ModelComponent.class, TransformationComponent.class));
+            entities.sort(Comparator
+                    .comparingInt((Entity entity) -> client.getTextureCache().getTexture(client.getModelRegistry().get(entity.getComponent(ModelComponent.class).getModel()).atlasIdentifier()).getTextureID())
+                    .thenComparing(entity -> entity.getComponent(ModelComponent.class).getModel().hashCode())
+            );
 
             //Render entities
+            int lastTextureID = -1;
+            int lastVaoID = -1;
             for (Entity entity : entities) {
                 var modelIdentifier = entity.getComponent(ModelComponent.class).getModel();
                 var model = client.getModelRegistry().get(modelIdentifier);
@@ -234,7 +243,19 @@ public class FlappyBirdClient extends ClientBase {
 
                 shaderProgram.getUniform("modelMatrix").setUniform(transformationComponent.getTransformationMatrix());
                 if (model.compiledMesh().getFormat().equals(shaderProgram.getConfig().getVertexFormat())) {
-                    model.render(client.getTextureCache());
+                    //Optimization: only bind texture and mesh if they've changed since the last entity
+                    var texture = client.getTextureCache().getTexture(model.atlasIdentifier());
+                    if (texture.getTextureID() != lastTextureID) {
+                        texture.bind();
+                        lastTextureID = texture.getTextureID();
+                    }
+
+                    if (model.compiledMesh().getVaoId() != lastVaoID) {
+                        model.compiledMesh().bind();
+                        lastVaoID = model.compiledMesh().getVaoId();
+                    }
+
+                    model.draw();
                 }
             }
 

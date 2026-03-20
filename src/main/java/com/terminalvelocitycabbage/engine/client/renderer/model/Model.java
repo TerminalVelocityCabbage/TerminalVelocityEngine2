@@ -3,14 +3,29 @@ package com.terminalvelocitycabbage.engine.client.renderer.model;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
-public record Model(Mesh compiledMesh, Identifier atlasIdentifier) {
+public record Model(Mesh compiledMesh, Identifier textureIdentifier) {
 
     public void render(TextureCache textureCache) {
-        if (atlasIdentifier() != null) {
-            textureCache.getTexture(atlasIdentifier()).bind();
+        bindTexture(textureCache);
+        bind();
+        draw();
+    }
+
+    public void bindTexture(TextureCache textureCache) {
+        if (textureIdentifier() != null) {
+            textureCache.getTexture(textureIdentifier()).bind();
         }
+    }
+
+    public void bind() {
         if (compiledMesh() != null) {
-            compiledMesh().render();
+            compiledMesh().bind();
+        }
+    }
+
+    public void draw() {
+        if (compiledMesh() != null) {
+            compiledMesh().draw();
         }
     }
 }
