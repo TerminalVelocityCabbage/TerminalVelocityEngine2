@@ -1,9 +1,11 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
+import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.sound.SoundListener;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 
+@EditorHint.ComponentName(name = "Sound Listener")
 public class SoundListenerComponent implements Component {
 
     SoundListener listener;
