@@ -18,6 +18,7 @@ public record TVAnimation(
 
     public record TVAnimationMetadata(
             Version version,
+            String name,
             int duration,
             int tickrate,
             boolean looping

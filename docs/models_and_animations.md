@@ -124,11 +124,13 @@ textures = {layer_2 = "texture_5"} #layer_1 is inherited from the parent variant
 ### Metadata
 Metadata about the model defines some generic information about the model. Properties of the metadata are:
 - model_version: tells the loader which version of the model format this model is using.
+- name: the name of the model.
 - texture_layers: defines the layers of a texture that a cube can reference in its own properties.
 - default_variant: defines the default variant of this model.
 ```toml
 [metadata]
 model_version = "1.0.0" #Must be a semantic version string.
+name = "pig" #The name of the model.
 texture_layers = ["layer_1", "layer_2"] #Must be an array of strings.
 default_variant = "default" #Must match the name of a variant exactly.
 ```
@@ -143,6 +145,7 @@ Animations are defined in a TOML file. Properties of the animation are:
 ### Metadata
 Metadata about the animation defines some generic information about the animation.
 - version: a semantic version string.
+- name: The name of the animation.
 - duration: The duration of the animation in ticks.
 - tickrate: the default tickrate of this animation per second.
 - looping: whether or not this animation should loop.
@@ -151,6 +154,7 @@ An example of an animation metadata definition:
 ```toml
 [metadata]
 version = "1.0.0" #The version of the animation format.
+name = "pig_walking" #The name of the animation.
 duration = 15 #The duration of the animation in ticks.
 tickrate = 20 #The default tickrate of this animation per second.
 looping = true #Whether or not this animation should loop.
