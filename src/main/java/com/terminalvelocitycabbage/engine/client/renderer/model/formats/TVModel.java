@@ -33,7 +33,7 @@ public record TVModel(
             return null;
         }
 
-        List<String> textureLayers = model.metadata().textureLayers();
+        Set<String> textureLayers = model.metadata().textureLayers().keySet();
         List<MeshTexturePair> pairs = new ArrayList<>();
 
         for (String layer : textureLayers) {
@@ -127,14 +127,22 @@ public record TVModel(
     public record TVModelMetadata(
             Version version,
             String name,
-            List<String> textureLayers,
+            Map<String, Vector2i> textureLayers,
             TVModelVariant defaultVariant
     ) {
 
         public static TVModelMetadata of(Config metadataConfig, Map<String, TVModelVariant> variants) {
             Version version = Version.valueOf(metadataConfig.get("model_version"));
             String name = metadataConfig.get("name");
-            List<String> textureLayers = metadataConfig.get("texture_layers");
+            List<Config> textureLayersConfigs = metadataConfig.get("texture_layers");
+            Map<String, Vector2i> textureLayers = new LinkedHashMap<>();
+            if (textureLayersConfigs != null) {
+                for (Config layerConfig : textureLayersConfigs) {
+                    for (Config.Entry entry : layerConfig.entrySet()) {
+                        textureLayers.put(entry.getKey(), ConfigUtils.parseVector2i((List<Long>) entry.getValue()));
+                    }
+                }
+            }
             String defaultVariantName = metadataConfig.get("default_variant");
             return new TVModelMetadata(version, name, textureLayers, variants.get(defaultVariantName));
         }

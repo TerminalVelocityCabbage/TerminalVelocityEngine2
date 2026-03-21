@@ -125,13 +125,13 @@ textures = {layer_2 = "texture_5"} #layer_1 is inherited from the parent variant
 Metadata about the model defines some generic information about the model. Properties of the metadata are:
 - model_version: tells the loader which version of the model format this model is using.
 - name: the name of the model.
-- texture_layers: defines the layers of a texture that a cube can reference in its own properties.
+- texture_layers: defines the layers of a texture that a cube can reference in its own properties and that layers size.
 - default_variant: defines the default variant of this model.
 ```toml
 [metadata]
 model_version = "1.0.0" #Must be a semantic version string.
 name = "pig" #The name of the model.
-texture_layers = ["layer_1", "layer_2"] #Must be an array of strings.
+texture_layers = [{layer_1 = [16, 16]}, {layer_2 = [32, 32]}] #must be an array of objects where the key is the name of a texture layer and the value is a size 2 array of integers x,y.
 default_variant = "default" #Must match the name of a variant exactly.
 ```
 
