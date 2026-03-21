@@ -26,7 +26,7 @@ public record TVModel(
         Map<String, TVModelAnchor> anchors
 ) {
 
-    public static ModelConfig configOf(TVModel model, String variantName) {
+    public static ModelConfig configOf(String namespace, TVModel model, String variantName) {
         TVModelVariant variant = model.variants().get(variantName);
         if (variant == null) {
             Log.error("Variant not found: " + variantName);
@@ -43,7 +43,7 @@ public record TVModel(
                 continue;
             }
 
-            Identifier meshId = Identifier.fromString(model.metadata().name() + "_" + layer, "mesh");
+            Identifier meshId = new Identifier(namespace, "mesh", model.metadata().name() + "_" + layer);
             pairs.add(new MeshTexturePair(meshId, textureId));
         }
 
@@ -139,7 +139,7 @@ public record TVModel(
             if (textureLayersConfigs != null) {
                 for (Config layerConfig : textureLayersConfigs) {
                     for (Config.Entry entry : layerConfig.entrySet()) {
-                        textureLayers.put(entry.getKey(), ConfigUtils.parseVector2i((List<Long>) entry.getValue()));
+                        textureLayers.put(entry.getKey(), ConfigUtils.parseVector2i((List<? extends Number>) entry.getValue()));
                     }
                 }
             }
@@ -249,7 +249,7 @@ public record TVModel(
         }
 
         private static Optional<Pair<Vector2i, Vector2i>> parseFace(Config config, String key) {
-            List<Long> uv = config.get(key);
+            List<? extends Number> uv = config.get(key);
             if (uv == null || uv.size() < 4) throw new IllegalArgumentException("Invalid UV coordinates for face: " + key + " UVs are expected to be in the format of a 4 integer array [ux, uy, vx, vy]");
             return Optional.of(new Pair<>(new Vector2i(uv.get(0).intValue(), uv.get(1).intValue()), new Vector2i(uv.get(2).intValue(), uv.get(3).intValue())));
         }

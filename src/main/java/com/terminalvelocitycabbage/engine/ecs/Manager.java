@@ -157,7 +157,11 @@ public class Manager {
      */
     public Entity createEntityFromTemplate(Identifier template) {
         var entity = createEntity();
-        getTemplateEntity(template).getValue1().copyComponents(entity);
+        var templateEntityPair = getTemplateEntity(template);
+        if (templateEntityPair == null) {
+            Log.crash("Could not find entity template: " + template);
+        }
+        templateEntityPair.getValue1().copyComponents(entity);
         return entity;
     }
 
