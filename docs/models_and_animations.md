@@ -159,51 +159,72 @@ duration = 15 #The duration of the animation in ticks.
 tickrate = 20 #The default tickrate of this animation per second.
 looping = true #Whether or not this animation should loop.
 ```
+
 ### Layers
 Layers are a way to group keyframes of a certain action together.
-Layers are defined by the following properties:
-- name: The name of the layer. This will be used in animation controllers to toggle layers and adjust their influence.
-- influence: The influence of this layer on the overall animation. This is effectivley the max influence of the layer.
-All transformations will be multiplied by this value.
-
-An example of a layer definition:
+Layers are defined by creating a layers table, and then you just define layers and their influence as a key value pair:
 ```toml
-[[layer]]
-name = "layer_1" #The name of the layer.
-influence = 1.0 #The default influence of this layer.
+[layers]
+layer_1 = 1.0 #The influence of layer_1 (as a decimal percentage)
+layer_2 = 0.5 #define multiple layers here
 ```
-### Keyframes
-Keyframes are the actual transformations that are applied to a bone over time (most of the time).
-Keyframes are defined by the following properties:
-- layer: The layer of the animation this keyframe applies to.
-- timeframe: The time in ticks at which this keyframe starts and ends.
-- bones: The bones that this keyframe influences.
 
-Bones transformations are defined by the following properties:
-- interpolation: The interpolation method used to interpolate between keyframes. ease in and out or both.
-- position: The change in position of the bone in pixels.
-- offset: The change in offset of the bone in pixels.
-- rotation: The change in rotation of the bone in degrees.
-- grow: The change in grow of the bone in pixels.
+### Keyframes
+Keyframes are the actual transformations that are applied to a bone over time. Keyframes are grouped by layer
+then by bone then by transformation type. To define a keyframe for a layer, bone, and transformation type, just create a
+table with these properties separated as subkeys:
 ```toml
-[[keyframe]]
-layer = "layer_1" #The layer of the animation this keyframe applies to.
-timeframe = [0, 15] #The time in ticks at which this keyframe starts and ends.
-[keyframe."bone_1"]
-interpolation = ["linear", "linear"] #none, linear, step, sin, quadratic, cubic, quartic, quintic, exponential, circular, back, elastic, bounce, catmulrom
-position = [0,0,0] #The position of bone_1 in pixels.
-offset = [0,0,0] #The offset of bone_1 in pixels.
-rotation = [0,0,0] #The rotation of bone_1 in degrees.
-grow = [0,0,0] #The grow of bone_1 in pixels.
+[layer_name.bone_name.position] #Or rotation, or offset, or grow.
+```
+Then define its frames where the key is the tick and the value is the transformation defined by an inline table with the
+following properties:
+- to: The final value of the transformation.
+- interpolation: The interpolation type to use for this keyframe as a two length array of strings. The first string
+is when to apply the easing function (in, out, or both) and the second is the easing function to use 
+(none, linear, step, sin, quadratic, cubic, quartic, quintic, exponential, circular, back, elastic, bounce, catmulrom)
+```toml
+[layer_1.bone_1.position]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+```
+
+An example of a keyframe definition with multiple bones and transformations:
+```toml
+[layer_1.bone_1.position]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+[layer_1.bone_1.rotation]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+[layer_1.bone_1.offset]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+[layer_1.bone_1.grow]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+
+[layer_1.bone_2.position]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+[layer_1.bone_2.rotation]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+[layer_1.bone_2.offset]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
+[layer_1.bone_2.grow]
+"0.0" = {to = [0, 0, 0], interpolation = ["both", "linear"]}
+"15.0" = {to = [1, 0, 0], interpolation = ["both", "linear"]}
 ```
 
 ### Events
-Events are generic events that an artist can use to trigger actions in game.
+Events are actions that an artist can use to trigger actions in game timed perfectly with animations.
 Events are defined by the following properties:
 - name: The name of the event
 - layer: The layer of the animation this event applies to. (optional)
 - type: The type of event that this should execute (sound, generic)
-- timeframe: The start and optionally end time of the event in ticks.
+- at: when this event should be triggered (in ticks). (you must have this OR from defined)
+- from: The start and end in ticks that this animation event will evaluate as "active" (you must have this OR at defined)
 - anchor: The anchor that this event should be triggered at. (optional)
 
 An example of an event definition:
@@ -212,13 +233,13 @@ An example of an event definition:
 name = "roar"
 layer = "layer_1"
 type = "sound"
-timeframe = [10] #plays this stound 10 ticks into the aniumation.
+at = 10.0 #plays this sound 10 ticks into the aniumation.
 anchor = "back_of_throat"
 
 [[event]]
 name = "spawn_fire"
 type = "generic"
-timeframe = [0,10] #plays this stound 10 ticks into the aniumation.
+from = [0.0, 10.0] #between 0 and 10 ticks into this animation spawn_fire will be "active"
 anchor = "back_of_throat"
 ```
 
