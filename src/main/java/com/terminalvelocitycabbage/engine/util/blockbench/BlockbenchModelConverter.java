@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.engine.util;
+package com.terminalvelocitycabbage.engine.util.blockbench;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class BlockbenchConverter {
+public class BlockbenchModelConverter {
 
     public static void main(String[] args) {
         openAndConvert();

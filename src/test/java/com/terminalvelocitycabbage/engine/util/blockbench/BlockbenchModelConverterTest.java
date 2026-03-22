@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.engine.util;
+package com.terminalvelocitycabbage.engine.util.blockbench;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BlockbenchConverterTest {
+public class BlockbenchModelConverterTest {
 
     @Test
     public void testMetadataParsing() {
@@ -56,7 +56,7 @@ public class BlockbenchConverterTest {
 
         try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
             jsonConfig.load();
-            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "test_model");
+            Config tomlConfig = BlockbenchModelConverter.convertJsonToTveModel(jsonConfig, "test_model");
             assertFalse(tomlConfig.isEmpty(), "Converted config should not be empty");
 
             com.electronwill.nightconfig.toml.TomlWriter writer = TomlFormat.instance().createWriter();
@@ -99,7 +99,7 @@ public class BlockbenchConverterTest {
 
         try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
             jsonConfig.load();
-            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "rounding_test");
+            Config tomlConfig = BlockbenchModelConverter.convertJsonToTveModel(jsonConfig, "rounding_test");
             
             List<Config> cubes = tomlConfig.get("cube");
             assertNotNull(cubes);
@@ -145,7 +145,7 @@ public class BlockbenchConverterTest {
 
         try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
             jsonConfig.load();
-            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "uv_test");
+            Config tomlConfig = BlockbenchModelConverter.convertJsonToTveModel(jsonConfig, "uv_test");
 
             List<Config> cubes = tomlConfig.get("cube");
             Config cube = cubes.get(0);
@@ -173,7 +173,7 @@ public class BlockbenchConverterTest {
 
         try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
             jsonConfig.load();
-            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "box_uv_test");
+            Config tomlConfig = BlockbenchModelConverter.convertJsonToTveModel(jsonConfig, "box_uv_test");
 
             List<Config> cubes = tomlConfig.get("cube");
             Config cube = cubes.get(0);
@@ -204,7 +204,7 @@ public class BlockbenchConverterTest {
 
         try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
             jsonConfig.load();
-            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "cube_offset_test");
+            Config tomlConfig = BlockbenchModelConverter.convertJsonToTveModel(jsonConfig, "cube_offset_test");
             
             List<Config> cubes = tomlConfig.get("cube");
             Config cube = cubes.get(0);
@@ -231,7 +231,7 @@ public class BlockbenchConverterTest {
 
         try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
             jsonConfig.load();
-            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "rotation_test");
+            Config tomlConfig = BlockbenchModelConverter.convertJsonToTveModel(jsonConfig, "rotation_test");
 
             Config bone = ((List<Config>) tomlConfig.get("bone")).get(0);
             List<Number> boneRot = bone.get("rotation");
