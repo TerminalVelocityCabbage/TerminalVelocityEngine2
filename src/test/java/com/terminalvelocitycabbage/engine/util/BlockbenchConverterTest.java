@@ -90,4 +90,46 @@ public class BlockbenchConverterTest {
         Files.deleteIfExists(tempJson);
         Files.deleteIfExists(tempToml);
     }
+
+    @Test
+    public void testNonIntegerSizeConversion() throws IOException {
+        Path tempJson = Files.createTempFile("rounding_test", ".geo.json");
+        // size: [2.5, 3.1, 4.9], origin: [0, 0, 0], inflate: 0.1
+        Files.writeString(tempJson, "{\"minecraft:geometry\":[{\"description\":{\"identifier\":\"geometry.test\",\"texture_width\":16,\"texture_height\":16},\"bones\":[" +
+                "{\"name\":\"bone1\",\"pivot\":[0,0,0],\"cubes\":[" +
+                "{\"origin\":[0,0,0],\"size\":[2.5,3.1,4.9],\"inflate\":0.1,\"uv\":[0,0]}" +
+                "]}]}]}");
+
+        try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
+            jsonConfig.load();
+            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "rounding_test");
+            
+            List<Config> cubes = tomlConfig.get("cube");
+            assertNotNull(cubes);
+            assertFalse(cubes.isEmpty());
+            Config cube = cubes.get(0);
+            
+            List<Integer> size = cube.get("size");
+            assertEquals(List.of(3, 4, 5), size, "Size should be rounded up");
+            
+            List<Number> grow = cube.get("grow");
+            // x: 0.1 - (3 - 2.5) / 2 = -0.15
+            // y: 0.1 - (4 - 3.1) / 2 = -0.35
+            // z: 0.1 - (5 - 4.9) / 2 = 0.05
+            assertEquals(-0.15, grow.get(0).doubleValue(), 0.0001);
+            assertEquals(-0.35, grow.get(1).doubleValue(), 0.0001);
+            assertEquals(0.05, grow.get(2).doubleValue(), 0.0001);
+            
+            List<Number> offset = cube.get("offset");
+            // offset = new_origin - pivot = (origin - (ceil-size)/2) - pivot
+            // x: (0 - 0.25) - 0 = -0.25
+            // y: (0 - 0.45) - 0 = -0.45
+            // z: (0 - 0.05) - 0 = -0.05
+            assertEquals(-0.25, offset.get(0).doubleValue(), 0.0001);
+            assertEquals(-0.45, offset.get(1).doubleValue(), 0.0001);
+            assertEquals(-0.05, offset.get(2).doubleValue(), 0.0001);
+        } finally {
+            Files.deleteIfExists(tempJson);
+        }
+    }
 }

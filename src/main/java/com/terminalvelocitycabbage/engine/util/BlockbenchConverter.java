@@ -166,6 +166,7 @@ public class BlockbenchConverter {
                 }
 
                 List<Number> pivot = boneJson.get("pivot");
+                if (pivot == null) pivot = List.of(0, 0, 0);
                 List<Number> parentPivot = boneParent != null ? (List<Number>) (Object) pivots.get(boneParent) : List.of(0, 0, 0);
                 if (parentPivot == null) parentPivot = List.of(0, 0, 0);
 
@@ -211,23 +212,42 @@ public class BlockbenchConverter {
                         tomlCube.set("parent", boneName);
                         
                         List<Number> size = cubeJson.get("size");
-                        if (!isDefaultVector(size)) {
-                            tomlCube.set("size", size);
+                        if (size == null) size = List.of(0, 0, 0);
+                        List<Integer> roundedSize = new ArrayList<>(3);
+                        List<Float> growAdjustment = new ArrayList<>(3);
+                        for (Number n : size) {
+                            float val = n.floatValue();
+                            int rounded = (int) Math.ceil(val);
+                            roundedSize.add(rounded);
+                            growAdjustment.add((val - rounded) / 2.0f);
                         }
-                        
+
+                        if (!isDefaultVector(roundedSize)) {
+                            tomlCube.set("size", roundedSize);
+                        }
+
                         Object inflate = cubeJson.get("inflate");
+                        List<Float> grow = new ArrayList<>(3);
                         if (inflate instanceof Number) {
                             float f = ((Number) inflate).floatValue();
-                            if (f != 0.0f) {
-                                tomlCube.set("grow", List.of(f, f, f));
-                            }
+                            grow.add(f + growAdjustment.get(0));
+                            grow.add(f + growAdjustment.get(1));
+                            grow.add(f + growAdjustment.get(2));
                         } else if (inflate instanceof List) {
-                            if (!isDefaultVector((List<Number>) inflate)) {
-                                tomlCube.set("grow", inflate);
-                            }
+                            List<Number> inflateList = (List<Number>) inflate;
+                            grow.add(inflateList.get(0).floatValue() + growAdjustment.get(0));
+                            grow.add(inflateList.get(1).floatValue() + growAdjustment.get(1));
+                            grow.add(inflateList.get(2).floatValue() + growAdjustment.get(2));
+                        } else {
+                            grow.addAll(growAdjustment);
+                        }
+
+                        if (!isDefaultVector(grow)) {
+                            tomlCube.set("grow", grow);
                         }
 
                         List<Number> origin = cubeJson.get("origin");
+                        if (origin == null) origin = List.of(0, 0, 0);
                         List<Number> cubePivot = cubeJson.get("pivot");
                         if (cubePivot == null) cubePivot = pivot;
                         
@@ -243,9 +263,9 @@ public class BlockbenchConverter {
                         
                         // offset = origin - cubePivot
                         List<Float> cubeOffset = List.of(
-                                origin.get(0).floatValue() - cubePivot.get(0).floatValue(),
-                                origin.get(1).floatValue() - cubePivot.get(1).floatValue(),
-                                origin.get(2).floatValue() - cubePivot.get(2).floatValue()
+                                origin.get(0).floatValue() - cubePivot.get(0).floatValue() + growAdjustment.get(0),
+                                origin.get(1).floatValue() - cubePivot.get(1).floatValue() + growAdjustment.get(1),
+                                origin.get(2).floatValue() - cubePivot.get(2).floatValue() + growAdjustment.get(2)
                         );
                         if (!isDefaultVector(cubeOffset)) {
                             tomlCube.set("offset", cubeOffset);
@@ -271,9 +291,9 @@ public class BlockbenchConverter {
                             List<Number> uv = (List<Number>) uvObj;
                             float u = uv.get(0).floatValue();
                             float v = uv.get(1).floatValue();
-                            float sx = size.get(0).floatValue();
-                            float sy = size.get(1).floatValue();
-                            float sz = size.get(2).floatValue();
+                            float sx = roundedSize.get(0).floatValue();
+                            float sy = roundedSize.get(1).floatValue();
+                            float sz = roundedSize.get(2).floatValue();
                             
                             // West (+X, px)
                             tomlTextures.set("px_uv", List.of((int)u, (int)(v + sz), (int)(u + sz), (int)(v + sz + sy)));
