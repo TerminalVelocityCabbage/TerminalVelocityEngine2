@@ -27,4 +27,8 @@ public class ModelConfigRegistrationEvent extends RegistryEvent<ModelConfig> {
                 new Identifier(namespace, "model_variant", model.metadata().name() + "_" + variantName),
                 TVModel.configOf(namespace, model, variantName)).getIdentifier();
     }
+
+    public Identifier variantIdentifier(String namespace, String model, String variant) {
+        return new Identifier(namespace, "model_variant", model + "_" + variant);
+    }
 }

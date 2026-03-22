@@ -191,7 +191,12 @@ public class BlockbenchConverter {
                 }
                 
                 if (rotation != null && !isDefaultVector(rotation)) {
-                    tomlBone.set("rotation", rotation);
+                    List<Float> fixedRotation = List.of(
+                            -rotation.get(0).floatValue(),
+                            rotation.get(1).floatValue(),
+                            rotation.get(2).floatValue()
+                    );
+                    tomlBone.set("rotation", fixedRotation);
                 }
                 
                 tomlBones.add(tomlBone);
@@ -248,7 +253,12 @@ public class BlockbenchConverter {
 
                         List<Number> cubeRotation = cubeJson.get("rotation");
                         if (cubeRotation != null && !isDefaultVector(cubeRotation)) {
-                            tomlCube.set("rotation", cubeRotation);
+                            List<Float> fixedCubeRotation = List.of(
+                                    -cubeRotation.get(0).floatValue(),
+                                    cubeRotation.get(1).floatValue(),
+                                    cubeRotation.get(2).floatValue()
+                            );
+                            tomlCube.set("rotation", fixedCubeRotation);
                         }
 
                         // Textures
@@ -265,12 +275,12 @@ public class BlockbenchConverter {
                             float sy = size.get(1).floatValue();
                             float sz = size.get(2).floatValue();
                             
-                            // East (px)
-                            tomlTextures.set("px_uv", List.of((int)(u + sz + sx), (int)(v + sz), (int)(u + 2*sz + sx), (int)(v + sz + sy)));
-                            // West (nx)
-                            tomlTextures.set("nx_uv", List.of((int)u, (int)(v + sz), (int)(u + sz), (int)(v + sz + sy)));
+                            // West (+X, px)
+                            tomlTextures.set("px_uv", List.of((int)u, (int)(v + sz), (int)(u + sz), (int)(v + sz + sy)));
+                            // East (-X, nx)
+                            tomlTextures.set("nx_uv", List.of((int)(u + sz + sx), (int)(v + sz), (int)(u + 2*sz + sx), (int)(v + sz + sy)));
                             // Up (py)
-                            tomlTextures.set("py_uv", List.of((int)(u + sz), (int)v, (int)(u + sz + sx), (int)(v + sz)));
+                            tomlTextures.set("py_uv", List.of((int)(u + sz + sx), (int)(v + sz), (int)(u + sz), (int)v));
                             // Down (ny)
                             tomlTextures.set("ny_uv", List.of((int)(u + sz + sx), (int)v, (int)(u + sz + 2*sx), (int)(v + sz)));
                             // South (pz)
@@ -280,8 +290,8 @@ public class BlockbenchConverter {
                         } else if (uvObj instanceof Config) {
                             // Per-Face UV
                             Config uvMap = (Config) uvObj;
-                            tomlTextures.set("px_uv", getFaceUv(uvMap, "east"));
-                            tomlTextures.set("nx_uv", getFaceUv(uvMap, "west"));
+                            tomlTextures.set("px_uv", getFaceUv(uvMap, "west"));
+                            tomlTextures.set("nx_uv", getFaceUv(uvMap, "east"));
                             tomlTextures.set("py_uv", getFaceUv(uvMap, "up"));
                             tomlTextures.set("ny_uv", getFaceUv(uvMap, "down"));
                             tomlTextures.set("pz_uv", getFaceUv(uvMap, "south"));
@@ -312,7 +322,7 @@ public class BlockbenchConverter {
                             }
                             List<Number> locRot = locConfig.get("rotation");
                             if (locRot != null && !isDefaultVector(locRot)) {
-                                List<Float> locRotF = List.of(locRot.get(0).floatValue(), locRot.get(1).floatValue(), locRot.get(2).floatValue());
+                                List<Float> locRotF = List.of(-locRot.get(0).floatValue(), locRot.get(1).floatValue(), locRot.get(2).floatValue());
                                 tomlAnchor.set("rotation", locRotF);
                             }
                         } else if (locVal instanceof List) {
