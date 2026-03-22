@@ -187,7 +187,6 @@ public class BlockbenchConverter {
                 // Wait, BB pivot is where it rotates. In TVE, bone position is relative to parent pivot.
                 
                 if (!isDefaultVector(position)) {
-                    tomlBone.set("offset", position);
                     tomlBone.set("position", position);
                 }
                 
@@ -195,7 +194,7 @@ public class BlockbenchConverter {
                     List<Float> fixedRotation = List.of(
                             -rotation.get(0).floatValue(),
                             rotation.get(1).floatValue(),
-                            rotation.get(2).floatValue()
+                            -rotation.get(2).floatValue()
                     );
                     tomlBone.set("rotation", fixedRotation);
                 }
@@ -276,7 +275,7 @@ public class BlockbenchConverter {
                             List<Float> fixedCubeRotation = List.of(
                                     -cubeRotation.get(0).floatValue(),
                                     cubeRotation.get(1).floatValue(),
-                                    cubeRotation.get(2).floatValue()
+                                    -cubeRotation.get(2).floatValue()
                             );
                             tomlCube.set("rotation", fixedCubeRotation);
                         }
@@ -310,12 +309,12 @@ public class BlockbenchConverter {
                         } else if (uvObj instanceof Config) {
                             // Per-Face UV
                             Config uvMap = (Config) uvObj;
-                            tomlTextures.set("px_uv", getFaceUv(uvMap, "west"));
-                            tomlTextures.set("nx_uv", getFaceUv(uvMap, "east"));
-                            tomlTextures.set("py_uv", getFaceUv(uvMap, "up"));
-                            tomlTextures.set("ny_uv", getFaceUv(uvMap, "down"));
-                            tomlTextures.set("pz_uv", getFaceUv(uvMap, "south"));
-                            tomlTextures.set("nz_uv", getFaceUv(uvMap, "north"));
+                            tomlTextures.set("px_uv", getFaceUv(uvMap, "west", true, false));
+                            tomlTextures.set("nx_uv", getFaceUv(uvMap, "east", true, false));
+                            tomlTextures.set("py_uv", getFaceUv(uvMap, "up", true, true));
+                            tomlTextures.set("ny_uv", getFaceUv(uvMap, "down", true, true));
+                            tomlTextures.set("pz_uv", getFaceUv(uvMap, "south", false, false));
+                            tomlTextures.set("nz_uv", getFaceUv(uvMap, "north", false, false));
                         }
                         
                         tomlCube.set("textures", tomlTextures);
@@ -337,19 +336,17 @@ public class BlockbenchConverter {
                             List<Number> locOffset = locConfig.get("offset"); // BB offset is position?
                             if (locOffset != null && !isDefaultVector(locOffset)) {
                                 List<Float> locOffsetF = List.of(locOffset.get(0).floatValue(), locOffset.get(1).floatValue(), locOffset.get(2).floatValue());
-                                tomlAnchor.set("offset", locOffsetF);
                                 tomlAnchor.set("position", locOffsetF);
                             }
                             List<Number> locRot = locConfig.get("rotation");
                             if (locRot != null && !isDefaultVector(locRot)) {
-                                List<Float> locRotF = List.of(-locRot.get(0).floatValue(), locRot.get(1).floatValue(), locRot.get(2).floatValue());
+                                List<Float> locRotF = List.of(-locRot.get(0).floatValue(), locRot.get(1).floatValue(), -locRot.get(2).floatValue());
                                 tomlAnchor.set("rotation", locRotF);
                             }
                         } else if (locVal instanceof List) {
                             List<Number> locOffset = (List<Number>) locVal;
                             if (!isDefaultVector(locOffset)) {
                                 List<Float> locOffsetF = List.of(locOffset.get(0).floatValue(), locOffset.get(1).floatValue(), locOffset.get(2).floatValue());
-                                tomlAnchor.set("offset", locOffsetF);
                                 tomlAnchor.set("position", locOffsetF);
                             }
                         }
@@ -378,7 +375,7 @@ public class BlockbenchConverter {
         return true;
     }
 
-    private static List<Integer> getFaceUv(Config uvMap, String faceName) {
+    private static List<Integer> getFaceUv(Config uvMap, String faceName, boolean flipHorizontal, boolean flipVertical) {
         Config face = uvMap.get(faceName);
         if (face == null) return List.of(0, 0, 0, 0);
         List<Number> uv = face.get("uv");
@@ -396,6 +393,24 @@ public class BlockbenchConverter {
         } else if (uv.size() >= 4) {
             u2 = uv.get(2).intValue();
             v2 = uv.get(3).intValue();
+        }
+
+        if (flipHorizontal) {
+            int temp = u1;
+            u1 = u2;
+            u2 = temp;
+        }
+
+        if (flipVertical) {
+            int temp = v1;
+            v1 = v2;
+            v2 = temp;
+        }
+
+        Object rotObj = face.get("rotation");
+        int rotation = (rotObj instanceof Number) ? ((Number) rotObj).intValue() : 0;
+        if (rotation != 0) {
+            return List.of(u1, v1, u2, v2, rotation);
         }
         
         return List.of(u1, v1, u2, v2);

@@ -76,17 +76,16 @@ public class BlockbenchConverterTest {
         
         // Bone
         assertTrue(content.contains("name = \"bone1\""), "Should contain bone name");
-        assertTrue(content.contains("offset = [0.0, 1.0, 0.0]"), "Bone should have offset from pivot");
         assertTrue(content.contains("position = [0.0, 1.0, 0.0]"), "Bone should have position from pivot");
+        assertFalse(content.contains("offset = "), "Bone should not have redundant offset");
         
         // Cube
         assertTrue(content.contains("nz_uv = [0, 0, 1, 1]"), "Per-face UV should be converted from uv + uv_size");
         
         // Anchor
         assertTrue(content.contains("name = \"anchor1\""), "Should contain anchor name");
-        assertTrue(content.contains("offset = [1.0, 2.0, 3.0]"), "Anchor should have offset");
         assertTrue(content.contains("position = [1.0, 2.0, 3.0]"), "Anchor should have position");
-
+        
         Files.deleteIfExists(tempJson);
         Files.deleteIfExists(tempToml);
     }
@@ -132,4 +131,95 @@ public class BlockbenchConverterTest {
             Files.deleteIfExists(tempJson);
         }
     }
+
+    @Test
+    public void testPerFaceUvConversion() throws IOException {
+        Path tempJson = Files.createTempFile("uv_test", ".geo.json");
+        // West face (+X), East face (-X), and Down face (-Y)
+        Files.writeString(tempJson, "{\"minecraft:geometry\":[{\"description\":{\"identifier\":\"geometry.test\",\"texture_width\":64,\"texture_height\":64},\"bones\":[" +
+                "{\"name\":\"bone1\",\"pivot\":[0,0,0],\"cubes\":[" +
+                "{\"origin\":[0,0,0],\"size\":[1,1,1],\"uv\":{" +
+                "\"west\":{\"uv\":[0,0],\"uv_size\":[8,8]}," +
+                "\"east\":{\"uv\":[8,0],\"uv_size\":[8,8]}," +
+                "\"down\":{\"uv\":[0,8],\"uv_size\":[8,8],\"rotation\":90}" +
+                "}}" +
+                "]}]}]}");
+
+        try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
+            jsonConfig.load();
+            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "uv_test");
+
+            List<Config> cubes = tomlConfig.get("cube");
+            Config cube = cubes.get(0);
+            Config textures = cube.get("textures");
+
+            // West (+X) should be flipped horizontally compared to input [0,0,8,8] -> [8,0,0,8]
+            assertEquals(List.of(8, 0, 0, 8), textures.get("px_uv"));
+            // East (-X) should be flipped horizontally compared to input [8,0,16,8] -> [16,0,8,8]
+            assertEquals(List.of(16, 0, 8, 8), textures.get("nx_uv"));
+            // Down (-Y) should have rotation 90 and be vertically flipped [0, 8, 8, 16] -> [0, 16, 8, 8]
+            assertEquals(List.of(0, 16, 8, 8, 90), textures.get("ny_uv"));
+        } finally {
+            Files.deleteIfExists(tempJson);
+        }
+    }
+
+    @Test
+    public void testBoxUvConsistency() throws IOException {
+        Path tempJson = Files.createTempFile("box_uv_test", ".geo.json");
+        // Box UV with size [1,1,1] at [0,0]
+        Files.writeString(tempJson, "{\"minecraft:geometry\":[{\"description\":{\"identifier\":\"geometry.test\",\"texture_width\":64,\"texture_height\":64},\"bones\":[" +
+                "{\"name\":\"bone1\",\"pivot\":[0,0,0],\"cubes\":[" +
+                "{\"origin\":[0,0,0],\"size\":[1,1,1],\"uv\":[0,0]}" +
+                "]}]}]}");
+
+        try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
+            jsonConfig.load();
+            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "box_uv_test");
+
+            List<Config> cubes = tomlConfig.get("cube");
+            Config cube = cubes.get(0);
+            Config textures = cube.get("textures");
+
+            // Verify current Box UV values (to make sure we don't break them or know what we're changing)
+            // u=0, v=0, sx=1, sy=1, sz=1
+            // West (px): [u, v+sz, u+sz, v+sz+sy] = [0, 1, 1, 2]
+            assertEquals(List.of(0, 1, 1, 2), textures.get("px_uv"));
+            // East (nx): [u+sz+sx, v+sz, u+2sz+sx, v+sz+sy] = [2, 1, 3, 2]
+            assertEquals(List.of(2, 1, 3, 2), textures.get("nx_uv"));
+            // Up (py): [u+sz, v, u+sz+sx, v+sz] = [1, 0, 2, 1]
+            assertEquals(List.of(1, 0, 2, 1), textures.get("py_uv"));
+            // Down (ny): [u+sz+sx, v+sz, u+sz+2sx, v] = [2, 1, 3, 0]
+            assertEquals(List.of(2, 1, 3, 0), textures.get("ny_uv"));
+        } finally {
+            Files.deleteIfExists(tempJson);
+        }
+    }
+    @Test
+    public void testCubeOffsetPreservation() throws IOException {
+        Path tempJson = Files.createTempFile("cube_offset_test", ".geo.json");
+        // Cube with origin different from pivot
+        Files.writeString(tempJson, "{\"minecraft:geometry\":[{\"description\":{\"identifier\":\"geometry.test\",\"texture_width\":16,\"texture_height\":16},\"bones\":[" +
+                "{\"name\":\"bone1\",\"pivot\":[0,0,0],\"cubes\":[" +
+                "{\"origin\":[1,2,3],\"size\":[1,1,1],\"pivot\":[0,0,0],\"uv\":[0,0]}" +
+                "]}]}]}");
+
+        try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
+            jsonConfig.load();
+            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "cube_offset_test");
+            
+            List<Config> cubes = tomlConfig.get("cube");
+            Config cube = cubes.get(0);
+            
+            // offset = origin - pivot = [1,2,3] - [0,0,0] = [1,2,3]
+            List<Number> offset = cube.get("offset");
+            assertNotNull(offset, "Cube should still have offset if it's non-zero");
+            assertEquals(1.0, offset.get(0).doubleValue(), 0.0001);
+            assertEquals(2.0, offset.get(1).doubleValue(), 0.0001);
+            assertEquals(3.0, offset.get(2).doubleValue(), 0.0001);
+        } finally {
+            Files.deleteIfExists(tempJson);
+        }
+    }
+
 }

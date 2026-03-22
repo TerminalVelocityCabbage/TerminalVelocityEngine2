@@ -227,13 +227,15 @@ public record TVModel(
 
     public record TVModelCubeTextureMapping(
             String layer,
-            Optional<Pair<Vector2i, Vector2i>> pxFace, //Positive X Face (right/east)
-            Optional<Pair<Vector2i, Vector2i>> nxFace, //Negative X Face (left/west)
-            Optional<Pair<Vector2i, Vector2i>> pyFace, //Positive Y Face (up/top)
-            Optional<Pair<Vector2i, Vector2i>> nyFace, //Negative Y Face (down/bottom)
-            Optional<Pair<Vector2i, Vector2i>> pzFace, //Positive Z Face (forward/north)
-            Optional<Pair<Vector2i, Vector2i>> nzFace  //Negative Z Face (back/south)
+            Optional<TVModelFaceUV> pxFace, //Positive X Face (right/east)
+            Optional<TVModelFaceUV> nxFace, //Negative X Face (left/west)
+            Optional<TVModelFaceUV> pyFace, //Positive Y Face (up/top)
+            Optional<TVModelFaceUV> nyFace, //Negative Y Face (down/bottom)
+            Optional<TVModelFaceUV> pzFace, //Positive Z Face (forward/north)
+            Optional<TVModelFaceUV> nzFace  //Negative Z Face (back/south)
     ) {
+
+        public record TVModelFaceUV(Vector2i u1v1, Vector2i u2v2, int rotation) {}
 
         private static TVModelCubeTextureMapping of(Config texturesConfig) {
             String layer = texturesConfig.get("layer");
@@ -248,10 +250,11 @@ public record TVModel(
             );
         }
 
-        private static Optional<Pair<Vector2i, Vector2i>> parseFace(Config config, String key) {
+        private static Optional<TVModelFaceUV> parseFace(Config config, String key) {
             List<? extends Number> uv = config.get(key);
             if (uv == null || uv.size() < 4) throw new IllegalArgumentException("Invalid UV coordinates for face: " + key + " UVs are expected to be in the format of a 4 integer array [ux, uy, vx, vy]");
-            return Optional.of(new Pair<>(new Vector2i(uv.get(0).intValue(), uv.get(1).intValue()), new Vector2i(uv.get(2).intValue(), uv.get(3).intValue())));
+            int rotation = uv.size() >= 5 ? uv.get(4).intValue() : 0;
+            return Optional.of(new TVModelFaceUV(new Vector2i(uv.get(0).intValue(), uv.get(1).intValue()), new Vector2i(uv.get(2).intValue(), uv.get(3).intValue()), rotation));
         }
 
     }

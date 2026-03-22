@@ -82,10 +82,10 @@ public class TVModelDataMesh extends DataMesh {
 
         // Negative Y face (Down)
         cube.textures().nyFace().ifPresent(uv -> addFace(vertices, indices, format, transform,
-                new Vector3f(ox, oy, oz + sz),
                 new Vector3f(ox, oy, oz),
                 new Vector3f(ox + sx, oy, oz),
                 new Vector3f(ox + sx, oy, oz + sz),
+                new Vector3f(ox, oy, oz + sz),
                 uv, textureSize));
 
         // Positive Z face (Forward/South)
@@ -107,13 +107,31 @@ public class TVModelDataMesh extends DataMesh {
 
     private void addFace(List<Vertex> vertices, List<Integer> indices, VertexFormat format, Matrix4f transform,
                         Vector3f v0, Vector3f v1, Vector3f v2, Vector3f v3,
-                        Pair<Vector2i, Vector2i> uv, Vector2i textureSize) {
+                        TVModel.TVModelCubeTextureMapping.TVModelFaceUV uv, Vector2i textureSize) {
         int baseIndex = vertices.size();
 
-        vertices.add(createVertex(format, transform, v0, uv.getValue0().x, uv.getValue1().y, textureSize));
-        vertices.add(createVertex(format, transform, v1, uv.getValue1().x, uv.getValue1().y, textureSize));
-        vertices.add(createVertex(format, transform, v2, uv.getValue1().x, uv.getValue0().y, textureSize));
-        vertices.add(createVertex(format, transform, v3, uv.getValue0().x, uv.getValue0().y, textureSize));
+        int u1 = uv.u1v1().x;
+        int v1_uv = uv.u1v1().y;
+        int u2 = uv.u2v2().x;
+        int v2_uv = uv.u2v2().y;
+
+        int[] u = {u1, u2, u2, u1};
+        int[] v = {v2_uv, v2_uv, v1_uv, v1_uv};
+
+        int rotSteps = (uv.rotation() / 90) % 4;
+        for (int i = 0; i < rotSteps; i++) {
+            int tempU = u[0];
+            int tempV = v[0];
+            u[0] = u[1]; v[0] = v[1];
+            u[1] = u[2]; v[1] = v[2];
+            u[2] = u[3]; v[2] = v[3];
+            u[3] = tempU; v[3] = tempV;
+        }
+
+        vertices.add(createVertex(format, transform, v0, u[0], v[0], textureSize));
+        vertices.add(createVertex(format, transform, v1, u[1], v[1], textureSize));
+        vertices.add(createVertex(format, transform, v2, u[2], v[2], textureSize));
+        vertices.add(createVertex(format, transform, v3, u[3], v[3], textureSize));
 
         indices.add(baseIndex);
         indices.add(baseIndex + 1);
