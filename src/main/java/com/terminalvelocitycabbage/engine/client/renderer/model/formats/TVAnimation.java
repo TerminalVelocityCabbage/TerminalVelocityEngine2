@@ -2,8 +2,6 @@ package com.terminalvelocitycabbage.engine.client.renderer.model.formats;
 
 import com.github.zafarkhaja.semver.Version;
 import com.terminalvelocitycabbage.engine.util.Easing;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
-import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 import java.util.Map;
@@ -19,29 +17,28 @@ public record TVAnimation(
     public record TVAnimationMetadata(
             Version version,
             String name,
-            int duration,
-            int tickrate,
+            float duration, //The length of this animation in seconds
             boolean looping
     ) { }
 
     public record TVAnimationLayer(
             String name,
-            float influence
+            float influence,
+            Map<String, TVAnimationKeyframe> keyframes //Bone name -> keyframes
     ) { }
 
     public record TVAnimationKeyframe(
-            Optional<String> layer,
-            Vector2i timeframe, //Start time and end time in ticks
-            Map<String, TVAnimationBoneTransformation> transformations //Bone name -> transformations
+            //A map of end time -> transformation for each transformation attribute
+            Map<Float, TVAnimationBoneTransformation> positions,
+            Map<Float, TVAnimationBoneTransformation> offsets,
+            Map<Float, TVAnimationBoneTransformation> rotations,
+            Map<Float, TVAnimationBoneTransformation> grows
     ) { }
 
     public record TVAnimationBoneTransformation(
             Optional<Easing> easeIn,
             Optional<Easing> easeOut,
-            Optional<Vector3f> translation, //Modifies position attribute
-            Optional<Vector3f> offset, //Modifies offset attribute
-            Optional<Vector3f> rotation, //Modifies rotation attribute
-            Optional<Vector3f> grow //Modifies grow attribute
+            Vector3f value
     ) { }
 
     public enum TVAnimationEventType {
@@ -62,7 +59,8 @@ public record TVAnimation(
             String name,
             Optional<String> layer,
             TVAnimationEventType type,
-            Pair<Integer, Optional<Integer>> duration,
+            Optional<Float> at, //The time at which this event should be published
+            Optional<Float> from, //The timeframe for which this event will evaluate as "active"
             Optional<String> anchor
     ) { }
 }
