@@ -3,7 +3,6 @@ package com.terminalvelocitycabbage.engine.client.renderer.model.formats;
 import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
 import com.terminalvelocitycabbage.engine.client.renderer.model.DataMesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Vertex;
-import com.terminalvelocitycabbage.engine.util.touples.Pair;
 import org.joml.Matrix4f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -173,10 +172,10 @@ public class TVModelDataMesh extends DataMesh {
             Object p = parents.get(i);
             if (p instanceof TVModel.TVModelBone bone) {
                 matrix.translate(bone.position());
-                matrix.rotateXYZ((float) Math.toRadians(bone.rotation().x()), (float) Math.toRadians(bone.rotation().y()), (float) Math.toRadians(bone.rotation().z()));
+                matrix.rotateZYX((float) Math.toRadians(bone.rotation().z()), (float) Math.toRadians(bone.rotation().y()), (float) Math.toRadians(bone.rotation().x()));
             } else if (p instanceof TVModel.TVModelCube c) {
                 matrix.translate(c.position());
-                matrix.rotateXYZ((float) Math.toRadians(c.rotation().x()), (float) Math.toRadians(c.rotation().y()), (float) Math.toRadians(c.rotation().z()));
+                matrix.rotateZYX((float) Math.toRadians(c.rotation().z()), (float) Math.toRadians(c.rotation().y()), (float) Math.toRadians(c.rotation().x()));
             }
         }
 

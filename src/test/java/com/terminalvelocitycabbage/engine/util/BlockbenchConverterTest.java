@@ -6,8 +6,6 @@ import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVModel;
-import com.terminalvelocitycabbage.engine.registry.Identifier;
-import org.joml.Vector2i;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -157,8 +155,8 @@ public class BlockbenchConverterTest {
             assertEquals(List.of(8, 0, 0, 8), textures.get("px_uv"));
             // East (-X) should be flipped horizontally compared to input [8,0,16,8] -> [16,0,8,8]
             assertEquals(List.of(16, 0, 8, 8), textures.get("nx_uv"));
-            // Down (-Y) should have rotation 90 and be vertically flipped [0, 8, 8, 16] -> [0, 16, 8, 8]
-            assertEquals(List.of(0, 16, 8, 8, 90), textures.get("ny_uv"));
+            // Down (-Y) should have rotation 90 and be flipped both horizontally and vertically [0, 8, 8, 16] -> [8, 16, 0, 8]
+            assertEquals(List.of(8, 16, 0, 8, 90), textures.get("ny_uv"));
         } finally {
             Files.deleteIfExists(tempJson);
         }
@@ -187,10 +185,10 @@ public class BlockbenchConverterTest {
             assertEquals(List.of(0, 1, 1, 2), textures.get("px_uv"));
             // East (nx): [u+sz+sx, v+sz, u+2sz+sx, v+sz+sy] = [2, 1, 3, 2]
             assertEquals(List.of(2, 1, 3, 2), textures.get("nx_uv"));
-            // Up (py): [u+sz, v, u+sz+sx, v+sz] = [1, 0, 2, 1]
-            assertEquals(List.of(1, 0, 2, 1), textures.get("py_uv"));
-            // Down (ny): [u+sz+sx, v+sz, u+sz+2sx, v] = [2, 1, 3, 0]
-            assertEquals(List.of(2, 1, 3, 0), textures.get("ny_uv"));
+            // Up (py): [u+sz+sx, v+sz, u+sz, v] = [2, 1, 1, 0]
+            assertEquals(List.of(2, 1, 1, 0), textures.get("py_uv"));
+            // Down (ny): [u+sz+sx, v, u+sz+2sx, v+sz] = [2, 0, 3, 1]
+            assertEquals(List.of(2, 0, 3, 1), textures.get("ny_uv"));
         } finally {
             Files.deleteIfExists(tempJson);
         }
@@ -217,6 +215,41 @@ public class BlockbenchConverterTest {
             assertEquals(1.0, offset.get(0).doubleValue(), 0.0001);
             assertEquals(2.0, offset.get(1).doubleValue(), 0.0001);
             assertEquals(3.0, offset.get(2).doubleValue(), 0.0001);
+        } finally {
+            Files.deleteIfExists(tempJson);
+        }
+    }
+
+    @Test
+    public void testRotationNegation() throws IOException {
+        Path tempJson = Files.createTempFile("rotation_test", ".geo.json");
+        // rotation: [10, 20, 30]
+        Files.writeString(tempJson, "{\"minecraft:geometry\":[{\"description\":{\"identifier\":\"geometry.test\",\"texture_width\":16,\"texture_height\":16},\"bones\":[" +
+                "{\"name\":\"bone1\",\"pivot\":[0,0,0],\"rotation\":[10,20,30],\"cubes\":[" +
+                "{\"origin\":[0,0,0],\"size\":[1,1,1],\"rotation\":[10,20,30],\"uv\":[0,0]}" +
+                "],\"locators\":{\"anchor1\":{\"offset\":[0,0,0],\"rotation\":[10,20,30]}}}]}]}");
+
+        try (FileConfig jsonConfig = FileConfig.builder(tempJson, JsonFormat.minimalInstance()).build()) {
+            jsonConfig.load();
+            Config tomlConfig = BlockbenchConverter.convertJsonToTveModel(jsonConfig, "rotation_test");
+
+            Config bone = ((List<Config>) tomlConfig.get("bone")).get(0);
+            List<Number> boneRot = bone.get("rotation");
+            assertEquals(-10.0, boneRot.get(0).doubleValue(), 0.0001);
+            assertEquals(20.0, boneRot.get(1).doubleValue(), 0.0001);
+            assertEquals(-30.0, boneRot.get(2).doubleValue(), 0.0001);
+
+            Config cube = ((List<Config>) tomlConfig.get("cube")).get(0);
+            List<Number> cubeRot = cube.get("rotation");
+            assertEquals(-10.0, cubeRot.get(0).doubleValue(), 0.0001);
+            assertEquals(20.0, cubeRot.get(1).doubleValue(), 0.0001);
+            assertEquals(-30.0, cubeRot.get(2).doubleValue(), 0.0001);
+
+            Config anchor = ((List<Config>) tomlConfig.get("anchor")).get(0);
+            List<Number> anchorRot = anchor.get("rotation");
+            assertEquals(-10.0, anchorRot.get(0).doubleValue(), 0.0001);
+            assertEquals(20.0, anchorRot.get(1).doubleValue(), 0.0001);
+            assertEquals(-30.0, anchorRot.get(2).doubleValue(), 0.0001);
         } finally {
             Files.deleteIfExists(tempJson);
         }
