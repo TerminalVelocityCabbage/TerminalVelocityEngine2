@@ -61,7 +61,7 @@ Anchors are points in the model that are parented to cubes or bones that have th
 the game as a way to anchor other things to the model. These things can be like sawing a particle effect at a specific location,
 playing a sound where it originates, or even to control the position of another entity in the game. Anchors are defined by the
 following properties similar to a cube:
-- name: the name of the anchor, used to retrieve it's position and rotation later.
+- name: the name of the anchor, used to retrieve its position and rotation later.
 - parent: the name of the cube or bone this anchor is parented to.
 - position: the position of the anchor relative to its parent's origin.
 - offset: the position of the anchor relative to its local origin.
@@ -146,8 +146,7 @@ Animations are defined in a TOML file. Properties of the animation are:
 Metadata about the animation defines some generic information about the animation.
 - version: a semantic version string.
 - name: The name of the animation.
-- duration: The duration of the animation in ticks.
-- tickrate: the default tickrate of this animation per second.
+- duration: The duration of the animation in seconds.
 - looping: whether or not this animation should loop.
 
 An example of an animation metadata definition:
@@ -155,8 +154,7 @@ An example of an animation metadata definition:
 [metadata]
 version = "1.0.0" #The version of the animation format.
 name = "pig_walking" #The name of the animation.
-duration = 15 #The duration of the animation in ticks.
-tickrate = 20 #The default tickrate of this animation per second.
+duration = 15.0 #The duration of the animation in seconds.
 looping = true #Whether or not this animation should loop.
 ```
 
@@ -176,7 +174,8 @@ table with these properties separated as subkeys:
 ```toml
 [layer_name.bone_name.position] #Or rotation, or offset, or grow.
 ```
-Then define its frames where the key is the tick and the value is the transformation defined by an inline table with the
+Then define its frames where the key is end of the keyframe (must be less than or equal to the duration
+value of the animation) and the value is the transformation defined by an inline table with the
 following properties:
 - to: The final value of the transformation.
 - interpolation: The interpolation type to use for this keyframe as a two length array of strings. The first string
@@ -223,8 +222,8 @@ Events are defined by the following properties:
 - name: The name of the event
 - layer: The layer of the animation this event applies to. (optional)
 - type: The type of event that this should execute (sound, generic)
-- at: when this event should be triggered (in ticks). (you must have this OR from defined)
-- from: The start and end in ticks that this animation event will evaluate as "active" (you must have this OR at defined)
+- at: when this event should be triggered (in seconds). (you must have this OR from defined)
+- from: The start and end in seconds that this animation event will evaluate as "active" (you must have this OR at defined)
 - anchor: The anchor that this event should be triggered at. (optional)
 
 An example of an event definition:
@@ -233,13 +232,13 @@ An example of an event definition:
 name = "roar"
 layer = "layer_1"
 type = "sound"
-at = 10.0 #plays this sound 10 ticks into the aniumation.
+at = 10.0 #plays this sound 10 seconds into the animation.
 anchor = "back_of_throat"
 
 [[event]]
 name = "spawn_fire"
 type = "generic"
-from = [0.0, 10.0] #between 0 and 10 ticks into this animation spawn_fire will be "active"
+from = [0.0, 10.0] #between 0 and 10 seconds into this animation spawn_fire will be "active"
 anchor = "back_of_throat"
 ```
 
