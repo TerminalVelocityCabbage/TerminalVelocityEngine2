@@ -251,6 +251,11 @@ Animation controllers are defined by the following properties:
 - variables: The variables that are used to evaluate context and determine how animations are played.
 - animations: The actual evaluation functions that determine when and how animations are played.
 
+Some built-in variables are:
+- time: The time in seconds since this animation started playing. (shorthand for anim_time("this_animation_name"))
+- delta: The time in seconds since the last frame.
+- anim_time(animation_name): The time in seconds since the specified animation started playing.
+
 An example of an animation controller definition:
 ```toml
 [variables]
@@ -259,21 +264,44 @@ on_ground = "bool"
 above_water = "bool"
 height = "float"
 ```
+
+Animations are defined by the following properties:
+- name: The name of the animation. Must match the name of an actual animation.
+- influence: An expression that determines the weight of this animation based on some context usually expected to evaluate
+to a float between 0 and 1.
+- trigger: Allows the user to define the trigger for this animation (when no influence expression is defined), and what happes
+after the animation is finished. Acceptable post-actions are: reset and hold. A trigger and an influence expression cannot be defined at the same time.
+- layers: Allow you to control the influence of specific layers of an animation here similarly to the influence property.
+- priority: An optional integer that determines the priority of this animation relative to other animations. Default: 1
+- blend: An optional expression that determines how this animation should blend with other animations. Particularly useful 
+for animations with conflicting priorities. (override, additive) Default: additive
+- ease: How to ease the animation in and out. (linear, step, sin, quadratic, cubic, quartic, quintic, exponential, 
+circular, back, elastic, bounce, catmulrom) Default: linear
+- fade_in: An optional float that determines how long in seconds this animation should take to fade in.
+- fade_out: An optional float that determines how long in seconds this animation should take to fade out. A fade out is 
+triggered when the animation is finished playing or when it is interrupted.
+
 ```toml
 [[animations]]
 name = "idle" #must match an actual name of an animation
-when = "on_ground" #optional boolean expression that determines when this animation should be evaluated. must match a variable name exactly.
-influence = "1.0 - clamp(speed / 5.0, 0.0, 1.0)" #expression that determines the weight of this animation based on some context.
+influence = "1.0 - clamp(speed / 5.0, 0.0, on_ground ? 1.0 : 0.0)" #expression that determines the weight of this animation based on some context.
 
 [[animations]]
 name = "fall"
-when = "!on_ground && !above_water" #expression can be negated with !
-influence = "1.0"
+influence = "(!on_ground && !above_water) ? 1.0 : 0.0"
 
 [[animations]]
 name = "dive"
-when = "!on_ground && above_water"
-influence = "1.0"
+influence = "(!on_ground && !above_water) ? 1.0 : 0.0"
+ease = "sin" #This animation will have its influence scaled by a sin curve during the fade in and out periods.
+fade_in = 0.5 #This animation will take 0.5 seconds to fade in.
+fade_out = 0.5 #This animation will take 0.5 seconds to fade out.
 [animation.layers]
-arm_swinging = "height > 10" #you can control influence of specific layers of an animation here.
+arm_swinging = "height > 10 ? 1.0 : 0.0" #you can control influence of specific layers of an animation here.
+
+[[animations]]
+name = "attack"
+trigger = ["initiate_attack", "reset"] #triggers this animation to play when the specified trigger is called.
+priority = 2 #set this value to control the priority of this animation relative to other animations.
+blend = "override" #means that this animation will prevent any animations with a lower priority from playing.
 ```
