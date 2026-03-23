@@ -98,6 +98,16 @@ public class Uniform {
         }
     }
 
+    public void setUniform(Matrix4f[] matrix4fs) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            var fb = stack.mallocFloat(16 * matrix4fs.length);
+            for (int i = 0; i < matrix4fs.length; i++) {
+                matrix4fs[i].get(16 * i, fb);
+            }
+            glUniformMatrix4fv(uniformLocation, false, fb);
+        }
+    }
+
     private int getSubLocation(String subName) {
         return glGetUniformLocation(shaderProgramId, uniformName + subName);
     }

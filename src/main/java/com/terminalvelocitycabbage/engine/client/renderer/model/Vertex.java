@@ -76,6 +76,15 @@ public class Vertex {
     }
 
     /**
+     * @return This vertex with the updated bone index data
+     */
+    public Vertex setBoneIndex(int index) {
+        var offset = format.getOffset(VertexAttribute.BONE_INDEX);
+        data[offset] = (float) index;
+        return this;
+    }
+
+    /**
      * @return This vertex with the updated color data
      */
     public Vertex setRGBAColor(float r, float g, float b, float a) {

@@ -22,6 +22,7 @@ public record TVModel(
         TVModelMetadata metadata,
         Map<String, TVModelVariant> variants,
         Map<String, TVModelBone> bones,
+        Map<String, Integer> boneIndices,
         Map<String, TVModelCube> cubes,
         Map<String, TVModelAnchor> anchors
 ) {
@@ -92,12 +93,17 @@ public record TVModel(
         TVModelMetadata metadata = TVModelMetadata.of(config.get("metadata"), variants);
 
         // Bones
-        Map<String, TVModelBone> bones = new HashMap<>();
+        Map<String, TVModelBone> bones = new LinkedHashMap<>();
+        Map<String, Integer> boneIndices = new HashMap<>();
         List<Config> bonesList = config.get("bone");
         if (bonesList != null && !bonesList.isEmpty()) {
             for (Config boneConfig : bonesList) {
                 var bone = TVModelBone.of(boneConfig);
                 bones.put(bone.name(), bone);
+            }
+            int i = 0;
+            for (String boneName : bones.keySet()) {
+                boneIndices.put(boneName, i++);
             }
         }
 
@@ -121,7 +127,7 @@ public record TVModel(
             }
         }
 
-        return new TVModel(metadata, variants, bones, cubes, anchors);
+        return new TVModel(metadata, variants, bones, boneIndices, cubes, anchors);
     }
 
     public record TVModelMetadata(

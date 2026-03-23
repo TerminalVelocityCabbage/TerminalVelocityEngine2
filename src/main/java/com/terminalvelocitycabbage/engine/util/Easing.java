@@ -17,7 +17,8 @@ public class Easing {
 
         IN("in"),
         OUT("out"),
-        IN_OUT("in_out");
+        IN_OUT("in_out"),
+        BOTH("both");
 
         private final String name;
 
@@ -27,6 +28,16 @@ public class Easing {
 
         public String getName() {
             return name;
+        }
+
+        public static Direction fromString(String direction) {
+            return switch (direction) {
+                case "in" -> IN;
+                case "out" -> OUT;
+                case "in_out" -> IN_OUT;
+                case "both" -> BOTH;
+                default -> throw new IllegalArgumentException("Invalid direction: " + direction);
+            };
         }
     }
 
@@ -43,7 +54,8 @@ public class Easing {
         CIRCULAR("circular"),
         BACK("back"),
         ELASTIC("elsatic"),
-        BOUNCE("bounce");
+        BOUNCE("bounce"),
+        CATMULLROM("catmulrom");
 
         private final String name;
 
@@ -53,6 +65,25 @@ public class Easing {
 
         public String getName() {
             return name;
+        }
+
+        public static Function fromString(String function) {
+            return switch (function) {
+                case "linear" -> LINEAR;
+                case "step" -> STEP;
+                case "sin" -> SIN;
+                case "quadratic" -> QUADRATIC;
+                case "cubic" -> CUBIC;
+                case "quartic" -> QUARTIC;
+                case "quintic" -> QUINTIC;
+                case "exponential" -> EXPONENTIAL;
+                case "circular" -> CIRCULAR;
+                case "back" -> BACK;
+                case "elastic" -> ELASTIC;
+                case "bounce" -> BOUNCE;
+                case "catmulrom" -> CATMULLROM;
+                default -> throw new IllegalArgumentException("Invalid function: " + function);
+            };
         }
     }
 
@@ -64,7 +95,7 @@ public class Easing {
         return switch (direction) {
             case IN -> easeIn(function, progress);
             case OUT -> easeOut(function, progress);
-            case IN_OUT -> easeInOut(function, progress);
+            case IN_OUT, BOTH -> easeInOut(function, progress);
         };
     }
 
@@ -82,6 +113,7 @@ public class Easing {
             case BACK -> easeInBack(progress);
             case ELASTIC -> easeInElastic(progress);
             case BOUNCE -> easeInBounce(progress);
+            case CATMULLROM -> easeInOutSin(progress); //Catmullrom is a spline, but for a 0-1 curve we can just use a smooth sin curve for now
         };
     }
 
@@ -99,6 +131,7 @@ public class Easing {
             case BACK -> easeOutBack(progress);
             case ELASTIC -> easeOutElastic(progress);
             case BOUNCE -> easeOutBounce(progress);
+            case CATMULLROM -> easeInOutSin(progress); //Catmullrom is a spline, but for a 0-1 curve we can just use a smooth sin curve for now
         };
     }
 
@@ -116,6 +149,7 @@ public class Easing {
             case BACK -> easeInOutBack(progress);
             case ELASTIC -> easeInOutElastic(progress);
             case BOUNCE -> easeInOutBounce(progress);
+            case CATMULLROM -> easeInOutSin(progress); //Catmullrom is a spline, but for a 0-1 curve we can just use a smooth sin curve for now
         };
     }
 
