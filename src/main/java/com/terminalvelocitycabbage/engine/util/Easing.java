@@ -53,9 +53,9 @@ public class Easing {
         EXPONENTIAL("exponential"),
         CIRCULAR("circular"),
         BACK("back"),
-        ELASTIC("elsatic"),
+        ELASTIC("elastic"),
         BOUNCE("bounce"),
-        CATMULLROM("catmulrom");
+        CATMULLROM("catmullrom");
 
         private final String name;
 
@@ -81,7 +81,7 @@ public class Easing {
                 case "back" -> BACK;
                 case "elastic" -> ELASTIC;
                 case "bounce" -> BOUNCE;
-                case "catmulrom" -> CATMULLROM;
+                case "catmullrom", "catmulrom" -> CATMULLROM;
                 default -> throw new IllegalArgumentException("Invalid function: " + function);
             };
         }
@@ -166,15 +166,15 @@ public class Easing {
     }
 
     public static float easeInStep(float progress) {
-        return progress > 0 ? 1f : 0f;
+        return progress >= 1f ? 1f : 0f;
     }
 
     public static float easeOutStep(float progress) {
-        return progress > 0 ? 0f : 1f;
+        return progress > 0f ? 1f : 0f;
     }
 
     public static float easeInOutStep(float progress) {
-        return progress > 0.5 ? 1f : 0f;
+        return progress >= 0.5f ? 1f : 0f;
     }
 
     public static float easeInSin(float progress) {
@@ -186,7 +186,7 @@ public class Easing {
     }
 
     public static float easeInOutSin(float progress) {
-        return (float) ((-cos(PI * progress) - 1) / 2f);
+        return (float) ((1 - cos(PI * progress)) / 2f);
     }
 
     public static float easeInQuad(float progress) {

@@ -205,7 +205,7 @@ public class BlockbenchAnimationConverter {
         if (bbLerpMode == null) return "linear";
         return switch (bbLerpMode.toLowerCase()) {
             case "step" -> "step";
-            case "catmullrom" -> "catmulrom";
+            case "catmullrom" -> "catmullrom";
             default -> "linear";
         };
     }
