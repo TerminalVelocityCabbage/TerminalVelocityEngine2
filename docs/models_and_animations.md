@@ -263,7 +263,13 @@ speed = "float" #name = type
 on_ground = "bool"
 above_water = "bool"
 height = "float"
+position = "vector3" #Exposes position.x, position.y, position.z, position.length
 ```
+
+### Built-in Functions
+- `if(condition, true_value, false_value)`: Returns `true_value` if `condition` is non-zero, otherwise returns `false_value`.
+- `clamp(value, min, max)`: Clamps `value` between `min` and `max`.
+- `dot(x1, y1, z1, x2, y2, z2)`: Returns the dot product of two 3D vectors defined by their components.
 
 Animations are defined by the following properties:
 - name: The name of the animation. Must match the name of an actual animation.
@@ -284,20 +290,20 @@ triggered when the animation is finished playing or when it is interrupted.
 ```toml
 [[animations]]
 name = "idle" #must match an actual name of an animation
-influence = "1.0 - clamp(speed / 5.0, 0.0, on_ground ? 1.0 : 0.0)" #expression that determines the weight of this animation based on some context.
+influence = "1.0 - clamp(speed / 5.0, 0.0, if(on_ground, 1.0, 0.0))" #expression that determines the weight of this animation based on some context.
 
 [[animations]]
 name = "fall"
-influence = "(!on_ground && !above_water) ? 1.0 : 0.0"
+influence = "if(!on_ground && !above_water, 1.0, 0.0)"
 
 [[animations]]
 name = "dive"
-influence = "(!on_ground && !above_water) ? 1.0 : 0.0"
+influence = "if(!on_ground && !above_water, 1.0, 0.0)"
 ease = "sin" #This animation will have its influence scaled by a sin curve during the fade in and out periods.
 fade_in = 0.5 #This animation will take 0.5 seconds to fade in.
 fade_out = 0.5 #This animation will take 0.5 seconds to fade out.
 [animation.layers]
-arm_swinging = "height > 10 ? 1.0 : 0.0" #you can control influence of specific layers of an animation here.
+arm_swinging = "if(height > 10, 1.0, 0.0)" #you can control influence of specific layers of an animation here.
 
 [[animations]]
 name = "attack"
