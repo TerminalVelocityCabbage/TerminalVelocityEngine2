@@ -3,6 +3,7 @@ package com.terminalvelocitycabbage.templates.events;
 import com.terminalvelocitycabbage.engine.TerminalVelocityEngine;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimation;
 import com.terminalvelocitycabbage.engine.event.RegistryEvent;
+import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 
@@ -14,8 +15,12 @@ public class TVAnimationRegistrationEvent extends RegistryEvent<TVAnimation> {
         super(EVENT, registry);
     }
 
+    public Identifier registerTVAnimation(String namespace, String modelName, String animationName) {
+        return registerTVAnimation(namespace, ResourceCategory.ANIMATION.identifierOf(namespace, modelName + "/" + animationName));
+    }
+
     public Identifier registerTVAnimation(String namespace, Identifier animationResource) {
         TVAnimation animation = TVAnimation.of(animationResource);
-        return register(new Identifier(namespace, "tv_animation", animation.metadata().name()), animation).getIdentifier();
+        return register(new Identifier(namespace, "tv_animation", animationResource.name()), animation).getIdentifier();
     }
 }

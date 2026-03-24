@@ -63,14 +63,7 @@ public class MainSource extends ResourceSource {
             if (url.getProtocol().equals("file")) {
                 File dir = new File(url.toURI());
                 if (dir.isDirectory()) {
-                    File[] files = dir.listFiles();
-                    if (files != null) {
-                        for (File file : files) {
-                            if (file.isFile()) {
-                                resources.add(file.getName());
-                            }
-                        }
-                    }
+                    addFilesRecursively(dir, "", resources);
                 }
             } else if (url.getProtocol().equals("jar")) {
                 String jarPath = url.getPath().substring(5, url.getPath().indexOf("!"));
@@ -82,9 +75,7 @@ public class MainSource extends ResourceSource {
                         String name = entry.getName();
                         if (name.startsWith(path) && !entry.isDirectory()) {
                             String fileName = name.substring(path.length());
-                            if (!fileName.contains("/")) {
-                                resources.add(fileName);
-                            }
+                            resources.add(fileName);
                         }
                     }
                 }
@@ -93,6 +84,19 @@ public class MainSource extends ResourceSource {
             Log.error("Could not enumerate resources in MainSource: " + e.getMessage());
         }
         return resources;
+    }
+
+    private void addFilesRecursively(File directory, String currentPath, List<String> resources) {
+        File[] files = directory.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            String relativePath = currentPath.isEmpty() ? file.getName() : currentPath + "/" + file.getName();
+            if (file.isDirectory()) {
+                addFilesRecursively(file, relativePath, resources);
+            } else {
+                resources.add(relativePath);
+            }
+        }
     }
 
 }

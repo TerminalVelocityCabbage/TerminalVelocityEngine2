@@ -13,7 +13,7 @@ public record TVAnimationController(
     ) { }
     
     public record TVAnimationControllerAnimation(
-            String name, //The name of the animation that this controller is controlling
+            String animation, //The identifier of the animation that this controller is controlling
             String when, //An expression that must evaluate to true or false to determine if this controller should apply any modification to the influence
             String influence //An expression that must evaluate to a float that controls the multiplier of the influence of the animation
     ) { }

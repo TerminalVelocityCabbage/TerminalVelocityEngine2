@@ -12,7 +12,7 @@ public class AnimationComponent implements Component {
     public void parseComponentField(String field, String value) {
         switch (field) {
             case "animation" -> {
-                this.animation = Identifier.fromString(value, "animation");
+                this.animation = Identifier.fromString(value, "tv_animation");
             }
         }
     }
