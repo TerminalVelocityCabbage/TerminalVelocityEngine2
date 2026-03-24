@@ -85,7 +85,7 @@ public class Uniform {
 
     public void setUniform(Matrix3f matrix3f) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformMatrix4fv(uniformLocation, false, matrix3f.get(stack.mallocFloat(9)));
+            glUniformMatrix3fv(uniformLocation, false, matrix3f.get(stack.mallocFloat(9)));
         }
     }
 

@@ -9,7 +9,9 @@ import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache
 import com.terminalvelocitycabbage.engine.client.renderer.model.Mesh;
 import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.client.renderer.model.ModelConfig;
+import com.terminalvelocitycabbage.engine.client.renderer.model.formats.AnimationControllerManager;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimation;
+import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimationController;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVModel;
 import com.terminalvelocitycabbage.engine.client.sound.SoundDeviceManager;
 import com.terminalvelocitycabbage.engine.client.sound.SoundManager;
@@ -46,8 +48,10 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
     protected final Registry<Mesh> meshRegistry;
     protected final Registry<TVModel> tvModelRegistry;
     protected final Registry<TVAnimation> tvAnimationRegistry;
+    protected final Registry<TVAnimationController> tvAnimationControllerRegistry;
     protected final Registry<ModelConfig> modelConfigRegistry;
     protected final Registry<Model> modelRegistry;
+    protected final AnimationControllerManager animationControllerManager;
     protected TextureCache textureCache;
 
     //Networking stuff
@@ -77,8 +81,10 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         meshRegistry = new Registry<>();
         tvModelRegistry = new Registry<>();
         tvAnimationRegistry = new Registry<>();
+        tvAnimationControllerRegistry = new Registry<>();
         modelConfigRegistry = new Registry<>();
         modelRegistry = new Registry<>();
+        animationControllerManager = new AnimationControllerManager();
         client = new Client();
     }
 
@@ -108,6 +114,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         client.postDisconnect(this::onDisconnected);
         eventDispatcher.dispatchEvent(new ResourceCategoryRegistrationEvent(fileSystem.getResourceCategoryRegistry()));
         eventDispatcher.dispatchEvent(new ResourceSourceRegistrationEvent(fileSystem.getSourceRegistry(), getInstance()));
+        animationControllerManager.init(eventDispatcher);
         fileSystem.init();
         eventDispatcher.dispatchEvent(new GameStateRegistrationEvent(stateHandler));
         eventDispatcher.dispatchEvent(new InputHandlerRegistrationEvent(inputHandler));
@@ -122,6 +129,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry, fileSystem, routineRegistry));
         eventDispatcher.dispatchEvent(new TVModelRegistrationEvent(tvModelRegistry));
         eventDispatcher.dispatchEvent(new TVAnimationRegistrationEvent(tvAnimationRegistry));
+        eventDispatcher.dispatchEvent(new TVAnimationControllerRegistrationEvent(tvAnimationControllerRegistry));
         eventDispatcher.dispatchEvent(new CreateModelsFromTVModelsEvent(tvModelRegistry, meshRegistry, modelConfigRegistry));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
         eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelConfigRegistry));
@@ -261,12 +269,20 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         return tvAnimationRegistry;
     }
 
+    public Registry<TVAnimationController> getTvAnimationControllerRegistry() {
+        return tvAnimationControllerRegistry;
+    }
+
     public Registry<Model> getModelRegistry() {
         return modelRegistry;
     }
 
     public Registry<ModelConfig> getModelConfigRegistry() {
         return modelConfigRegistry;
+    }
+
+    public AnimationControllerManager getAnimationControllerManager() {
+        return animationControllerManager;
     }
 
     public TextureCache getTextureCache() {

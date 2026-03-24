@@ -15,6 +15,6 @@ dependencies {
     api "com.electronwill.night-config:toml:${nightConfigVersion}"
     api "com.electronwill.night-config:json:${nightConfigVersion}"
     api "com.github.zafarkhaja:java-semver:${jsemverVersion}"
-    implementation "com.github.Redempt:Crunch:${crunchVersion}"
+    api "com.github.Redempt:Crunch:${crunchVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
 }

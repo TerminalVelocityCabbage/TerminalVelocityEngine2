@@ -12,6 +12,7 @@ import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.ConfigUtils;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
+import org.joml.Matrix4f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -70,6 +71,10 @@ public record TVModel(
         return null;
     }
     
+    public Matrix4f[] getBindPoseMatrices() {
+        return TVAnimationEvaluator.evaluate((TVAnimation) null, 0, this);
+    }
+
     public static TVModel of(Identifier modelResource) {
 
         // Resource

@@ -1,6 +1,9 @@
 package com.terminalvelocitycabbage.engine.client.renderer.model.formats;
 
+import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Easing;
+import com.terminalvelocitycabbage.templates.ecs.components.AnimationControllerComponent;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -12,64 +15,119 @@ public class TVAnimationEvaluator {
     public static Matrix4f[] evaluate(TVAnimation animation, float time, TVModel model) {
         Matrix4f[] boneMatrices = new Matrix4f[model.bones().size()];
 
-        float duration = animation == null ? 1.0f : animation.metadata().duration();
-        float t = animation == null ? 0.0f : time % duration;
-
-        // For each bone in the model, calculate its global transformation at time T
-        // We'll iterate through bones in their order in the model.
-        // Since parents always come before children in the TVModel bone map (LinkedHashMap),
-        // we can calculate parent transforms before children.
-
-        int i = 0;
-        for (var entry : model.bones().entrySet()) {
-            String boneName = entry.getKey();
-            TVModel.TVModelBone bone = entry.getValue();
-
-            // Calculate local transformation at time T
-            Matrix4f localTransform = new Matrix4f();
-
-            // Base bone transformation
-            localTransform.translate(bone.position());
-            localTransform.rotateZYX((float) Math.toRadians(bone.rotation().z()), (float) Math.toRadians(bone.rotation().y()), (float) Math.toRadians(bone.rotation().x()));
-
-            // Apply animation keyframes (only support "default" layer for now)
-            if (animation != null) {
-                TVAnimation.TVAnimationLayer defaultLayer = animation.layers().get("default");
-                if (defaultLayer != null) {
-                    TVAnimation.TVAnimationKeyframe keyframes = defaultLayer.keyframes().get(boneName);
-                    if (keyframes != null) {
-                        Vector3f animPos = evaluateTransform(keyframes.positions(), t);
-                        Vector3f animRot = evaluateTransform(keyframes.rotations(), t);
-                        Vector3f animScale = evaluateTransform(keyframes.grows(), t);
-
-                        localTransform.translate(animPos);
-                        localTransform.rotateZYX((float) Math.toRadians(animRot.z()), (float) Math.toRadians(animRot.y()), (float) Math.toRadians(animRot.x()));
-                        localTransform.scale(new Vector3f(animScale).add(1.0f, 1.0f, 1.0f));
-                    }
-                }
-            }
-
-            // Global transform = ParentGlobalTransform * LocalTransform
-            Matrix4f globalTransform;
-            if (bone.parent().isPresent() && model.bones().containsKey(bone.parent().get())) {
-                Integer parentIndex = model.boneIndices().get(bone.parent().get());
-                if (parentIndex != null && boneMatrices[parentIndex] != null) {
-                    globalTransform = new Matrix4f(boneMatrices[parentIndex]).mul(localTransform);
-                } else {
-                    // Log an error if the parent hasn't been processed yet, but don't crash.
-                    // Instead just use the local transform.
-                    globalTransform = localTransform;
-                }
-            } else {
-                globalTransform = localTransform;
-            }
-
-            boneMatrices[i] = globalTransform;
-            i++;
+        for (String boneName : model.bones().keySet()) {
+            evaluateBone(boneName, animation, time, model, boneMatrices);
         }
 
         return boneMatrices;
     }
+
+    private static Matrix4f evaluateBone(String boneName, TVAnimation animation, float time, TVModel model, Matrix4f[] boneMatrices) {
+        int boneIndex = model.boneIndices().get(boneName);
+        if (boneMatrices[boneIndex] != null) return boneMatrices[boneIndex];
+
+        TVModel.TVModelBone bone = model.bones().get(boneName);
+        Matrix4f localTransform = calculateLocalTransform(bone);
+
+        if (animation != null) {
+            float duration = animation.metadata().duration();
+            float t = time % duration;
+            TVAnimation.TVAnimationLayer defaultLayer = animation.layers().get("default");
+            if (defaultLayer != null) {
+                TVAnimation.TVAnimationKeyframe keyframes = defaultLayer.keyframes().get(boneName);
+                if (keyframes != null) {
+                    Vector3f animPos = evaluateTransform(keyframes.positions(), t);
+                    Vector3f animRot = evaluateTransform(keyframes.rotations(), t);
+                    Vector3f animScale = evaluateTransform(keyframes.grows(), t);
+
+                    applyAnimationToTransform(localTransform, animPos, animRot, animScale);
+                }
+            }
+        }
+
+        Matrix4f parentTransform = new Matrix4f();
+        if (bone.parent().isPresent() && model.bones().containsKey(bone.parent().get())) {
+            parentTransform = evaluateBone(bone.parent().get(), animation, time, model, boneMatrices);
+        }
+
+        Matrix4f globalTransform = new Matrix4f(parentTransform).mul(localTransform);
+        boneMatrices[boneIndex] = globalTransform;
+        return globalTransform;
+    }
+
+    public static Matrix4f[] evaluate(AnimationControllerComponent component, TVModel model) {
+        Matrix4f[] boneMatrices = new Matrix4f[model.bones().size()];
+        var animationRegistry = ClientBase.getInstance().getTvAnimationRegistry();
+
+        for (String boneName : model.bones().keySet()) {
+            evaluateBone(boneName, component, model, boneMatrices, animationRegistry);
+        }
+
+        return boneMatrices;
+    }
+
+    private static Matrix4f evaluateBone(String boneName, AnimationControllerComponent component, TVModel model, Matrix4f[] boneMatrices, com.terminalvelocitycabbage.engine.registry.Registry<TVAnimation> animationRegistry) {
+        int boneIndex = model.boneIndices().get(boneName);
+        if (boneMatrices[boneIndex] != null) return boneMatrices[boneIndex];
+
+        TVModel.TVModelBone bone = model.bones().get(boneName);
+        Matrix4f localTransform = calculateLocalTransform(bone);
+
+        Vector3f totalAnimPos = new Vector3f(0, 0, 0);
+        Vector3f totalAnimRot = new Vector3f(0, 0, 0);
+        Vector3f totalAnimScale = new Vector3f(0, 0, 0);
+
+        for (var stateEntry : component.getAnimationStates().entrySet()) {
+            String animName = stateEntry.getKey();
+            var state = stateEntry.getValue();
+            if (state.getInfluence() <= 0) continue;
+
+            TVAnimation animation = animationRegistry.get(Identifier.fromString(animName, "tv_animation"));
+            if (animation == null) {
+                continue;
+            }
+
+            float t = state.getCurrentTime() % animation.metadata().duration();
+            TVAnimation.TVAnimationLayer defaultLayer = animation.layers().get("default");
+            if (defaultLayer != null) {
+                TVAnimation.TVAnimationKeyframe keyframes = defaultLayer.keyframes().get(boneName);
+                if (keyframes != null) {
+                    Vector3f animPos = evaluateTransform(keyframes.positions(), t);
+                    Vector3f animRot = evaluateTransform(keyframes.rotations(), t);
+                    Vector3f animScale = evaluateTransform(keyframes.grows(), t);
+
+                    totalAnimPos.add(new Vector3f(animPos).mul(state.getInfluence()));
+                    totalAnimRot.add(new Vector3f(animRot).mul(state.getInfluence()));
+                    totalAnimScale.add(new Vector3f(animScale).mul(state.getInfluence()));
+                }
+            }
+        }
+
+        applyAnimationToTransform(localTransform, totalAnimPos, totalAnimRot, totalAnimScale);
+
+        Matrix4f parentTransform = new Matrix4f();
+        if (bone.parent().isPresent() && model.bones().containsKey(bone.parent().get())) {
+            parentTransform = evaluateBone(bone.parent().get(), component, model, boneMatrices, animationRegistry);
+        }
+
+        Matrix4f globalTransform = new Matrix4f(parentTransform).mul(localTransform);
+        boneMatrices[boneIndex] = globalTransform;
+        return globalTransform;
+    }
+
+    private static Matrix4f calculateLocalTransform(TVModel.TVModelBone bone) {
+        Matrix4f localTransform = new Matrix4f();
+        localTransform.translate(bone.position());
+        localTransform.rotateZYX((float) Math.toRadians(bone.rotation().z()), (float) Math.toRadians(bone.rotation().y()), (float) Math.toRadians(bone.rotation().x()));
+        return localTransform;
+    }
+
+    private static void applyAnimationToTransform(Matrix4f localTransform, Vector3f animPos, Vector3f animRot, Vector3f animScale) {
+        localTransform.translate(animPos);
+        localTransform.rotateZYX((float) Math.toRadians(animRot.z()), (float) Math.toRadians(animRot.y()), (float) Math.toRadians(animRot.x()));
+        localTransform.scale(new Vector3f(animScale).add(1.0f, 1.0f, 1.0f));
+    }
+
 
     private static Vector3f evaluateTransform(Map<Float, TVAnimation.TVAnimationBoneTransformation> keyframes, float t) {
         if (keyframes.isEmpty()) return new Vector3f(0, 0, 0);
