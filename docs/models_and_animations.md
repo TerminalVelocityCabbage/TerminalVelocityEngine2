@@ -287,11 +287,19 @@ circular, back, elastic, bounce, catmulrom) Default: linear
 - fade_in: An optional float that determines how long in seconds this animation should take to fade in.
 - fade_out: An optional float that determines how long in seconds this animation should take to fade out. A fade out is 
 triggered when the animation is finished playing or when it is interrupted.
+- speed: An optional expression that determines the speed of this animation. Default: 1.0
+- progress: An optional expression that determines the progress of this animation as a float between 0 and 1. If this is 
+defined, the animation's time is set to `progress * duration`.
 
 ```toml
 [[animations]]
 animation = "game:tyrannosaurus_adult_v2/idle" #must match an actual identifier of an animation
 influence = "1.0 - clamp(speed / 5.0, 0.0, if(on_ground, 1.0, 0.0))" #expression that determines the weight of this animation based on some context.
+speed = "speed / 5.0" #modulate the speed of the animation based on the speed of the entity.
+
+[[animations]]
+animation = "game:tyrannosaurus_adult_v2/look_left"
+progress = "clamp(angular_velocity / 10.0, 0.0, 1.0)" #directly set the progress of this animation based on angular velocity.
 
 [[animations]]
 animation = "game:tyrannosaurus_adult_v2/fall"
