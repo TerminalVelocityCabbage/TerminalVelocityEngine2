@@ -30,11 +30,11 @@ public class AnimationConfigurationEvent extends Event {
         this.variableRegistrar = variableRegistrar;
     }
 
-    public Identifier registerTVAnimation(String namespace, String modelName, String animationName) {
+    private Identifier registerTVAnimation(String namespace, String modelName, String animationName) {
         return registerTVAnimation(namespace, ResourceCategory.ANIMATION.identifierOf(namespace, modelName + "/" + animationName));
     }
 
-    public Identifier registerTVAnimation(String namespace, Identifier animationResource) {
+    private Identifier registerTVAnimation(String namespace, Identifier animationResource) {
         TVAnimation animation = TVAnimation.of(animationResource);
         return tvAnimationRegistry.register(new Identifier(namespace, "tv_animation", animationResource.name()), animation);
     }
@@ -45,6 +45,11 @@ public class AnimationConfigurationEvent extends Event {
 
     public Identifier registerTVAnimationController(String namespace, Identifier controllerResource) {
         TVAnimationController controller = TVAnimationController.of(controllerResource);
+        // Register referenced animations
+        for (TVAnimationController.TVAnimationControllerAnimation anim : controller.animations().values()) {
+            Identifier animId = Identifier.fromString(anim.animation(), ResourceCategory.ANIMATION.name());
+            registerTVAnimation(namespace, animId);
+        }
         return tvAnimationControllerRegistry.register(new Identifier(namespace, "tv_animation_controller", controllerResource.name()), controller);
     }
 
