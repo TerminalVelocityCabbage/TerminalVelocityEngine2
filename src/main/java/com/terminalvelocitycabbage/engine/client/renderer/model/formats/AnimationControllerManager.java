@@ -3,7 +3,6 @@ package com.terminalvelocitycabbage.engine.client.renderer.model.formats;
 import com.terminalvelocitycabbage.engine.ecs.Entity;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.templates.events.AnimationControllerFunctionRegistrationEvent;
-import com.terminalvelocitycabbage.templates.events.AnimationControllerVariableRegistrationEvent;
 import org.joml.Vector3f;
 import redempt.crunch.CompiledExpression;
 import redempt.crunch.Crunch;
@@ -32,7 +31,6 @@ public class AnimationControllerManager {
 
         // Dispatch events
         dispatcher.dispatchEvent(new AnimationControllerFunctionRegistrationEvent(this::registerFunction));
-        dispatcher.dispatchEvent(new AnimationControllerVariableRegistrationEvent(this::registerVariable));
     }
 
     public void registerFunction(String name, int args, ToDoubleFunction<double[]> function) {
