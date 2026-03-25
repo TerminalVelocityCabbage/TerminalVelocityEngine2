@@ -276,7 +276,7 @@ Animations are defined by the following properties:
 - animation: The identifier of the animation. (e.g. `namespace:model_name/animation_name`)
 - influence: An expression that determines the weight of this animation based on some context usually expected to evaluate
 to a float between 0 and 1.
-- trigger: Allows the user to define the trigger for this animation (when no influence expression is defined), and what happes
+- trigger: Allows the user to define the trigger for this animation (when no influence expression is defined), and what happens
 after the animation is finished. Acceptable post-actions are: reset and hold. A trigger and an influence expression cannot be defined at the same time.
 - layers: Allow you to control the influence of specific layers of an animation here similarly to the influence property.
 - priority: An optional integer that determines the priority of this animation relative to other animations. Default: 1
