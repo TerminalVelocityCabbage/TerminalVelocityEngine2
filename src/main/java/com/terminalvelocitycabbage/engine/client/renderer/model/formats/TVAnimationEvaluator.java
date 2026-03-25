@@ -87,7 +87,8 @@ public class TVAnimationEvaluator {
                 continue;
             }
 
-            float t = state.getCurrentTime() % animation.metadata().duration();
+            float duration = animation.metadata().duration();
+            float t = duration == 0 ? 0 : animation.metadata().looping() ? state.getCurrentTime() % duration : Math.min(state.getCurrentTime(), duration);
             TVAnimation.TVAnimationLayer defaultLayer = animation.layers().get("default");
             if (defaultLayer != null) {
                 TVAnimation.TVAnimationKeyframe keyframes = defaultLayer.keyframes().get(boneName);

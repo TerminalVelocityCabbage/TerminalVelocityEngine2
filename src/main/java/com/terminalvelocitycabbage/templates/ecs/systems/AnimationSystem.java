@@ -40,6 +40,8 @@ public class AnimationSystem extends System {
                 if (anim.influence().isPresent()) {
                     CompiledExpression expr = animManager.compileExpression(anim.influence().get());
                     state.setInfluence((float) expr.evaluate(variableValues));
+                } else if (anim.trigger().isEmpty()) {
+                    state.setInfluence(1.0f);
                 }
 
                 // Evaluate speed
@@ -57,7 +59,12 @@ public class AnimationSystem extends System {
                     float progress = (float) expr.evaluate(variableValues);
                     TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "tv_animation"));
                     if (tvAnim != null) {
-                        state.setCurrentTime(progress * tvAnim.metadata().duration());
+                        float duration = tvAnim.metadata().duration();
+                        if (duration == 0) {
+                            state.setCurrentTime(0);
+                        } else {
+                            state.setCurrentTime(progress * duration);
+                        }
                     }
                 }
             }
