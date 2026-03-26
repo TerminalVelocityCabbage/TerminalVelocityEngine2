@@ -22,7 +22,7 @@ public class AnimationSystem extends System {
             if (controller == null) return;
 
             AnimationControllerManager animManager = ClientBase.getInstance().getAnimationControllerManager();
-            double[] variableValues = animManager.getVariableValues(entity);
+            double[] variableValues = animManager.getVariableValues(entity, controller);
 
             for (TVAnimationController.TVAnimationControllerAnimation anim : controller.animations().values()) {
                 AnimationControllerComponent.AnimationState state = component.getAnimationStates().computeIfAbsent(anim.animation(), k -> new AnimationControllerComponent.AnimationState());

@@ -19,6 +19,7 @@ public class AnimationControllerManager {
 
     private final Map<String, Function<Entity, Double>> variableProviders = new HashMap<>();
     private final List<String> variableNames = new ArrayList<>();
+    private final Map<String, List<Integer>> variableIndicesByBaseName = new HashMap<>();
     private final Map<String, AnimationControllerFunction> functions = new HashMap<>();
     private final Map<String, CompiledExpression> expressionCache = new HashMap<>();
     private EvaluationEnvironment cachedEnv;
@@ -38,21 +39,31 @@ public class AnimationControllerManager {
     }
 
     public <T> void registerVariable(String name, Class<T> type, Function<Entity, T> provider) {
-        if (type == Vector3f.class) {
-            addVariable(name + ".x", entity -> (double) ((Vector3f) provider.apply(entity)).x());
-            addVariable(name + ".y", entity -> (double) ((Vector3f) provider.apply(entity)).y());
-            addVariable(name + ".z", entity -> (double) ((Vector3f) provider.apply(entity)).z());
-            addVariable(name + ".length", entity -> (double) ((Vector3f) provider.apply(entity)).length());
-        } else if (type == Float.class || type == Double.class || type == float.class || type == double.class) {
-            addVariable(name, entity -> ((Number) provider.apply(entity)).doubleValue());
-        } else if (type == Boolean.class || type == boolean.class) {
-            addVariable(name, entity -> (Boolean) provider.apply(entity) ? 1.0 : 0.0);
+        List<Integer> indices = new ArrayList<>();
+        switch (type.getSimpleName()) {
+            case "Vector3f":
+                indices.add(addVariable(name + ".x", entity -> (double) ((Vector3f) provider.apply(entity)).x()));
+                indices.add(addVariable(name + ".y", entity -> (double) ((Vector3f) provider.apply(entity)).y()));
+                indices.add(addVariable(name + ".z", entity -> (double) ((Vector3f) provider.apply(entity)).z()));
+                indices.add(addVariable(name + ".length", entity -> (double) ((Vector3f) provider.apply(entity)).length()));
+                break;
+            case "Float", "Double":
+                indices.add(addVariable(name, entity -> ((Number) provider.apply(entity)).doubleValue()));
+                break;
+            case "Boolean":
+                indices.add(addVariable(name, entity -> (Boolean) provider.apply(entity) ? 1.0 : 0.0));
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported variable type: " + type.getSimpleName() + " There is also no way to register your own yet, report this.");
         }
+        variableIndicesByBaseName.put(name, indices);
     }
 
-    private void addVariable(String name, Function<Entity, Double> provider) {
+    private int addVariable(String name, Function<Entity, Double> provider) {
+        int index = variableNames.size();
         variableNames.add(name);
         variableProviders.put(name, provider);
+        return index;
     }
 
     public EvaluationEnvironment createEvaluationEnvironment() {
@@ -74,6 +85,19 @@ public class AnimationControllerManager {
         double[] values = new double[variableNames.size()];
         for (int i = 0; i < variableNames.size(); i++) {
             values[i] = variableProviders.get(variableNames.get(i)).apply(entity);
+        }
+        return values;
+    }
+
+    public double[] getVariableValues(Entity entity, TVAnimationController controller) {
+        double[] values = new double[variableNames.size()];
+        for (String baseVarName : controller.variables().keySet()) {
+            List<Integer> indices = variableIndicesByBaseName.get(baseVarName);
+            if (indices != null) {
+                for (int index : indices) {
+                    values[index] = variableProviders.get(variableNames.get(index)).apply(entity);
+                }
+            }
         }
         return values;
     }
