@@ -25,51 +25,28 @@ public record TVAnimationController(
             return null;
         }
         Config config = TomlFormat.instance().createParser().parse(resource.asString());
-        return of(config);
+        return ofConfig(config);
     }
 
-    public static TVAnimationController of(Config config) {
+    public static TVAnimationController ofConfig(Config config) {
+
+        //Load variables
         Map<String, TVAnimationControllerVariable> variables = new HashMap<>();
         Config variablesConfig = config.get("variables");
         if (variablesConfig != null) {
             for (Config.Entry entry : variablesConfig.entrySet()) {
-                variables.put(entry.getKey(), new TVAnimationControllerVariable(entry.getKey(), entry.getValue()));
+                TVAnimationControllerVariable variable = TVAnimationControllerVariable.of(entry);
+                variables.put(variable.name(), variable);
             }
         }
 
+        //Load animations
         Map<String, TVAnimationControllerAnimation> animations = new HashMap<>();
         List<Config> animationsList = config.get("animations");
         if (animationsList != null) {
             for (Config animConfig : animationsList) {
-                String animIdentifier = animConfig.get("animation");
-
-                Object triggerObj = animConfig.get("trigger");
-                Optional<String> trigger = Optional.empty();
-                Optional<String> postAction = Optional.empty();
-                if (triggerObj instanceof List<?> list && !list.isEmpty()) {
-                    trigger = Optional.of((String) list.get(0));
-                    if (list.size() >= 2) {
-                        postAction = Optional.of((String) list.get(1));
-                    }
-                } else if (triggerObj instanceof String s) {
-                    trigger = Optional.of(s);
-                }
-
-                TVAnimationControllerAnimation animation = new TVAnimationControllerAnimation(
-                        animIdentifier,
-                        Optional.ofNullable(animConfig.get("influence")),
-                        trigger,
-                        postAction,
-                        Optional.ofNullable(animConfig.get("layers")),
-                        Optional.ofNullable(animConfig.<Number>get("priority")).map(Number::intValue),
-                        Optional.ofNullable(animConfig.get("blend")),
-                        Optional.ofNullable(animConfig.get("ease")),
-                        Optional.ofNullable(animConfig.<Number>get("fade_in")).map(Number::floatValue),
-                        Optional.ofNullable(animConfig.<Number>get("fade_out")).map(Number::floatValue),
-                        Optional.ofNullable(animConfig.get("speed")),
-                        Optional.ofNullable(animConfig.get("progress"))
-                );
-                animations.put(animIdentifier, animation);
+                TVAnimationControllerAnimation animation = TVAnimationControllerAnimation.of(animConfig);
+                animations.put(animation.animation(), animation);
             }
         }
 
@@ -79,7 +56,11 @@ public record TVAnimationController(
     public record TVAnimationControllerVariable(
             String name,
             String type //Eventually need to map to a class type
-    ) { }
+    ) {
+        public static TVAnimationControllerVariable of(Config.Entry entry) {
+            return new TVAnimationControllerVariable(entry.getKey(), entry.getValue());
+        }
+    }
 
     public record TVAnimationControllerAnimation(
             String animation, //The identifier of the animation that this controller is controlling
@@ -94,6 +75,37 @@ public record TVAnimationController(
             Optional<Float> fadeOut, //An optional float that determines how long in seconds this animation should take to fade out. A fade out is triggered when the animation is finished playing or when it is interrupted.
             Optional<String> speed, //An optional expression that determines the speed of this animation. Default: 1.0
             Optional<String> progress //An optional expression that determines the progress of this animation as a float between 0 and 1. If this is defined, the animation's time is set to `progress * duration`.
-    ) { }
+    ) {
+        public static TVAnimationControllerAnimation of(Config animConfig) {
+            String animIdentifier = animConfig.get("animation");
+
+            Object triggerObj = animConfig.get("trigger");
+            Optional<String> trigger = Optional.empty();
+            Optional<String> postAction = Optional.empty();
+            if (triggerObj instanceof List<?> list && !list.isEmpty()) {
+                trigger = Optional.of((String) list.get(0));
+                if (list.size() >= 2) {
+                    postAction = Optional.of((String) list.get(1));
+                }
+            } else if (triggerObj instanceof String s) {
+                trigger = Optional.of(s);
+            }
+
+            return new TVAnimationControllerAnimation(
+                    animIdentifier,
+                    Optional.ofNullable(animConfig.get("influence")),
+                    trigger,
+                    postAction,
+                    Optional.ofNullable(animConfig.get("layers")),
+                    Optional.ofNullable(animConfig.<Number>get("priority")).map(Number::intValue),
+                    Optional.ofNullable(animConfig.get("blend")),
+                    Optional.ofNullable(animConfig.get("ease")),
+                    Optional.ofNullable(animConfig.<Number>get("fade_in")).map(Number::floatValue),
+                    Optional.ofNullable(animConfig.<Number>get("fade_out")).map(Number::floatValue),
+                    Optional.ofNullable(animConfig.get("speed")),
+                    Optional.ofNullable(animConfig.get("progress"))
+            );
+        }
+    }
 
 }
