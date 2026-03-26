@@ -36,23 +36,23 @@ public class AnimationSystem extends System {
                 }
 
                 // Evaluate influence
-                if (anim.compiledInfluence().isPresent()) {
-                    state.setInfluence((float) anim.compiledInfluence().get().evaluate(variableValues));
+                if (anim.influence().isPresent()) {
+                    state.setInfluence((float) anim.influence().get().evaluate(variableValues));
                 } else if (anim.trigger().isEmpty()) {
                     state.setInfluence(1.0f);
                 }
 
                 // Evaluate speed
-                if (anim.compiledSpeed().isPresent()) {
-                    state.setSpeed((float) anim.compiledSpeed().get().evaluate(variableValues));
+                if (anim.speed().isPresent()) {
+                    state.setSpeed((float) anim.speed().get().evaluate(variableValues));
                 }
 
                 // Update time
                 state.setCurrentTime(state.getCurrentTime() + (deltaTime / 1000.0f) * state.getSpeed());
 
                 // Handle progress (overrides time)
-                if (anim.compiledProgress().isPresent()) {
-                    float progress = (float) anim.compiledProgress().get().evaluate(variableValues);
+                if (anim.progress().isPresent()) {
+                    float progress = (float) anim.progress().get().evaluate(variableValues);
                     TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
                     if (tvAnim != null) {
                         float duration = tvAnim.metadata().duration();
