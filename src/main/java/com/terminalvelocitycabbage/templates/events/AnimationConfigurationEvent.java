@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.templates.events;
 
 import com.terminalvelocitycabbage.engine.TerminalVelocityEngine;
+import com.terminalvelocitycabbage.engine.client.renderer.model.formats.AnimationControllerManager;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimation;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimationController;
 import com.terminalvelocitycabbage.engine.ecs.Entity;
@@ -15,19 +16,15 @@ public class AnimationConfigurationEvent extends Event {
 
     public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "animation_configuration");
 
-    public interface VariableRegistrar {
-        <T> void register(String name, Class<T> type, Function<Entity, T> provider);
-    }
-
     private final Registry<TVAnimation> tvAnimationRegistry;
     private final Registry<TVAnimationController> tvAnimationControllerRegistry;
-    private final VariableRegistrar variableRegistrar;
+    private final AnimationControllerManager animationControllerManager;
 
-    public AnimationConfigurationEvent(Registry<TVAnimation> tvAnimationRegistry, Registry<TVAnimationController> tvAnimationControllerRegistry, VariableRegistrar variableRegistrar) {
+    public AnimationConfigurationEvent(Registry<TVAnimation> tvAnimationRegistry, Registry<TVAnimationController> tvAnimationControllerRegistry, AnimationControllerManager animationControllerManager) {
         super(EVENT);
         this.tvAnimationRegistry = tvAnimationRegistry;
         this.tvAnimationControllerRegistry = tvAnimationControllerRegistry;
-        this.variableRegistrar = variableRegistrar;
+        this.animationControllerManager = animationControllerManager;
     }
 
     private Identifier registerTVAnimation(String namespace, String modelName, String animationName) {
@@ -44,7 +41,7 @@ public class AnimationConfigurationEvent extends Event {
     }
 
     public Identifier registerTVAnimationController(String namespace, Identifier controllerResource) {
-        TVAnimationController controller = TVAnimationController.of(controllerResource);
+        TVAnimationController controller = TVAnimationController.of(controllerResource, animationControllerManager);
         // Register referenced animations
         for (TVAnimationController.TVAnimationControllerAnimation anim : controller.animations().values()) {
             Identifier animId = Identifier.fromString(anim.animation(), ResourceCategory.ANIMATION.name());
@@ -54,7 +51,7 @@ public class AnimationConfigurationEvent extends Event {
     }
 
     public <T> void registerVariable(String name, Class<T> type, Function<Entity, T> provider) {
-        variableRegistrar.register(name, type, provider);
+        animationControllerManager.registerVariable(name, type, provider);
     }
 
 }

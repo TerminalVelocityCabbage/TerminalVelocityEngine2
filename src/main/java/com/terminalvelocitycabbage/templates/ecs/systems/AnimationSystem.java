@@ -8,7 +8,6 @@ import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.ecs.components.AnimationControllerComponent;
-import redempt.crunch.CompiledExpression;
 
 public class AnimationSystem extends System {
 
@@ -37,26 +36,23 @@ public class AnimationSystem extends System {
                 }
 
                 // Evaluate influence
-                if (anim.influence().isPresent()) {
-                    CompiledExpression expr = animManager.compileExpression(anim.influence().get());
-                    state.setInfluence((float) expr.evaluate(variableValues));
+                if (anim.compiledInfluence().isPresent()) {
+                    state.setInfluence((float) anim.compiledInfluence().get().evaluate(variableValues));
                 } else if (anim.trigger().isEmpty()) {
                     state.setInfluence(1.0f);
                 }
 
                 // Evaluate speed
-                if (anim.speed().isPresent()) {
-                    CompiledExpression expr = animManager.compileExpression(anim.speed().get());
-                    state.setSpeed((float) expr.evaluate(variableValues));
+                if (anim.compiledSpeed().isPresent()) {
+                    state.setSpeed((float) anim.compiledSpeed().get().evaluate(variableValues));
                 }
 
                 // Update time
                 state.setCurrentTime(state.getCurrentTime() + (deltaTime / 1000.0f) * state.getSpeed());
 
                 // Handle progress (overrides time)
-                if (anim.progress().isPresent()) {
-                    CompiledExpression expr = animManager.compileExpression(anim.progress().get());
-                    float progress = (float) expr.evaluate(variableValues);
+                if (anim.compiledProgress().isPresent()) {
+                    float progress = (float) anim.compiledProgress().get().evaluate(variableValues);
                     TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
                     if (tvAnim != null) {
                         float duration = tvAnim.metadata().duration();

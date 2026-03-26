@@ -124,7 +124,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
         eventDispatcher.dispatchEvent(new FontRegistrationEvent(fontRegistry));
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry, fileSystem, routineRegistry));
-        eventDispatcher.dispatchEvent(new AnimationConfigurationEvent(tvAnimationRegistry, tvAnimationControllerRegistry, animationControllerManager::registerVariable));
+        eventDispatcher.dispatchEvent(new AnimationConfigurationEvent(tvAnimationRegistry, tvAnimationControllerRegistry, animationControllerManager));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
         eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelConfigRegistry, meshRegistry));
         soundDeviceManager.init();

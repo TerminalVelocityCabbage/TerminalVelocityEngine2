@@ -7,6 +7,7 @@ import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
+import redempt.crunch.CompiledExpression;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,17 +19,17 @@ public record TVAnimationController(
         Map<String, TVAnimationControllerAnimation> animations
 ) {
 
-    public static TVAnimationController of(Identifier controllerResource) {
+    public static TVAnimationController of(Identifier controllerResource, AnimationControllerManager animationControllerManager) {
         Resource resource = ClientBase.getInstance().getFileSystem().getResource(ResourceCategory.ANIMATION_CONTROLLER, controllerResource);
         if (resource == null) {
             Log.crash("Could not find animation controller resource: " + controllerResource);
             return null;
         }
         Config config = TomlFormat.instance().createParser().parse(resource.asString());
-        return ofConfig(config);
+        return ofConfig(config, animationControllerManager);
     }
 
-    public static TVAnimationController ofConfig(Config config) {
+    public static TVAnimationController ofConfig(Config config, AnimationControllerManager animationControllerManager) {
 
         //Load variables
         Map<String, TVAnimationControllerVariable> variables = new HashMap<>();
@@ -45,7 +46,7 @@ public record TVAnimationController(
         List<Config> animationsList = config.get("animations");
         if (animationsList != null) {
             for (Config animConfig : animationsList) {
-                TVAnimationControllerAnimation animation = TVAnimationControllerAnimation.of(animConfig);
+                TVAnimationControllerAnimation animation = TVAnimationControllerAnimation.of(animConfig, animationControllerManager);
                 animations.put(animation.animation(), animation);
             }
         }
@@ -65,18 +66,23 @@ public record TVAnimationController(
     public record TVAnimationControllerAnimation(
             String animation, //The identifier of the animation that this controller is controlling
             Optional<String> influence, //An expression that must evaluate to a float that controls the multiplier of the influence of the animation
+            Optional<CompiledExpression> compiledInfluence, //The compiled expression for influence
             Optional<String> trigger, //For non looping animations, a string ID that can be used to trigger the animation to play once
             Optional<String> postAction, // For triggers: reset, hold
             Optional<Map<String, String>> layers, //Optional map of layer names to influence expressions to control the influence of a specific layer based on an expression
+            Optional<Map<String, CompiledExpression>> compiledLayers, //Compiled expressions for layers
             Optional<Integer> priority, //An optional integer that determines the priority of this animation relative to other animations. Default: 1
             Optional<String> blend, //An optional expression that determines how this animation should blend with other animations. Particularly useful for animations with conflicting priorities. (override, additive) Default: additive
+            Optional<CompiledExpression> compiledBlend, //Compiled expression for blend
             Optional<String> ease, //How to ease the animation in and out. (linear, step, sin, quadratic, cubic, quartic, quintic, exponential, circular, back, elastic, bounce, catmulrom) Default: linear
             Optional<Float> fadeIn, //An optional float that determines how long in seconds this animation should take to fade in.
             Optional<Float> fadeOut, //An optional float that determines how long in seconds this animation should take to fade out. A fade out is triggered when the animation is finished playing or when it is interrupted.
             Optional<String> speed, //An optional expression that determines the speed of this animation. Default: 1.0
-            Optional<String> progress //An optional expression that determines the progress of this animation as a float between 0 and 1. If this is defined, the animation's time is set to `progress * duration`.
+            Optional<CompiledExpression> compiledSpeed, //The compiled expression for speed
+            Optional<String> progress, //An optional expression that determines the progress of this animation as a float between 0 and 1. If this is defined, the animation's time is set to `progress * duration`.
+            Optional<CompiledExpression> compiledProgress //The compiled expression for progress
     ) {
-        public static TVAnimationControllerAnimation of(Config animConfig) {
+        public static TVAnimationControllerAnimation of(Config animConfig, AnimationControllerManager animationControllerManager) {
             String animIdentifier = animConfig.get("animation");
 
             Object triggerObj = animConfig.get("trigger");
@@ -91,19 +97,34 @@ public record TVAnimationController(
                 trigger = Optional.of(s);
             }
 
+            Optional<String> influence = Optional.ofNullable(animConfig.get("influence"));
+            Optional<Map<String, String>> layers = Optional.ofNullable(animConfig.get("layers"));
+            Optional<String> blend = Optional.ofNullable(animConfig.get("blend"));
+            Optional<String> speed = Optional.ofNullable(animConfig.get("speed"));
+            Optional<String> progress = Optional.ofNullable(animConfig.get("progress"));
+
             return new TVAnimationControllerAnimation(
                     animIdentifier,
-                    Optional.ofNullable(animConfig.get("influence")),
+                    influence,
+                    influence.map(animationControllerManager::compileExpression),
                     trigger,
                     postAction,
-                    Optional.ofNullable(animConfig.get("layers")),
+                    layers,
+                    layers.map(l -> {
+                        Map<String, CompiledExpression> compiled = new HashMap<>();
+                        l.forEach((k, v) -> compiled.put(k, animationControllerManager.compileExpression(v)));
+                        return compiled;
+                    }),
                     Optional.ofNullable(animConfig.<Number>get("priority")).map(Number::intValue),
-                    Optional.ofNullable(animConfig.get("blend")),
+                    blend,
+                    blend.map(animationControllerManager::compileExpression),
                     Optional.ofNullable(animConfig.get("ease")),
                     Optional.ofNullable(animConfig.<Number>get("fade_in")).map(Number::floatValue),
                     Optional.ofNullable(animConfig.<Number>get("fade_out")).map(Number::floatValue),
-                    Optional.ofNullable(animConfig.get("speed")),
-                    Optional.ofNullable(animConfig.get("progress"))
+                    speed,
+                    speed.map(animationControllerManager::compileExpression),
+                    progress,
+                    progress.map(animationControllerManager::compileExpression)
             );
         }
     }
