@@ -12,7 +12,6 @@ import com.terminalvelocitycabbage.engine.client.renderer.model.ModelConfig;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.AnimationControllerManager;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimation;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimationController;
-import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVModel;
 import com.terminalvelocitycabbage.engine.client.sound.SoundDeviceManager;
 import com.terminalvelocitycabbage.engine.client.sound.SoundManager;
 import com.terminalvelocitycabbage.engine.client.ui.UIContext;
@@ -46,7 +45,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
 
     //Scene stuff
     protected final Registry<Mesh> meshRegistry;
-    protected final Registry<TVModel> tvModelRegistry;
     protected final Registry<TVAnimation> tvAnimationRegistry;
     protected final Registry<TVAnimationController> tvAnimationControllerRegistry;
     protected final Registry<ModelConfig> modelConfigRegistry;
@@ -79,7 +77,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         inputCallbackListener = new InputCallbackListener();
         uiContext = new UIContext();
         meshRegistry = new Registry<>();
-        tvModelRegistry = new Registry<>();
         tvAnimationRegistry = new Registry<>();
         tvAnimationControllerRegistry = new Registry<>();
         modelConfigRegistry = new Registry<>();
@@ -129,7 +126,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry, fileSystem, routineRegistry));
         eventDispatcher.dispatchEvent(new AnimationConfigurationEvent(tvAnimationRegistry, tvAnimationControllerRegistry, animationControllerManager::registerVariable));
         eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
-        eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelConfigRegistry, tvModelRegistry, meshRegistry));
+        eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelConfigRegistry, meshRegistry));
         soundDeviceManager.init();
         eventDispatcher.dispatchEvent(new SoundRegistrationEvent(soundManager));
         eventDispatcher.dispatchEvent(new EntityTemplateRegistrationEvent(manager, fileSystem));
@@ -258,9 +255,6 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         return meshRegistry;
     }
 
-    public Registry<TVModel> getTvModelRegistry() {
-        return tvModelRegistry;
-    }
 
     public Registry<TVAnimation> getTvAnimationRegistry() {
         return tvAnimationRegistry;

@@ -18,12 +18,10 @@ public class ModelConfigRegistrationEvent extends RegistryEvent<ModelConfig> {
 
     public static final Identifier EVENT = TerminalVelocityEngine.identifierOf("event", "model_config_registration");
 
-    private final Registry<TVModel> tvModelRegistry;
     private final Registry<Mesh> meshRegistry;
 
-    public ModelConfigRegistrationEvent(Registry<ModelConfig> modelConfigRegistry, Registry<TVModel> tvModelRegistry, Registry<Mesh> meshRegistry) {
+    public ModelConfigRegistrationEvent(Registry<ModelConfig> modelConfigRegistry, Registry<Mesh> meshRegistry) {
         super(EVENT, modelConfigRegistry);
-        this.tvModelRegistry = tvModelRegistry;
         this.meshRegistry = meshRegistry;
     }
 
@@ -36,9 +34,9 @@ public class ModelConfigRegistrationEvent extends RegistryEvent<ModelConfig> {
     }
 
     public Identifier registerTVModel(String namespace, String modelName, VertexFormat meshFormat) {
-        TVModel model = TVModel.of(ResourceCategory.MODEL.identifierOf(namespace, modelName));
-        createModel(namespace, model, meshFormat);
-        return tvModelRegistry.register(new Identifier(namespace, "tv_model", model.metadata().name()), model);
+        var identifier = ResourceCategory.MODEL.identifierOf(namespace, modelName);
+        createModel(namespace, TVModel.of(identifier), meshFormat);
+        return identifier;
     }
 
     private void createModel(String namespace, TVModel model, VertexFormat meshFormat) {

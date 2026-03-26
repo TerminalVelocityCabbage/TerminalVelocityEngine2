@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
+import com.terminalvelocitycabbage.engine.client.renderer.model.Model;
 import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVAnimationEvaluator;
-import com.terminalvelocitycabbage.engine.client.renderer.model.formats.TVModel;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import org.joml.Matrix4f;
@@ -51,8 +51,8 @@ public class AnimationControllerComponent implements Component {
         return activeTriggers;
     }
 
-    public Matrix4f[] getBoneMatrices(TVModel model) {
-        return TVAnimationEvaluator.evaluate(this, model);
+    public Matrix4f[] getBoneMatrices(Model model) {
+        return TVAnimationEvaluator.evaluate(this, model.skeleton());
     }
 
     public static class AnimationState {

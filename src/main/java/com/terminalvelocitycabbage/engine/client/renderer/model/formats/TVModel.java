@@ -6,6 +6,7 @@ import com.github.zafarkhaja.semver.Version;
 import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.renderer.model.MeshTexturePair;
 import com.terminalvelocitycabbage.engine.client.renderer.model.ModelConfig;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Skeleton;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
@@ -28,6 +29,21 @@ public record TVModel(
         Map<String, TVModelAnchor> anchors
 ) {
 
+    public Skeleton getSkeleton() {
+        Map<String, Skeleton.SkeletonBone> skeletonBones = new HashMap<>();
+        bones.forEach((name, bone) -> {
+            skeletonBones.put(name, new Skeleton.SkeletonBone(
+                    bone.name(),
+                    bone.parent(),
+                    bone.position(),
+                    bone.offset(),
+                    bone.rotation()
+            ));
+        });
+        Skeleton skeleton = new Skeleton(skeletonBones, boneIndices, null);
+        return new Skeleton(skeletonBones, boneIndices, TVAnimationEvaluator.evaluate((TVAnimation) null, 0, skeleton));
+    }
+
     public static ModelConfig configOf(String namespace, TVModel model, String variantName) {
         TVModelVariant variant = model.variants().get(variantName);
         if (variant == null) {
@@ -49,7 +65,7 @@ public record TVModel(
             pairs.add(new MeshTexturePair(meshId, textureId));
         }
 
-        return new ModelConfig(pairs);
+        return new ModelConfig(pairs, model.getSkeleton());
     }
 
     private static Identifier findTextureForLayer(TVModel model, TVModelVariant variant, String layer) {
@@ -69,10 +85,6 @@ public record TVModel(
             }
         }
         return null;
-    }
-    
-    public Matrix4f[] getBindPoseMatrices() {
-        return TVAnimationEvaluator.evaluate((TVAnimation) null, 0, this);
     }
 
     public static TVModel of(Identifier modelResource) {
