@@ -129,7 +129,6 @@ public class TVAnimationEvaluator {
         localTransform.scale(new Vector3f(animScale).add(1.0f, 1.0f, 1.0f));
     }
 
-
     private static Vector3f evaluateTransform(Map<Float, TVAnimation.TVAnimationBoneTransformation> keyframes, float t) {
         if (keyframes.isEmpty()) return new Vector3f(0, 0, 0);
 

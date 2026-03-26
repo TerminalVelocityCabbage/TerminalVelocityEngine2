@@ -17,8 +17,7 @@ public class Easing {
 
         IN("in"),
         OUT("out"),
-        IN_OUT("in_out"),
-        BOTH("both");
+        IN_OUT("in_out");
 
         private final String name;
 
@@ -34,8 +33,7 @@ public class Easing {
             return switch (direction) {
                 case "in" -> IN;
                 case "out" -> OUT;
-                case "in_out" -> IN_OUT;
-                case "both" -> BOTH;
+                case "in_out", "both" -> IN_OUT;
                 default -> throw new IllegalArgumentException("Invalid direction: " + direction);
             };
         }
@@ -95,7 +93,7 @@ public class Easing {
         return switch (direction) {
             case IN -> easeIn(function, progress);
             case OUT -> easeOut(function, progress);
-            case IN_OUT, BOTH -> easeInOut(function, progress);
+            case IN_OUT -> easeInOut(function, progress);
         };
     }
 
@@ -113,7 +111,8 @@ public class Easing {
             case BACK -> easeInBack(progress);
             case ELASTIC -> easeInElastic(progress);
             case BOUNCE -> easeInBounce(progress);
-            case CATMULLROM -> easeInOutSin(progress); //Catmullrom is a spline, but for a 0-1 curve we can just use a smooth sin curve for now
+            //TODO: Implement Catmullrom
+            case CATMULLROM -> easeInSin(progress);
         };
     }
 
@@ -131,7 +130,8 @@ public class Easing {
             case BACK -> easeOutBack(progress);
             case ELASTIC -> easeOutElastic(progress);
             case BOUNCE -> easeOutBounce(progress);
-            case CATMULLROM -> easeInOutSin(progress); //Catmullrom is a spline, but for a 0-1 curve we can just use a smooth sin curve for now
+            //TODO: Implement Catmullrom
+            case CATMULLROM -> easeOutSin(progress);
         };
     }
 
@@ -149,7 +149,8 @@ public class Easing {
             case BACK -> easeInOutBack(progress);
             case ELASTIC -> easeInOutElastic(progress);
             case BOUNCE -> easeInOutBounce(progress);
-            case CATMULLROM -> easeInOutSin(progress); //Catmullrom is a spline, but for a 0-1 curve we can just use a smooth sin curve for now
+            //TODO: Implement Catmullrom
+            case CATMULLROM -> easeInOutSin(progress);
         };
     }
 
