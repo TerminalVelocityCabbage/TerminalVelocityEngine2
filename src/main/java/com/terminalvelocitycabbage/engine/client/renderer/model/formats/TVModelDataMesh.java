@@ -65,6 +65,7 @@ public class TVModelDataMesh extends DataMesh {
                 new Vector3f(ox + sx, oy, oz),
                 new Vector3f(ox + sx, oy + sy, oz),
                 new Vector3f(ox + sx, oy + sy, oz + sz),
+                new Vector3f(1, 0, 0),
                 uv, textureSize));
 
         // Negative X face (Left)
@@ -73,6 +74,7 @@ public class TVModelDataMesh extends DataMesh {
                 new Vector3f(ox, oy, oz + sz),
                 new Vector3f(ox, oy + sy, oz + sz),
                 new Vector3f(ox, oy + sy, oz),
+                new Vector3f(-1, 0, 0),
                 uv, textureSize));
 
         // Positive Y face (Up)
@@ -81,6 +83,7 @@ public class TVModelDataMesh extends DataMesh {
                 new Vector3f(ox + sx, oy + sy, oz + sz),
                 new Vector3f(ox + sx, oy + sy, oz),
                 new Vector3f(ox, oy + sy, oz),
+                new Vector3f(0, 1, 0),
                 uv, textureSize));
 
         // Negative Y face (Down)
@@ -89,6 +92,7 @@ public class TVModelDataMesh extends DataMesh {
                 new Vector3f(ox + sx, oy, oz),
                 new Vector3f(ox + sx, oy, oz + sz),
                 new Vector3f(ox, oy, oz + sz),
+                new Vector3f(0, -1, 0),
                 uv, textureSize));
 
         // Positive Z face (Forward/South)
@@ -97,6 +101,7 @@ public class TVModelDataMesh extends DataMesh {
                 new Vector3f(ox + sx, oy, oz + sz),
                 new Vector3f(ox + sx, oy + sy, oz + sz),
                 new Vector3f(ox, oy + sy, oz + sz),
+                new Vector3f(0, 0, 1),
                 uv, textureSize));
 
         // Negative Z face (Back/North)
@@ -105,11 +110,12 @@ public class TVModelDataMesh extends DataMesh {
                 new Vector3f(ox, oy, oz),
                 new Vector3f(ox, oy + sy, oz),
                 new Vector3f(ox + sx, oy + sy, oz),
+                new Vector3f(0, 0, -1),
                 uv, textureSize));
     }
 
     private void addFace(List<Vertex> vertices, List<Integer> indices, VertexFormat format, Matrix4f transform, int boneIndex,
-                        Vector3f v0, Vector3f v1, Vector3f v2, Vector3f v3,
+                        Vector3f v0, Vector3f v1, Vector3f v2, Vector3f v3, Vector3f normal,
                         TVModel.TVModelCubeTextureMapping.TVModelFaceUV uv, Vector2i textureSize) {
         int baseIndex = vertices.size();
 
@@ -131,10 +137,10 @@ public class TVModelDataMesh extends DataMesh {
             u[3] = tempU; v[3] = tempV;
         }
 
-        vertices.add(createVertex(format, transform, boneIndex, v0, u[0], v[0], textureSize));
-        vertices.add(createVertex(format, transform, boneIndex, v1, u[1], v[1], textureSize));
-        vertices.add(createVertex(format, transform, boneIndex, v2, u[2], v[2], textureSize));
-        vertices.add(createVertex(format, transform, boneIndex, v3, u[3], v[3], textureSize));
+        vertices.add(createVertex(format, transform, boneIndex, v0, u[0], v[0], textureSize, normal));
+        vertices.add(createVertex(format, transform, boneIndex, v1, u[1], v[1], textureSize, normal));
+        vertices.add(createVertex(format, transform, boneIndex, v2, u[2], v[2], textureSize, normal));
+        vertices.add(createVertex(format, transform, boneIndex, v3, u[3], v[3], textureSize, normal));
 
         indices.add(baseIndex);
         indices.add(baseIndex + 1);
@@ -144,10 +150,12 @@ public class TVModelDataMesh extends DataMesh {
         indices.add(baseIndex);
     }
 
-    private Vertex createVertex(VertexFormat format, Matrix4f transform, int boneIndex, Vector3f pos, int u, int v, Vector2i textureSize) {
+    private Vertex createVertex(VertexFormat format, Matrix4f transform, int boneIndex, Vector3f pos, int u, int v, Vector2i textureSize, Vector3f normal) {
         Vector4f transformedPos = new Vector4f(pos, 1.0f).mul(transform);
+        Vector4f transformedNormal = new Vector4f(normal, 0.0f).mul(transform);
         var vertex = new Vertex(format)
                 .setXYZPosition(transformedPos.x, transformedPos.y, transformedPos.z)
+                .setXYZNormal(transformedNormal.x, transformedNormal.y, transformedNormal.z)
                 .setRGBColor(1.0f, 1.0f, 1.0f)
                 .setUV((float) u / textureSize.x, (float) v / textureSize.y);
 

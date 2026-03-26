@@ -55,33 +55,43 @@ public class MainSource extends ResourceSource {
     @Override
     public Collection<String> enumerateResources(ResourceCategory category) {
         String assetsPath = category.getAssetsPath(namespace);
-        URL url = entrypoint.getClass().getClassLoader().getResource(assetsPath);
-        if (url == null) return Collections.emptyList();
+        Enumeration<URL> urls;
+        try {
+            urls = entrypoint.getClass().getClassLoader().getResources(assetsPath);
+        } catch (IOException e) {
+            Log.error("Could not enumerate resources in MainSource: " + e.getMessage());
+            return Collections.emptyList();
+        }
+
+        if (urls == null || !urls.hasMoreElements()) return Collections.emptyList();
 
         List<String> resources = new ArrayList<>();
-        try {
-            if (url.getProtocol().equals("file")) {
-                File dir = new File(url.toURI());
-                if (dir.isDirectory()) {
-                    addFilesRecursively(dir, "", resources);
-                }
-            } else if (url.getProtocol().equals("jar")) {
-                String jarPath = url.getPath().substring(5, url.getPath().indexOf("!"));
-                try (JarFile jarFile = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8))) {
-                    Enumeration<JarEntry> entries = jarFile.entries();
-                    String path = assetsPath + "/";
-                    while (entries.hasMoreElements()) {
-                        JarEntry entry = entries.nextElement();
-                        String name = entry.getName();
-                        if (name.startsWith(path) && !entry.isDirectory()) {
-                            String fileName = name.substring(path.length());
-                            resources.add(fileName);
+        while (urls.hasMoreElements()) {
+            URL url = urls.nextElement();
+            try {
+                if (url.getProtocol().equals("file")) {
+                    File dir = new File(url.toURI());
+                    if (dir.isDirectory()) {
+                        addFilesRecursively(dir, "", resources);
+                    }
+                } else if (url.getProtocol().equals("jar")) {
+                    String jarPath = url.getPath().substring(5, url.getPath().indexOf("!"));
+                    try (JarFile jarFile = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8))) {
+                        Enumeration<JarEntry> entries = jarFile.entries();
+                        String path = assetsPath + "/";
+                        while (entries.hasMoreElements()) {
+                            JarEntry entry = entries.nextElement();
+                            String name = entry.getName();
+                            if (name.startsWith(path) && !entry.isDirectory()) {
+                                String fileName = name.substring(path.length());
+                                resources.add(fileName);
+                            }
                         }
                     }
                 }
+            } catch (URISyntaxException | IOException e) {
+                Log.error("Could not process resource URL " + url + " in MainSource: " + e.getMessage());
             }
-        } catch (URISyntaxException | IOException e) {
-            Log.error("Could not enumerate resources in MainSource: " + e.getMessage());
         }
         return resources;
     }
