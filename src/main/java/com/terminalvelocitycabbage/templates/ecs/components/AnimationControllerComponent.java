@@ -20,7 +20,7 @@ public class AnimationControllerComponent implements Component {
     @Override
     public void parseComponentField(String field, String value) {
         if (field.equals("controller")) {
-            this.controllerIdentifier = Identifier.fromString(value, "tv_animation_controller");
+            this.controllerIdentifier = Identifier.fromString(value, "animation_controller");
         }
     }
 

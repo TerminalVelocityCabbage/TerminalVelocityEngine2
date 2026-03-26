@@ -57,7 +57,7 @@ public class AnimationSystem extends System {
                 if (anim.progress().isPresent()) {
                     CompiledExpression expr = animManager.compileExpression(anim.progress().get());
                     float progress = (float) expr.evaluate(variableValues);
-                    TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "tv_animation"));
+                    TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
                     if (tvAnim != null) {
                         float duration = tvAnim.metadata().duration();
                         if (duration == 0) {

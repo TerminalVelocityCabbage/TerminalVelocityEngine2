@@ -10,6 +10,7 @@ import org.joml.Vector3f;
 
 import java.util.Map;
 
+//TODO refactor this to reduce allocations - this may get expensive fast
 public class TVAnimationEvaluator {
 
     public static Matrix4f[] evaluate(TVAnimation animation, float time, Skeleton skeleton) {
@@ -82,7 +83,7 @@ public class TVAnimationEvaluator {
             var state = stateEntry.getValue();
             if (state.getInfluence() <= 0) continue;
 
-            TVAnimation animation = animationRegistry.get(Identifier.fromString(animName, "tv_animation"));
+            TVAnimation animation = animationRegistry.get(Identifier.fromString(animName, "animation"));
             if (animation == null) {
                 continue;
             }
