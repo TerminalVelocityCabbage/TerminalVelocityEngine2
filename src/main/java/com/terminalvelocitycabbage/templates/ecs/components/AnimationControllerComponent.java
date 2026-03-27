@@ -58,6 +58,10 @@ public class AnimationControllerComponent implements Component {
     public static class AnimationState {
         private float currentTime;
         private float influence;
+        private float targetInfluence;
+        private float lastEvaluatedTarget;
+        private float startInfluence;
+        private float elapsedTransitionTime;
         private float speed = 1.0f;
 
         public float getCurrentTime() {
@@ -74,6 +78,38 @@ public class AnimationControllerComponent implements Component {
 
         public void setInfluence(float influence) {
             this.influence = influence;
+        }
+
+        public float getTargetInfluence() {
+            return targetInfluence;
+        }
+
+        public void setTargetInfluence(float targetInfluence) {
+            this.targetInfluence = targetInfluence;
+        }
+
+        public float getLastEvaluatedTarget() {
+            return lastEvaluatedTarget;
+        }
+
+        public void setLastEvaluatedTarget(float lastEvaluatedTarget) {
+            this.lastEvaluatedTarget = lastEvaluatedTarget;
+        }
+
+        public float getStartInfluence() {
+            return startInfluence;
+        }
+
+        public void setStartInfluence(float startInfluence) {
+            this.startInfluence = startInfluence;
+        }
+
+        public float getElapsedTransitionTime() {
+            return elapsedTransitionTime;
+        }
+
+        public void setElapsedTransitionTime(float elapsedTransitionTime) {
+            this.elapsedTransitionTime = elapsedTransitionTime;
         }
 
         public float getSpeed() {
