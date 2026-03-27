@@ -8,9 +8,7 @@ import redempt.crunch.CompiledExpression;
 import redempt.crunch.Crunch;
 import redempt.crunch.functional.EvaluationEnvironment;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
@@ -18,11 +16,14 @@ import java.util.function.ToDoubleFunction;
 public class AnimationControllerManager {
 
     private final Map<String, Function<Entity, Double>> variableProviders = new HashMap<>();
-    private final List<String> variableNames = new ArrayList<>();
-    private final Map<String, List<Integer>> variableIndicesByBaseName = new HashMap<>();
     private final Map<String, AnimationControllerFunction> functions = new HashMap<>();
     private final Map<String, CompiledExpression> expressionCache = new HashMap<>();
     private EvaluationEnvironment cachedEnv;
+    private Entity currentEntity;
+
+    public void setCurrentEntity(Entity currentEntity) {
+        this.currentEntity = currentEntity;
+    }
 
     public void init(EventDispatcher dispatcher) {
         // Register default functions
@@ -39,37 +40,35 @@ public class AnimationControllerManager {
     }
 
     public <T> void registerVariable(String name, Class<T> type, Function<Entity, T> provider) {
-        List<Integer> indices = new ArrayList<>();
         switch (type.getSimpleName()) {
             case "Vector3f":
-                indices.add(addVariable(name + ".x", entity -> (double) ((Vector3f) provider.apply(entity)).x()));
-                indices.add(addVariable(name + ".y", entity -> (double) ((Vector3f) provider.apply(entity)).y()));
-                indices.add(addVariable(name + ".z", entity -> (double) ((Vector3f) provider.apply(entity)).z()));
-                indices.add(addVariable(name + ".length", entity -> (double) ((Vector3f) provider.apply(entity)).length()));
+                var vec = (Vector3f) provider.apply(null);
+                addVariable(name + ".x", entity -> (double) vec.x());
+                addVariable(name + ".y", entity -> (double) vec.y());
+                addVariable(name + ".z", entity -> (double) vec.z());
+                addVariable(name + ".length", entity -> (double) vec.length());
                 break;
             case "Float", "Double":
-                indices.add(addVariable(name, entity -> ((Number) provider.apply(entity)).doubleValue()));
+                addVariable(name, entity -> ((Number) provider.apply(entity)).doubleValue());
                 break;
             case "Boolean":
-                indices.add(addVariable(name, entity -> (Boolean) provider.apply(entity) ? 1.0 : 0.0));
+                addVariable(name, entity -> (Boolean) provider.apply(entity) ? 1.0 : 0.0);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported variable type: " + type.getSimpleName() + " There is also no way to register your own yet, report this.");
         }
-        variableIndicesByBaseName.put(name, indices);
     }
 
-    private int addVariable(String name, Function<Entity, Double> provider) {
-        int index = variableNames.size();
-        variableNames.add(name);
+    private void addVariable(String name, Function<Entity, Double> provider) {
         variableProviders.put(name, provider);
-        return index;
     }
 
     public EvaluationEnvironment createEvaluationEnvironment() {
         if (cachedEnv != null) return cachedEnv;
         EvaluationEnvironment env = new EvaluationEnvironment();
-        env.setVariableNames(variableNames.toArray(new String[0]));
+        variableProviders.forEach((name, provider) -> {
+            env.addLazyVariable(name, () -> provider.apply(currentEntity));
+        });
         for (AnimationControllerFunction function : functions.values()) {
             env.addFunction(function.name(), function.args(), function.function());
         }
@@ -79,27 +78,6 @@ public class AnimationControllerManager {
 
     public CompiledExpression compileExpression(String expression) {
         return expressionCache.computeIfAbsent(expression, e -> Crunch.compileExpression(e, createEvaluationEnvironment()));
-    }
-
-    public double[] getVariableValues(Entity entity) {
-        double[] values = new double[variableNames.size()];
-        for (int i = 0; i < variableNames.size(); i++) {
-            values[i] = variableProviders.get(variableNames.get(i)).apply(entity);
-        }
-        return values;
-    }
-
-    public double[] getVariableValues(Entity entity, TVAnimationController controller) {
-        double[] values = new double[variableNames.size()];
-        for (String baseVarName : controller.variables().keySet()) {
-            List<Integer> indices = variableIndicesByBaseName.get(baseVarName);
-            if (indices != null) {
-                for (int index : indices) {
-                    values[index] = variableProviders.get(variableNames.get(index)).apply(entity);
-                }
-            }
-        }
-        return values;
     }
 
     public record AnimationControllerFunction(String name, int args, ToDoubleFunction<double[]> function) {}

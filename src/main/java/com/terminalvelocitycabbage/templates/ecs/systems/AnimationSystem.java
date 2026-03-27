@@ -25,7 +25,7 @@ public class AnimationSystem extends System {
             if (controller == null) return;
 
             AnimationControllerManager animManager = ClientBase.getInstance().getAnimationControllerManager();
-            double[] variableValues = animManager.getVariableValues(entity, controller);
+            animManager.setCurrentEntity(entity);
 
             // 1. Evaluate base target influence for each animation and find max override priority
             int maxOverridePriority = -1;
@@ -36,7 +36,7 @@ public class AnimationSystem extends System {
 
                 float baseTarget;
                 if (anim.influence().isPresent()) {
-                    baseTarget = (float) anim.influence().get().evaluate(variableValues);
+                    baseTarget = (float) anim.influence().get().evaluate();
                 } else if (anim.trigger().isPresent()) {
                     String triggerName = anim.trigger().get();
                     if (component.getActiveTriggers().contains(triggerName)) {
@@ -77,7 +77,7 @@ public class AnimationSystem extends System {
                 // Handle progress (overrides time)
                 boolean isProgressControlled = anim.progress().isPresent();
                 if (isProgressControlled) {
-                    float progress = (float) anim.progress().get().evaluate(variableValues);
+                    float progress = (float) anim.progress().get().evaluate();
                     TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
                     if (tvAnim != null) {
                         float duration = tvAnim.metadata().duration();
@@ -138,7 +138,7 @@ public class AnimationSystem extends System {
                 // Evaluate speed and update time (only if NOT progress-controlled)
                 if (!isProgressControlled) {
                     if (anim.speed().isPresent()) {
-                        state.setSpeed((float) anim.speed().get().evaluate(variableValues));
+                        state.setSpeed((float) anim.speed().get().evaluate());
                     }
                     state.setCurrentTime(state.getCurrentTime() + (deltaTime / 1000.0f) * state.getSpeed());
                 }
