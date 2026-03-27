@@ -29,7 +29,7 @@ public class CrunchComplexTypeTest {
 
     // Storage for registered variables
     private final Map<String, Function<Entity, Double>> variableProviders = new HashMap<>();
-    private final List<String> variableNames = new ArrayList<>();
+    private Entity currentEntity;
 
     public <T> void registerAnimationControllerVariable(String variable, Class<T> type, Function<Entity, T> provider) {
         if (type == Vector3f.class) {
@@ -45,7 +45,6 @@ public class CrunchComplexTypeTest {
     }
 
     private void addVariable(String name, Function<Entity, Double> doubleProvider) {
-        variableNames.add(name);
         variableProviders.put(name, doubleProvider);
     }
 
@@ -57,7 +56,11 @@ public class CrunchComplexTypeTest {
 
         // Setup Crunch environment
         EvaluationEnvironment env = new EvaluationEnvironment();
-        env.setVariableNames(variableNames.toArray(new String[0]));
+        
+        // Register lazy variables
+        variableProviders.forEach((name, provider) -> {
+            env.addLazyVariable(name, () -> provider.apply(currentEntity));
+        });
 
         // Add "dot" function for two vectors (takes 6 components)
         // Usage: dot(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z)
@@ -66,30 +69,23 @@ public class CrunchComplexTypeTest {
         // Test 1: Component access
         String exprStr1 = "pos.x + pos.y + pos.z";
         CompiledExpression expr1 = Crunch.compileExpression(exprStr1, env);
-        Entity entity1 = new Entity(new Vector3f(1, 2, 3), new Vector3f(0, 0, 0));
-        assertEquals(6.0, expr1.evaluate(getVariableValues(entity1)), 0.001);
+        currentEntity = new Entity(new Vector3f(1, 2, 3), new Vector3f(0, 0, 0));
+        assertEquals(6.0, expr1.evaluate(), 0.001);
 
         // Test 2: Length access
         String exprStr2 = "pos.length";
         CompiledExpression expr2 = Crunch.compileExpression(exprStr2, env);
-        assertEquals(Math.sqrt(1*1 + 2*2 + 3*3), expr2.evaluate(getVariableValues(entity1)), 0.001);
+        assertEquals(Math.sqrt(1*1 + 2*2 + 3*3), expr2.evaluate(), 0.001);
 
         // Test 3: Dot product
         String exprStr3 = "dot(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z)";
         CompiledExpression expr3 = Crunch.compileExpression(exprStr3, env);
-        Entity entity2 = new Entity(new Vector3f(1, 0, 0), new Vector3f(0, 1, 0));
-        assertEquals(0.0, expr3.evaluate(getVariableValues(entity2)), 0.001);
+        currentEntity = new Entity(new Vector3f(1, 0, 0), new Vector3f(0, 1, 0));
+        assertEquals(0.0, expr3.evaluate(), 0.001);
         
-        Entity entity3 = new Entity(new Vector3f(1, 2, 3), new Vector3f(4, 5, 6));
+        currentEntity = new Entity(new Vector3f(1, 2, 3), new Vector3f(4, 5, 6));
         // 1*4 + 2*5 + 3*6 = 4 + 10 + 18 = 32
-        assertEquals(32.0, expr3.evaluate(getVariableValues(entity3)), 0.001);
+        assertEquals(32.0, expr3.evaluate(), 0.001);
     }
 
-    private double[] getVariableValues(Entity entity) {
-        double[] values = new double[variableNames.size()];
-        for (int i = 0; i < variableNames.size(); i++) {
-            values[i] = variableProviders.get(variableNames.get(i)).apply(entity);
-        }
-        return values;
-    }
 }

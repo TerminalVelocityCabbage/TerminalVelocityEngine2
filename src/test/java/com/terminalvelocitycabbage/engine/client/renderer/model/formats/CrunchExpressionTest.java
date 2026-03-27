@@ -32,13 +32,12 @@ public class CrunchExpressionTest {
 
     // Storage for registered variables
     private final Map<String, AnimationVariable<?>> registeredVariables = new HashMap<>();
-    private final List<String> variableNames = new ArrayList<>();
+    private Entity currentEntity;
 
     record AnimationVariable<T>(String name, Class<T> type, Function<Entity, T> provider) {}
 
     public <T> void registerAnimationControllerVariable(String variable, Class<T> type, Function<Entity, T> provider) {
         registeredVariables.put(variable, new AnimationVariable<>(variable, type, provider));
-        variableNames.add(variable);
     }
 
     @Test
@@ -52,8 +51,15 @@ public class CrunchExpressionTest {
         // Setup Crunch environment
         EvaluationEnvironment env = new EvaluationEnvironment();
         
-        // Register variable names in environment
-        env.setVariableNames(variableNames.toArray(new String[0]));
+        // Register lazy variables
+        registeredVariables.values().forEach(v -> {
+            env.addLazyVariable(v.name(), () -> {
+                Object value = v.provider().apply(currentEntity);
+                if (value instanceof Boolean b) return b ? 1.0 : 0.0;
+                if (value instanceof Number n) return n.doubleValue();
+                return 0.0;
+            });
+        });
 
         // Add custom "if" function: if(condition, trueValue, falseValue)
         env.addFunction("if", 3, args -> args[0] != 0 ? args[1] : args[2]);
@@ -66,43 +72,31 @@ public class CrunchExpressionTest {
         String exprStr1 = "1.0 - clamp(speed / 5.0, 0.0, if(on_ground, 1.0, 0.0))";
         CompiledExpression expr1 = Crunch.compileExpression(exprStr1, env);
 
-        Entity entity1 = new Entity(2.5f, true, false, 0f);
-        assertEquals(0.5, expr1.evaluate(getVariableValues(entity1)), 0.001);
+        currentEntity = new Entity(2.5f, true, false, 0f);
+        assertEquals(0.5, expr1.evaluate(), 0.001);
 
-        Entity entity2 = new Entity(2.5f, false, false, 0f);
-        assertEquals(1.0, expr1.evaluate(getVariableValues(entity2)), 0.001);
+        currentEntity = new Entity(2.5f, false, false, 0f);
+        assertEquals(1.0, expr1.evaluate(), 0.001);
 
         // influence = "if(!on_ground && !above_water, 1.0, 0.0)"
         String exprStr2 = "if(!on_ground && !above_water, 1.0, 0.0)";
         CompiledExpression expr2 = Crunch.compileExpression(exprStr2, env);
 
-        Entity entity3 = new Entity(0f, false, false, 5f);
-        assertEquals(1.0, expr2.evaluate(getVariableValues(entity3)), 0.001);
+        currentEntity = new Entity(0f, false, false, 5f);
+        assertEquals(1.0, expr2.evaluate(), 0.001);
 
-        Entity entity4 = new Entity(0f, true, false, 5f);
-        assertEquals(0.0, expr2.evaluate(getVariableValues(entity4)), 0.001);
+        currentEntity = new Entity(0f, true, false, 5f);
+        assertEquals(0.0, expr2.evaluate(), 0.001);
 
         // arm_swinging = "if(height > 10, 1.0, 0.0)"
         String exprStr3 = "if(height > 10, 1.0, 0.0)";
         CompiledExpression expr3 = Crunch.compileExpression(exprStr3, env);
 
-        Entity entity5 = new Entity(0f, true, false, 15f);
-        assertEquals(1.0, expr3.evaluate(getVariableValues(entity5)), 0.001);
+        currentEntity = new Entity(0f, true, false, 15f);
+        assertEquals(1.0, expr3.evaluate(), 0.001);
 
-        Entity entity6 = new Entity(0f, true, false, 5f);
-        assertEquals(0.0, expr3.evaluate(getVariableValues(entity6)), 0.001);
+        currentEntity = new Entity(0f, true, false, 5f);
+        assertEquals(0.0, expr3.evaluate(), 0.001);
     }
 
-    private double[] getVariableValues(Entity entity) {
-        double[] values = new double[variableNames.size()];
-        for (int i = 0; i < variableNames.size(); i++) {
-            Object value = registeredVariables.get(variableNames.get(i)).provider().apply(entity);
-            if (value instanceof Boolean b) {
-                values[i] = b ? 1.0 : 0.0;
-            } else if (value instanceof Number n) {
-                values[i] = n.doubleValue();
-            }
-        }
-        return values;
-    }
 }
