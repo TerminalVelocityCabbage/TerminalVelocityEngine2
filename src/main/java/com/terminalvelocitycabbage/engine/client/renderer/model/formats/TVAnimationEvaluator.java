@@ -32,7 +32,8 @@ public class TVAnimationEvaluator {
 
         if (animation != null) {
             float duration = animation.metadata().duration();
-            float t = time % duration;
+            float t = duration == 0 ? 0 : time % duration;
+            if (t == 0 && time > 0) t = duration;
             TVAnimation.TVAnimationLayer defaultLayer = animation.layers().get("default");
             if (defaultLayer != null) {
                 TVAnimation.TVAnimationKeyframe keyframes = defaultLayer.keyframes().get(boneName);
@@ -90,6 +91,7 @@ public class TVAnimationEvaluator {
 
             float duration = animation.metadata().duration();
             float t = duration == 0 ? 0 : animation.metadata().looping() ? state.getCurrentTime() % duration : Math.min(state.getCurrentTime(), duration);
+            if (animation.metadata().looping() && t == 0 && state.getCurrentTime() > 0) t = duration;
             TVAnimation.TVAnimationLayer defaultLayer = animation.layers().get("default");
             if (defaultLayer != null) {
                 TVAnimation.TVAnimationKeyframe keyframes = defaultLayer.keyframes().get(boneName);

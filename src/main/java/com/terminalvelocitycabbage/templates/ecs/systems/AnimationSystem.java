@@ -69,10 +69,26 @@ public class AnimationSystem extends System {
                 }
             }
 
-            // 2. Process animations with override logic
+            // 2. Process animations
             for (TVAnimationController.TVAnimationControllerAnimation anim : controller.animations().values()) {
                 AnimationControllerComponent.AnimationState state = component.getAnimationStates().computeIfAbsent(anim.animation(), k -> new AnimationControllerComponent.AnimationState());
                 float nextTarget = baseTargets.get(anim.animation());
+
+                // Handle progress (overrides time)
+                boolean isProgressControlled = anim.progress().isPresent();
+                if (isProgressControlled) {
+                    float progress = (float) anim.progress().get().evaluate(variableValues);
+                    TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
+                    if (tvAnim != null) {
+                        float duration = tvAnim.metadata().duration();
+                        state.setCurrentTime(progress * duration);
+                    }
+
+                    // If no explicit influence is defined, we use progress to determine if it's active
+                    if (anim.influence().isEmpty() && anim.trigger().isEmpty()) {
+                        nextTarget = progress > 0 ? 1.0f : 0.0f;
+                    }
+                }
 
                 // Apply override logic
                 int priority = anim.priority().orElse(1);
@@ -85,7 +101,7 @@ public class AnimationSystem extends System {
                     state.setCurrentTime(0);
                 }
 
-                // If target influence changed significantly, or we were at rest and target changed, start a new transition
+                // Transition logic (fading)
                 if (Math.abs(nextTarget - state.getLastEvaluatedTarget()) > 0.1f || (state.getInfluence() == state.getTargetInfluence() && Math.abs(nextTarget - state.getTargetInfluence()) > 0.0001f)) {
                     state.setStartInfluence(state.getInfluence());
                     state.setTargetInfluence(nextTarget);
@@ -104,7 +120,7 @@ public class AnimationSystem extends System {
                         currentInfluence = targetInfluence;
                     } else {
                         state.setElapsedTransitionTime(state.getElapsedTransitionTime() + (deltaTime / 1000.0f));
-                        float progress = Math.min(1.0f, state.getElapsedTransitionTime() / duration);
+                        float fadingProgress = Math.min(1.0f, state.getElapsedTransitionTime() / duration);
 
                         Easing.Direction direction = Easing.Direction.IN_OUT;
                         Easing.Function function = Easing.Function.LINEAR;
@@ -113,32 +129,18 @@ public class AnimationSystem extends System {
                         }
 
                         // Use the easing function to define the transition
-                        float easedProgress = Easing.ease(direction, function, progress);
+                        float easedProgress = Easing.ease(direction, function, fadingProgress);
                         currentInfluence = state.getStartInfluence() + (targetInfluence - state.getStartInfluence()) * easedProgress;
                     }
                 }
                 state.setInfluence(currentInfluence);
 
-                // Evaluate speed
-                if (anim.speed().isPresent()) {
-                    state.setSpeed((float) anim.speed().get().evaluate(variableValues));
-                }
-
-                // Update time
-                state.setCurrentTime(state.getCurrentTime() + (deltaTime / 1000.0f) * state.getSpeed());
-
-                // Handle progress (overrides time)
-                if (anim.progress().isPresent()) {
-                    float progress = (float) anim.progress().get().evaluate(variableValues);
-                    TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
-                    if (tvAnim != null) {
-                        float duration = tvAnim.metadata().duration();
-                        if (duration == 0) {
-                            state.setCurrentTime(0);
-                        } else {
-                            state.setCurrentTime(progress * duration);
-                        }
+                // Evaluate speed and update time (only if NOT progress-controlled)
+                if (!isProgressControlled) {
+                    if (anim.speed().isPresent()) {
+                        state.setSpeed((float) anim.speed().get().evaluate(variableValues));
                     }
+                    state.setCurrentTime(state.getCurrentTime() + (deltaTime / 1000.0f) * state.getSpeed());
                 }
             }
 
