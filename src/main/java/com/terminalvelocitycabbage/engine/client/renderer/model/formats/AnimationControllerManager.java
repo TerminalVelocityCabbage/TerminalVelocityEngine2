@@ -42,11 +42,10 @@ public class AnimationControllerManager {
     public <T> void registerVariable(String name, Class<T> type, Function<Entity, T> provider) {
         switch (type.getSimpleName()) {
             case "Vector3f":
-                var vec = (Vector3f) provider.apply(null);
-                addVariable(name + ".x", entity -> (double) vec.x());
-                addVariable(name + ".y", entity -> (double) vec.y());
-                addVariable(name + ".z", entity -> (double) vec.z());
-                addVariable(name + ".length", entity -> (double) vec.length());
+                addVariable(name + ".x", entity -> (double) ((Vector3f) provider.apply(entity)).x());
+                addVariable(name + ".y", entity -> (double) ((Vector3f) provider.apply(entity)).y());
+                addVariable(name + ".z", entity -> (double) ((Vector3f) provider.apply(entity)).z());
+                addVariable(name + ".length", entity -> (double) ((Vector3f) provider.apply(entity)).length());
                 break;
             case "Float", "Double":
                 addVariable(name, entity -> ((Number) provider.apply(entity)).doubleValue());

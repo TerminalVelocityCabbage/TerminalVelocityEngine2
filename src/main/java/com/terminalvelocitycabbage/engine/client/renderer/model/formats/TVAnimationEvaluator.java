@@ -41,8 +41,9 @@ public class TVAnimationEvaluator {
                     Vector3f animPos = evaluateTransform(keyframes.positions(), t);
                     Vector3f animRot = evaluateTransform(keyframes.rotations(), t);
                     Vector3f animScale = evaluateTransform(keyframes.grows(), t);
+                    Vector3f animOffset = evaluateTransform(keyframes.offsets(), t);
 
-                    applyAnimationToTransform(localTransform, animPos, animRot, animScale);
+                    applyAnimationToTransform(localTransform, animPos, animRot, animScale, animOffset);
                 }
             }
         }
@@ -78,6 +79,7 @@ public class TVAnimationEvaluator {
         Vector3f totalAnimPos = new Vector3f(0, 0, 0);
         Vector3f totalAnimRot = new Vector3f(0, 0, 0);
         Vector3f totalAnimScale = new Vector3f(0, 0, 0);
+        Vector3f totalAnimOffset = new Vector3f(0, 0, 0);
 
         for (var stateEntry : component.getAnimationStates().entrySet()) {
             String animName = stateEntry.getKey();
@@ -99,15 +101,17 @@ public class TVAnimationEvaluator {
                     Vector3f animPos = evaluateTransform(keyframes.positions(), t);
                     Vector3f animRot = evaluateTransform(keyframes.rotations(), t);
                     Vector3f animScale = evaluateTransform(keyframes.grows(), t);
+                    Vector3f animOffset = evaluateTransform(keyframes.offsets(), t);
 
                     totalAnimPos.add(new Vector3f(animPos).mul(state.getInfluence()));
                     totalAnimRot.add(new Vector3f(animRot).mul(state.getInfluence()));
                     totalAnimScale.add(new Vector3f(animScale).mul(state.getInfluence()));
+                    totalAnimOffset.add(new Vector3f(animOffset).mul(state.getInfluence()));
                 }
             }
         }
 
-        applyAnimationToTransform(localTransform, totalAnimPos, totalAnimRot, totalAnimScale);
+        applyAnimationToTransform(localTransform, totalAnimPos, totalAnimRot, totalAnimScale, totalAnimOffset);
 
         Matrix4f parentTransform = new Matrix4f();
         if (bone.parent().isPresent() && skeleton.bones().containsKey(bone.parent().get())) {
@@ -123,13 +127,15 @@ public class TVAnimationEvaluator {
         Matrix4f localTransform = new Matrix4f();
         localTransform.translate(bone.position());
         localTransform.rotateZYX((float) Math.toRadians(bone.rotation().z()), (float) Math.toRadians(bone.rotation().y()), (float) Math.toRadians(bone.rotation().x()));
+        localTransform.translate(bone.offset());
         return localTransform;
     }
 
-    private static void applyAnimationToTransform(Matrix4f localTransform, Vector3f animPos, Vector3f animRot, Vector3f animScale) {
+    private static void applyAnimationToTransform(Matrix4f localTransform, Vector3f animPos, Vector3f animRot, Vector3f animScale, Vector3f animOffset) {
         localTransform.translate(animPos);
         localTransform.rotateZYX((float) Math.toRadians(animRot.z()), (float) Math.toRadians(animRot.y()), (float) Math.toRadians(animRot.x()));
         localTransform.scale(new Vector3f(animScale).add(1.0f, 1.0f, 1.0f));
+        localTransform.translate(animOffset);
     }
 
     private static Vector3f evaluateTransform(Map<Float, TVAnimation.TVAnimationBoneTransformation> keyframes, float t) {
