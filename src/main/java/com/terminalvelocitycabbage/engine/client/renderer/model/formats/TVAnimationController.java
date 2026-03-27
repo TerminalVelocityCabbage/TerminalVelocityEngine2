@@ -70,7 +70,7 @@ public record TVAnimationController(
             Optional<String> postAction, // For triggers: reset, hold
             Optional<Map<String, CompiledExpression>> layers, //Optional map of layer names to influence expressions to control the influence of a specific layer based on an expression
             Optional<Integer> priority, //An optional integer that determines the priority of this animation relative to other animations. Default: 1
-            Optional<CompiledExpression> blend, //An optional expression that determines how this animation should blend with other animations. Particularly useful for animations with conflicting priorities. (override, additive) Default: additive
+            Optional<String> blend, //An optional string that determines how this animation should blend with other animations. Particularly useful for animations with conflicting priorities. (override, additive) Default: additive
             Optional<String> ease, //How to ease the animation in and out. (linear, step, sin, quadratic, cubic, quartic, quintic, exponential, circular, back, elastic, bounce, catmulrom) Default: linear
             Optional<Float> fadeIn, //An optional float that determines how long in seconds this animation should take to fade in.
             Optional<Float> fadeOut, //An optional float that determines how long in seconds this animation should take to fade out. A fade out is triggered when the animation is finished playing or when it is interrupted.
@@ -94,7 +94,6 @@ public record TVAnimationController(
 
             Optional<String> influence = Optional.ofNullable(animConfig.get("influence"));
             Optional<Map<String, String>> layers = Optional.ofNullable(animConfig.get("layers"));
-            Optional<String> blend = Optional.ofNullable(animConfig.get("blend"));
             Optional<String> speed = Optional.ofNullable(animConfig.get("speed"));
             Optional<String> progress = Optional.ofNullable(animConfig.get("progress"));
 
@@ -109,7 +108,7 @@ public record TVAnimationController(
                         return compiled;
                     }),
                     Optional.ofNullable(animConfig.<Number>get("priority")).map(Number::intValue),
-                    blend.map(animationControllerManager::compileExpression),
+                    Optional.ofNullable(animConfig.get("blend")),
                     Optional.ofNullable(animConfig.get("ease")),
                     Optional.ofNullable(animConfig.<Number>get("fade_in")).map(Number::floatValue),
                     Optional.ofNullable(animConfig.<Number>get("fade_out")).map(Number::floatValue),

@@ -10,6 +10,9 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.util.Easing;
 import com.terminalvelocitycabbage.templates.ecs.components.AnimationControllerComponent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class AnimationSystem extends System {
 
     @Override
@@ -24,26 +27,62 @@ public class AnimationSystem extends System {
             AnimationControllerManager animManager = ClientBase.getInstance().getAnimationControllerManager();
             double[] variableValues = animManager.getVariableValues(entity, controller);
 
-            for (TVAnimationController.TVAnimationControllerAnimation anim : controller.animations().values()) {
-                AnimationControllerComponent.AnimationState state = component.getAnimationStates().computeIfAbsent(anim.animation(), k -> new AnimationControllerComponent.AnimationState());
+            // 1. Evaluate base target influence for each animation and find max override priority
+            int maxOverridePriority = -1;
+            Map<String, Float> baseTargets = new HashMap<>();
 
-                // Evaluate next target influence
-                float nextTarget = state.getTargetInfluence();
+            for (TVAnimationController.TVAnimationControllerAnimation anim : controller.animations().values()) {
+                AnimationControllerComponent.AnimationState state = component.getAnimationStates().get(anim.animation());
+
+                float baseTarget;
                 if (anim.influence().isPresent()) {
-                    nextTarget = (float) anim.influence().get().evaluate(variableValues);
+                    baseTarget = (float) anim.influence().get().evaluate(variableValues);
                 } else if (anim.trigger().isPresent()) {
                     String triggerName = anim.trigger().get();
                     if (component.getActiveTriggers().contains(triggerName)) {
-                        nextTarget = 1.0f;
-                        state.setCurrentTime(0); // Reset for trigger
-                    } else if (anim.postAction().isPresent() && anim.postAction().get().equals("reset")) {
-                        TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
-                        if (tvAnim != null && !tvAnim.metadata().looping() && state.getCurrentTime() >= tvAnim.metadata().duration()) {
-                            nextTarget = 0.0f;
+                        baseTarget = 1.0f;
+                    } else if (state != null) {
+                        baseTarget = state.getTargetInfluence();
+                        if (anim.postAction().isPresent() && anim.postAction().get().equals("reset")) {
+                            TVAnimation tvAnim = ClientBase.getInstance().getTvAnimationRegistry().get(Identifier.fromString(anim.animation(), "animation"));
+                            if (tvAnim != null && !tvAnim.metadata().looping() && state.getCurrentTime() >= tvAnim.metadata().duration()) {
+                                baseTarget = 0.0f;
+                            }
                         }
+                    } else {
+                        baseTarget = 0.0f;
                     }
                 } else {
-                    nextTarget = 1.0f;
+                    baseTarget = 1.0f;
+                }
+                baseTargets.put(anim.animation(), baseTarget);
+
+                // Check for override
+                float currentInfluence = state == null ? 0 : state.getInfluence();
+                if (baseTarget > 0 || currentInfluence > 0) {
+                    if (anim.blend().isPresent() && anim.blend().get().equalsIgnoreCase("override")) { // override
+                        int priority = anim.priority().orElse(1);
+                        if (priority > maxOverridePriority) {
+                            maxOverridePriority = priority;
+                        }
+                    }
+                }
+            }
+
+            // 2. Process animations with override logic
+            for (TVAnimationController.TVAnimationControllerAnimation anim : controller.animations().values()) {
+                AnimationControllerComponent.AnimationState state = component.getAnimationStates().computeIfAbsent(anim.animation(), k -> new AnimationControllerComponent.AnimationState());
+                float nextTarget = baseTargets.get(anim.animation());
+
+                // Apply override logic
+                int priority = anim.priority().orElse(1);
+                if (priority < maxOverridePriority) {
+                    nextTarget = 0.0f;
+                }
+
+                // Handle trigger reset
+                if (anim.trigger().isPresent() && component.getActiveTriggers().contains(anim.trigger().get())) {
+                    state.setCurrentTime(0);
                 }
 
                 // If target influence changed significantly, or we were at rest and target changed, start a new transition

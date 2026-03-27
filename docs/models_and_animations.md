@@ -280,7 +280,7 @@ to a float between 0 and 1.
 after the animation is finished. Acceptable post-actions are: reset and hold. A trigger and an influence expression cannot be defined at the same time.
 - layers: Allow you to control the influence of specific layers of an animation here similarly to the influence property.
 - priority: An optional integer that determines the priority of this animation relative to other animations. Default: 1
-- blend: An optional expression that determines how this animation should blend with other animations. Particularly useful 
+- blend: An optional string that determines how this animation should blend with other animations. Particularly useful 
 for animations with conflicting priorities. (override, additive) Default: additive
 - ease: How to ease the animation in and out. (linear, step, sin, quadratic, cubic, quartic, quintic, exponential, 
 circular, back, elastic, bounce, catmulrom) Default: linear
