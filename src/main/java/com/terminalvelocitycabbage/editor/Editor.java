@@ -37,7 +37,7 @@ public abstract class Editor<T extends ClientBase> extends ClientBase {
     public void registerEventListeners(EventDispatcher dispatcher) {
         gameClient.registerEventListeners(dispatcher);
         dispatcher.listenToEvent(ResourceCategoryRegistrationEvent.EVENT, event -> {
-            ResourceCategory.registerEngineDefaults(((ResourceCategoryRegistrationEvent) event).getRegistry());
+            ResourceCategory.registerEngineDefaults(((ResourceCategoryRegistrationEvent) event).getRegistry(), getNamespace());
         });
         dispatcher.listenToEvent(ResourceSourceRegistrationEvent.EVENT, event -> {
             ResourceSource mainSource = new MainSource(getInstance(), getNamespace());
