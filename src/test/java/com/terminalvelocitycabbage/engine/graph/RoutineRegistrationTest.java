@@ -1,4 +1,4 @@
-package com.terminalvelocitycabbage.test.routines;
+package com.terminalvelocitycabbage.engine.graph;
 
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
@@ -6,7 +6,6 @@ import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
-import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.registry.Registry;
 import com.terminalvelocitycabbage.templates.events.RoutineRegistrationEvent;
@@ -66,7 +65,7 @@ public class RoutineRegistrationTest {
         GameFileSystem fileSystem = new GameFileSystem() {
             @Override
             public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
-                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test.routine.toml")) {
+                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test")) {
                     return new Resource() {
                         @Override public InputStream openStream() throws IOException { return null; }
                         @Override public DataInputStream asDataStream() { return null; }
@@ -124,7 +123,7 @@ public class RoutineRegistrationTest {
         GameFileSystem fileSystem = new GameFileSystem() {
             @Override
             public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
-                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_order.routine.toml")) {
+                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_order")) {
                     return new Resource() {
                         @Override public InputStream openStream() throws IOException { return null; }
                         @Override public DataInputStream asDataStream() { return null; }
@@ -176,7 +175,7 @@ public class RoutineRegistrationTest {
         GameFileSystem fileSystem = new GameFileSystem() {
             @Override
             public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
-                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_parallel_order.routine.toml")) {
+                if (resourceCategory == ResourceCategory.ROUTINE && identifier.name().equals("test_parallel_order")) {
                     return new Resource() {
                         @Override public InputStream openStream() throws IOException { return null; }
                         @Override public DataInputStream asDataStream() { return null; }

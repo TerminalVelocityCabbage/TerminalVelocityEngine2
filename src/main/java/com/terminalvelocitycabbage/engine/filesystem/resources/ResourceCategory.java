@@ -16,6 +16,7 @@ public record ResourceCategory(String name, String plural) {
     public static final ResourceCategory MODEL = new ResourceCategory("model");
     public static final ResourceCategory TEXTURE = new ResourceCategory("texture");
     public static final ResourceCategory ANIMATION = new ResourceCategory("animation");
+    public static final ResourceCategory ANIMATION_CONTROLLER = new ResourceCategory("animation_controller");
     public static final ResourceCategory SHADER = new ResourceCategory("shader");
     public static final ResourceCategory DEFAULT_CONFIG = new ResourceCategory("default_config");
     public static final ResourceCategory SOUND = new ResourceCategory("sound");
@@ -35,6 +36,7 @@ public record ResourceCategory(String name, String plural) {
         register(registry, namespace, MODEL);
         register(registry, namespace, TEXTURE);
         register(registry, namespace, ANIMATION);
+        register(registry, namespace, ANIMATION_CONTROLLER);
         register(registry, namespace, SHADER);
         register(registry, namespace, DEFAULT_CONFIG);
         register(registry, namespace, SOUND);

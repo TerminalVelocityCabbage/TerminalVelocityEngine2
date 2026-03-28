@@ -44,7 +44,7 @@ public class MeshCache {
 
             var compiledMesh = Mesh.of(meshesToMerge);
             var atlasIdentifier = config.meshTexturePairs().get(0).textureIdentifier();
-            modelRegistry.register(identifier, new Model(compiledMesh, atlasIdentifier), true);
+            modelRegistry.register(identifier, new Model(compiledMesh, atlasIdentifier, config.skeleton()), true);
         });
     }
 

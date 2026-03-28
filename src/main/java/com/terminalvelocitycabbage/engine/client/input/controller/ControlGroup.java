@@ -30,4 +30,14 @@ public class ControlGroup {
         }
     }
 
+    public boolean isPressed() {
+        for (KeyboardKeyControl kkc : keyboardKeyControls) if (kkc.isPressed()) return true;
+        for (GamepadButtonControl gpbc : gamepadButtonControls) if (gpbc.isPressed()) return true;
+        for (MouseButtonControl mbc : mouseButtonControls) if (mbc.isPressed()) return true;
+        for (GamepadAxisControl gpac : gamepadAxisControls) if (gpac.isPressed()) return true;
+        for (MouseMovementControl mmc : mouseMovementControls) if (mmc.isPressed()) return true;
+        for (MouseScrollControl msc : mouseScrollControls) if (msc.isPressed()) return true;
+        return false;
+    }
+
 }

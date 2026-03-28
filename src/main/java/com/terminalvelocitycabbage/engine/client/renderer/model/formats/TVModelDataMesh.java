@@ -1,0 +1,199 @@
+package com.terminalvelocitycabbage.engine.client.renderer.model.formats;
+
+import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexAttribute;
+import com.terminalvelocitycabbage.engine.client.renderer.elements.VertexFormat;
+import com.terminalvelocitycabbage.engine.client.renderer.model.DataMesh;
+import com.terminalvelocitycabbage.engine.client.renderer.model.Vertex;
+import com.terminalvelocitycabbage.engine.util.touples.Pair;
+import org.joml.Matrix4f;
+import org.joml.Vector2i;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class TVModelDataMesh extends DataMesh {
+
+    private final TVModel model;
+    private final String layerName;
+    private int[] indices;
+
+    public TVModelDataMesh(TVModel model, String layerName) {
+        this.model = model;
+        this.layerName = layerName;
+    }
+
+    @Override
+    public Vertex[] getVertices(VertexFormat format) {
+        List<Vertex> vertexList = new ArrayList<>();
+        List<Integer> indexList = new ArrayList<>();
+        Vector2i textureSize = model.metadata().textureLayers().get(layerName);
+        if (textureSize == null) return new Vertex[0];
+
+        for (TVModel.TVModelCube cube : model.cubes().values()) {
+            if (cube.textures().layer().equals(layerName)) {
+                addCube(cube, vertexList, indexList, format, textureSize);
+            }
+        }
+
+        this.indices = indexList.stream().mapToInt(i -> i).toArray();
+        return vertexList.toArray(new Vertex[0]);
+    }
+
+    @Override
+    public int[] getIndices() {
+        return indices;
+    }
+
+    private void addCube(TVModel.TVModelCube cube, List<Vertex> vertices, List<Integer> indices, VertexFormat format, Vector2i textureSize) {
+        var transformResult = calculateBoneRelativeTransform(cube);
+        Matrix4f transform = transformResult.getValue0();
+        int boneIndex = transformResult.getValue1();
+
+        float sx = cube.size().x() + cube.grow().x() * 2;
+        float sy = cube.size().y() + cube.grow().y() * 2;
+        float sz = cube.size().z() + cube.grow().z() * 2;
+
+        float ox = cube.offset().x() - cube.grow().x();
+        float oy = cube.offset().y() - cube.grow().y();
+        float oz = cube.offset().z() - cube.grow().z();
+
+        // Positive X face (Right)
+        cube.textures().pxFace().ifPresent(uv -> addFace(vertices, indices, format, transform, boneIndex,
+                new Vector3f(ox + sx, oy, oz + sz),
+                new Vector3f(ox + sx, oy, oz),
+                new Vector3f(ox + sx, oy + sy, oz),
+                new Vector3f(ox + sx, oy + sy, oz + sz),
+                new Vector3f(1, 0, 0),
+                uv, textureSize));
+
+        // Negative X face (Left)
+        cube.textures().nxFace().ifPresent(uv -> addFace(vertices, indices, format, transform, boneIndex,
+                new Vector3f(ox, oy, oz),
+                new Vector3f(ox, oy, oz + sz),
+                new Vector3f(ox, oy + sy, oz + sz),
+                new Vector3f(ox, oy + sy, oz),
+                new Vector3f(-1, 0, 0),
+                uv, textureSize));
+
+        // Positive Y face (Up)
+        cube.textures().pyFace().ifPresent(uv -> addFace(vertices, indices, format, transform, boneIndex,
+                new Vector3f(ox, oy + sy, oz + sz),
+                new Vector3f(ox + sx, oy + sy, oz + sz),
+                new Vector3f(ox + sx, oy + sy, oz),
+                new Vector3f(ox, oy + sy, oz),
+                new Vector3f(0, 1, 0),
+                uv, textureSize));
+
+        // Negative Y face (Down)
+        cube.textures().nyFace().ifPresent(uv -> addFace(vertices, indices, format, transform, boneIndex,
+                new Vector3f(ox, oy, oz),
+                new Vector3f(ox + sx, oy, oz),
+                new Vector3f(ox + sx, oy, oz + sz),
+                new Vector3f(ox, oy, oz + sz),
+                new Vector3f(0, -1, 0),
+                uv, textureSize));
+
+        // Positive Z face (Forward/South)
+        cube.textures().pzFace().ifPresent(uv -> addFace(vertices, indices, format, transform, boneIndex,
+                new Vector3f(ox, oy, oz + sz),
+                new Vector3f(ox + sx, oy, oz + sz),
+                new Vector3f(ox + sx, oy + sy, oz + sz),
+                new Vector3f(ox, oy + sy, oz + sz),
+                new Vector3f(0, 0, 1),
+                uv, textureSize));
+
+        // Negative Z face (Back/North)
+        cube.textures().nzFace().ifPresent(uv -> addFace(vertices, indices, format, transform, boneIndex,
+                new Vector3f(ox + sx, oy, oz),
+                new Vector3f(ox, oy, oz),
+                new Vector3f(ox, oy + sy, oz),
+                new Vector3f(ox + sx, oy + sy, oz),
+                new Vector3f(0, 0, -1),
+                uv, textureSize));
+    }
+
+    private void addFace(List<Vertex> vertices, List<Integer> indices, VertexFormat format, Matrix4f transform, int boneIndex,
+                        Vector3f v0, Vector3f v1, Vector3f v2, Vector3f v3, Vector3f normal,
+                        TVModel.TVModelCubeTextureMapping.TVModelFaceUV uv, Vector2i textureSize) {
+        int baseIndex = vertices.size();
+
+        int u1 = uv.u1v1().x;
+        int v1_uv = uv.u1v1().y;
+        int u2 = uv.u2v2().x;
+        int v2_uv = uv.u2v2().y;
+
+        int[] u = {u1, u2, u2, u1};
+        int[] v = {v2_uv, v2_uv, v1_uv, v1_uv};
+
+        int rotSteps = (uv.rotation() / 90) % 4;
+        for (int i = 0; i < rotSteps; i++) {
+            int tempU = u[0];
+            int tempV = v[0];
+            u[0] = u[1]; v[0] = v[1];
+            u[1] = u[2]; v[1] = v[2];
+            u[2] = u[3]; v[2] = v[3];
+            u[3] = tempU; v[3] = tempV;
+        }
+
+        vertices.add(createVertex(format, transform, boneIndex, v0, u[0], v[0], textureSize, normal));
+        vertices.add(createVertex(format, transform, boneIndex, v1, u[1], v[1], textureSize, normal));
+        vertices.add(createVertex(format, transform, boneIndex, v2, u[2], v[2], textureSize, normal));
+        vertices.add(createVertex(format, transform, boneIndex, v3, u[3], v[3], textureSize, normal));
+
+        indices.add(baseIndex);
+        indices.add(baseIndex + 1);
+        indices.add(baseIndex + 2);
+        indices.add(baseIndex + 2);
+        indices.add(baseIndex + 3);
+        indices.add(baseIndex);
+    }
+
+    private Vertex createVertex(VertexFormat format, Matrix4f transform, int boneIndex, Vector3f pos, int u, int v, Vector2i textureSize, Vector3f normal) {
+        Vector4f transformedPos = new Vector4f(pos, 1.0f).mul(transform);
+        Vector4f transformedNormal = new Vector4f(normal, 0.0f).mul(transform);
+        var vertex = new Vertex(format)
+                .setXYZPosition(transformedPos.x, transformedPos.y, transformedPos.z)
+                .setXYZNormal(transformedNormal.x, transformedNormal.y, transformedNormal.z)
+                .setRGBColor(1.0f, 1.0f, 1.0f)
+                .setUV((float) u / textureSize.x, (float) v / textureSize.y);
+
+        if (format.hasComponent(VertexAttribute.BONE_INDEX)) {
+            vertex.setBoneIndex(boneIndex);
+        }
+
+        return vertex;
+    }
+
+    private Pair<Matrix4f, Integer> calculateBoneRelativeTransform(TVModel.TVModelCube cube) {
+        Matrix4f matrix = new Matrix4f();
+        List<Object> parents = new ArrayList<>();
+        parents.add(cube);
+
+        String parentName = cube.parent().orElse(null);
+        int boneIndex = -1;
+        while (parentName != null) {
+            if (model.bones().containsKey(parentName)) {
+                boneIndex = model.boneIndices().get(parentName);
+                break;
+            } else if (model.cubes().containsKey(parentName)) {
+                var parentCube = model.cubes().get(parentName);
+                parents.add(parentCube);
+                parentName = parentCube.parent().orElse(null);
+            } else {
+                parentName = null;
+            }
+        }
+
+        for (int i = parents.size() - 1; i >= 0; i--) {
+            Object p = parents.get(i);
+            if (p instanceof TVModel.TVModelCube c) {
+                matrix.translate(c.position());
+                matrix.rotateZYX((float) Math.toRadians(c.rotation().z()), (float) Math.toRadians(c.rotation().y()), (float) Math.toRadians(c.rotation().x()));
+            }
+        }
+
+        return new Pair<>(matrix, boneIndex);
+    }
+}

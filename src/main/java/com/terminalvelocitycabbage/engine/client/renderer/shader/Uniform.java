@@ -85,7 +85,7 @@ public class Uniform {
 
     public void setUniform(Matrix3f matrix3f) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformMatrix4fv(uniformLocation, false, matrix3f.get(stack.mallocFloat(9)));
+            glUniformMatrix3fv(uniformLocation, false, matrix3f.get(stack.mallocFloat(9)));
         }
     }
 
@@ -95,6 +95,16 @@ public class Uniform {
     public void setUniform(Matrix4f matrix4f) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             glUniformMatrix4fv(uniformLocation, false, matrix4f.get(stack.mallocFloat(16)));
+        }
+    }
+
+    public void setUniform(Matrix4f[] matrix4fs) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            var fb = stack.mallocFloat(16 * matrix4fs.length);
+            for (int i = 0; i < matrix4fs.length; i++) {
+                matrix4fs[i].get(16 * i, fb);
+            }
+            glUniformMatrix4fv(uniformLocation, false, fb);
         }
     }
 
