@@ -1,10 +1,12 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
+import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.client.renderer.Projection;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.util.Transformation;
 import org.joml.Matrix4f;
 
+@EditorHint.ComponentName(name = "Camera")
 public abstract class CameraComponent implements Component {
 
     private final Projection projection;
