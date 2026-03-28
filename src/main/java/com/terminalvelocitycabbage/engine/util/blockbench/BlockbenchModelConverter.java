@@ -203,15 +203,37 @@ public class BlockbenchModelConverter {
 
                 // Cubes in this bone
                 List<Config> cubesJson = boneJson.get("cubes");
+                float minX = Float.POSITIVE_INFINITY, minY = Float.POSITIVE_INFINITY, minZ = Float.POSITIVE_INFINITY;
+                float maxX = Float.NEGATIVE_INFINITY, maxY = Float.NEGATIVE_INFINITY, maxZ = Float.NEGATIVE_INFINITY;
+                boolean hasCubes = false;
+
                 if (cubesJson != null) {
                     int cubeIndex = 0;
                     for (Config cubeJson : cubesJson) {
+                        hasCubes = true;
                         Config tomlCube = Config.inMemory();
                         tomlCube.set("name", boneName + "_cube_" + cubeIndex++);
                         tomlCube.set("parent", boneName);
                         
                         List<Number> size = cubeJson.get("size");
                         if (size == null) size = List.of(0, 0, 0);
+
+                        List<Number> cubeOrigin = cubeJson.get("origin");
+                        if (cubeOrigin == null) cubeOrigin = List.of(0, 0, 0);
+                        float cox = cubeOrigin.get(0).floatValue() - pivot.get(0).floatValue();
+                        float coy = cubeOrigin.get(1).floatValue() - pivot.get(1).floatValue();
+                        float coz = cubeOrigin.get(2).floatValue() - pivot.get(2).floatValue();
+                        float csx = size.get(0).floatValue();
+                        float csy = size.get(1).floatValue();
+                        float csz = size.get(2).floatValue();
+
+                        minX = Math.min(minX, cox);
+                        minY = Math.min(minY, coy);
+                        minZ = Math.min(minZ, coz);
+                        maxX = Math.max(maxX, cox + csx);
+                        maxY = Math.max(maxY, coy + csy);
+                        maxZ = Math.max(maxZ, coz + csz);
+
                         List<Integer> roundedSize = new ArrayList<>(3);
                         List<Float> growAdjustment = new ArrayList<>(3);
                         for (Number n : size) {
@@ -322,6 +344,10 @@ public class BlockbenchModelConverter {
                     }
                 }
                 
+                if (hasCubes) {
+                    tomlBone.set("size", List.of(maxX - minX, maxY - minY, maxZ - minZ));
+                }
+
                 // Locators as Anchors
                 Config locators = boneJson.get("locators");
                 if (locators != null) {

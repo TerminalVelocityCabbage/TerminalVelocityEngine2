@@ -15,6 +15,7 @@ public record Skeleton(
         Optional<String> parent,
         Vector3f position,
         Vector3f offset,
-        Vector3f rotation
+        Vector3f rotation,
+        Vector3f size
     ) { }
 }

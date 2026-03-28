@@ -37,7 +37,8 @@ public record TVModel(
                     bone.parent(),
                     bone.position(),
                     bone.offset(),
-                    bone.rotation()
+                    bone.rotation(),
+                    bone.size()
             ));
         });
         Skeleton skeleton = new Skeleton(skeletonBones, boneIndices, null);
@@ -202,7 +203,8 @@ public record TVModel(
             Optional<String> parent,
             Vector3f position,
             Vector3f offset,
-            Vector3f rotation
+            Vector3f rotation,
+            Vector3f size
     ) {
 
         public static TVModelBone of(Config boneConfig) {
@@ -211,7 +213,8 @@ public record TVModel(
             Vector3f position = ConfigUtils.parseVector3f(boneConfig.get("position"));
             Vector3f offset = ConfigUtils.parseVector3f(boneConfig.get("offset"));
             Vector3f rotation = ConfigUtils.parseVector3f(boneConfig.get("rotation"));
-            return new TVModelBone(bName, Optional.ofNullable(bParent), position, offset, rotation);
+            Vector3f size = ConfigUtils.parseVector3f(boneConfig.get("size"));
+            return new TVModelBone(bName, Optional.ofNullable(bParent), position, offset, rotation, size);
         }
 
     }

@@ -43,7 +43,7 @@ public class TVAnimationEvaluator {
                     Vector3f animScale = evaluateTransform(keyframes.grows(), t);
                     Vector3f animOffset = evaluateTransform(keyframes.offsets(), t);
 
-                    applyAnimationToTransform(localTransform, animPos, animRot, animScale, animOffset);
+                    applyAnimationToTransform(localTransform, animPos, animRot, animScale, animOffset, bone.size());
                 }
             }
         }
@@ -111,7 +111,7 @@ public class TVAnimationEvaluator {
             }
         }
 
-        applyAnimationToTransform(localTransform, totalAnimPos, totalAnimRot, totalAnimScale, totalAnimOffset);
+        applyAnimationToTransform(localTransform, totalAnimPos, totalAnimRot, totalAnimScale, totalAnimOffset, bone.size());
 
         Matrix4f parentTransform = new Matrix4f();
         if (bone.parent().isPresent() && skeleton.bones().containsKey(bone.parent().get())) {
@@ -131,10 +131,15 @@ public class TVAnimationEvaluator {
         return localTransform;
     }
 
-    private static void applyAnimationToTransform(Matrix4f localTransform, Vector3f animPos, Vector3f animRot, Vector3f animScale, Vector3f animOffset) {
+    private static void applyAnimationToTransform(Matrix4f localTransform, Vector3f animPos, Vector3f animRot, Vector3f animScale, Vector3f animOffset, Vector3f boneSize) {
         localTransform.translate(animPos);
         localTransform.rotateZYX((float) Math.toRadians(animRot.z()), (float) Math.toRadians(animRot.y()), (float) Math.toRadians(animRot.x()));
-        localTransform.scale(new Vector3f(animScale).add(1.0f, 1.0f, 1.0f));
+
+        float sx = boneSize.x == 0 ? 1.0f + animScale.x : 1.0f + (2.0f * animScale.x / boneSize.x);
+        float sy = boneSize.y == 0 ? 1.0f + animScale.y : 1.0f + (2.0f * animScale.y / boneSize.y);
+        float sz = boneSize.z == 0 ? 1.0f + animScale.z : 1.0f + (2.0f * animScale.z / boneSize.z);
+
+        localTransform.scale(sx, sy, sz);
         localTransform.translate(animOffset);
     }
 
