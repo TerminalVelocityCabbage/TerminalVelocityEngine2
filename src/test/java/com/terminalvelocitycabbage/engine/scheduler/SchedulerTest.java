@@ -1,8 +1,7 @@
-package com.terminalvelocitycabbage.test.scheduler;
+package com.terminalvelocitycabbage.engine.scheduler;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
-import com.terminalvelocitycabbage.engine.scheduler.Scheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,10 +1,6 @@
-package com.terminalvelocitycabbage.test.ecs;
+package com.terminalvelocitycabbage.engine.ecs;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.ecs.Component;
-import com.terminalvelocitycabbage.engine.ecs.ComponentFilter;
-import com.terminalvelocitycabbage.engine.ecs.Manager;
-import com.terminalvelocitycabbage.engine.ecs.System;
 import com.terminalvelocitycabbage.engine.event.EventDispatcher;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;

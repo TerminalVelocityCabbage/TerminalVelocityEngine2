@@ -1,8 +1,5 @@
-package com.terminalvelocitycabbage.test.ecs;
+package com.terminalvelocitycabbage.engine.ecs;
 
-import com.terminalvelocitycabbage.engine.ecs.Component;
-import com.terminalvelocitycabbage.engine.ecs.Entity;
-import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;

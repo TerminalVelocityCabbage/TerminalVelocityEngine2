@@ -1,6 +1,5 @@
-package com.terminalvelocitycabbage.test.scenes;
+package com.terminalvelocitycabbage.engine.client.scene;
 
-import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.ecs.Entity;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
@@ -48,7 +47,7 @@ public class SceneRegistrationTest {
         GameFileSystem fileSystem = new GameFileSystem() {
             @Override
             public Resource getResource(ResourceCategory resourceCategory, Identifier identifier) {
-                if (resourceCategory == ResourceCategory.SCENE && identifier.name().equals("test.scene.toml")) {
+                if (resourceCategory == ResourceCategory.SCENE && identifier.name().equals("test")) {
                     return new Resource() {
                         @Override public InputStream openStream() throws IOException { return null; }
                         @Override public DataInputStream asDataStream() { return null; }
