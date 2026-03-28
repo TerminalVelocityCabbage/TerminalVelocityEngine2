@@ -36,8 +36,10 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
                 case "text-size" -> builder.fontSize((int) parseDim(val).value());
                 case "letter-spacing" -> builder.letterSpacing((int) parseDim(val).value());
                 case "line-height" -> builder.lineHeight((int) parseDim(val).value());
-                case "text-wrap-none", "text-wrap-words", "text-wrap-newlines" -> builder.wrapMode(UI.TextWrapMode.fromProp(prop));
-                case "text-left", "text-center", "text-right" -> builder.textAlignment(UI.TextAlignment.fromProp(prop));
+                case "text-wrap" -> builder.wrapMode(UI.TextWrapMode.fromProp(val));
+                case "text-align" -> builder.textAlignment(UI.TextAlignment.fromProp(val));
+                case "text-left", "text-center", "text-right" -> builder.textAlignment(UI.TextAlignment.fromProp(key.substring(5)));
+                case "text-wrap-none", "text-wrap-words", "text-wrap-newlines" -> builder.wrapMode(UI.TextWrapMode.fromProp(key.substring(10)));
             }
         }
 
@@ -63,11 +65,11 @@ public record TextElementConfig(Color textColor, Identifier fontIdentifier, int 
     private static Color parseColor(String val) {
         String[] parts = val.split(",");
         if (parts.length == 3) {
-            return new Color(Float.parseFloat(parts[0]), Float.parseFloat(parts[1]), Float.parseFloat(parts[2]), 1.0f);
+            return new Color(Float.parseFloat(parts[0].trim()), Float.parseFloat(parts[1].trim()), Float.parseFloat(parts[2].trim()), 1.0f);
         } else if (parts.length == 4) {
-            return new Color(Float.parseFloat(parts[0]), Float.parseFloat(parts[1]), Float.parseFloat(parts[2]), Float.parseFloat(parts[3]));
+            return new Color(Float.parseFloat(parts[0].trim()), Float.parseFloat(parts[1].trim()), Float.parseFloat(parts[2].trim()), Float.parseFloat(parts[3].trim()));
         }
-        return new Color(0, 0, 0, 1);
+        return new Color(0f, 0f, 0f, 1f);
     }
 
     public TextElementConfig {

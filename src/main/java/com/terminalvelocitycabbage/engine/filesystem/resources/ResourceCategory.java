@@ -16,6 +16,7 @@ public record ResourceCategory(String name, String plural) {
     public static final ResourceCategory MODEL = new ResourceCategory("model");
     public static final ResourceCategory TEXTURE = new ResourceCategory("texture");
     public static final ResourceCategory ANIMATION = new ResourceCategory("animation");
+    public static final ResourceCategory ANIMATION_CONTROLLER = new ResourceCategory("animation_controller");
     public static final ResourceCategory SHADER = new ResourceCategory("shader");
     public static final ResourceCategory DEFAULT_CONFIG = new ResourceCategory("default_config");
     public static final ResourceCategory SOUND = new ResourceCategory("sound");
@@ -30,20 +31,21 @@ public record ResourceCategory(String name, String plural) {
     /**
      * @param registry the registry to register the default values to
      */
-    public static void registerEngineDefaults(Registry<ResourceCategory> registry) {
-        register(registry, MODEL);
-        register(registry, TEXTURE);
-        register(registry, ANIMATION);
-        register(registry, SHADER);
-        register(registry, DEFAULT_CONFIG);
-        register(registry, SOUND);
-        register(registry, FONT);
-        register(registry, GENERIC_FILE);
-        register(registry, LOCALIZATION);
-        register(registry, PROPERTIES);
-        register(registry, ENTITY);
-        register(registry, ROUTINE);
-        register(registry, SCENE);
+    public static void registerEngineDefaults(Registry<ResourceCategory> registry, String namespace) {
+        register(registry, namespace, MODEL);
+        register(registry, namespace, TEXTURE);
+        register(registry, namespace, ANIMATION);
+        register(registry, namespace, ANIMATION_CONTROLLER);
+        register(registry, namespace, SHADER);
+        register(registry, namespace, DEFAULT_CONFIG);
+        register(registry, namespace, SOUND);
+        register(registry, namespace, FONT);
+        register(registry, namespace, GENERIC_FILE);
+        register(registry, namespace, LOCALIZATION);
+        register(registry, namespace, PROPERTIES);
+        register(registry, namespace, ENTITY);
+        register(registry, namespace, ROUTINE);
+        register(registry, namespace, SCENE);
     }
 
     private static void register(Registry<ResourceCategory> registry, ResourceCategory resourceCategory) {

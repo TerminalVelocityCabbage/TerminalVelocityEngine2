@@ -56,9 +56,7 @@ public class ModSource extends ResourceSource {
             String name = entry.getName();
             if (name.startsWith(path) && !entry.isDirectory()) {
                 String fileName = name.substring(path.length());
-                if (!fileName.contains("/")) {
-                    resources.add(fileName);
-                }
+                resources.add(fileName);
             }
         }
         return resources;

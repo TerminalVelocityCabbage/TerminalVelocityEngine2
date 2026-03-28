@@ -28,6 +28,15 @@ public class Easing {
         public String getName() {
             return name;
         }
+
+        public static Direction fromString(String direction) {
+            return switch (direction) {
+                case "in" -> IN;
+                case "out" -> OUT;
+                case "in_out", "both" -> IN_OUT;
+                default -> throw new IllegalArgumentException("Invalid direction: " + direction);
+            };
+        }
     }
 
     public enum Function {
@@ -42,8 +51,9 @@ public class Easing {
         EXPONENTIAL("exponential"),
         CIRCULAR("circular"),
         BACK("back"),
-        ELASTIC("elsatic"),
-        BOUNCE("bounce");
+        ELASTIC("elastic"),
+        BOUNCE("bounce"),
+        CATMULLROM("catmullrom");
 
         private final String name;
 
@@ -53,6 +63,25 @@ public class Easing {
 
         public String getName() {
             return name;
+        }
+
+        public static Function fromString(String function) {
+            return switch (function) {
+                case "linear" -> LINEAR;
+                case "step" -> STEP;
+                case "sin" -> SIN;
+                case "quadratic" -> QUADRATIC;
+                case "cubic" -> CUBIC;
+                case "quartic" -> QUARTIC;
+                case "quintic" -> QUINTIC;
+                case "exponential" -> EXPONENTIAL;
+                case "circular" -> CIRCULAR;
+                case "back" -> BACK;
+                case "elastic" -> ELASTIC;
+                case "bounce" -> BOUNCE;
+                case "catmullrom", "catmulrom" -> CATMULLROM;
+                default -> throw new IllegalArgumentException("Invalid function: " + function);
+            };
         }
     }
 
@@ -82,6 +111,8 @@ public class Easing {
             case BACK -> easeInBack(progress);
             case ELASTIC -> easeInElastic(progress);
             case BOUNCE -> easeInBounce(progress);
+            //TODO: Implement Catmullrom
+            case CATMULLROM -> easeInSin(progress);
         };
     }
 
@@ -99,6 +130,8 @@ public class Easing {
             case BACK -> easeOutBack(progress);
             case ELASTIC -> easeOutElastic(progress);
             case BOUNCE -> easeOutBounce(progress);
+            //TODO: Implement Catmullrom
+            case CATMULLROM -> easeOutSin(progress);
         };
     }
 
@@ -116,6 +149,8 @@ public class Easing {
             case BACK -> easeInOutBack(progress);
             case ELASTIC -> easeInOutElastic(progress);
             case BOUNCE -> easeInOutBounce(progress);
+            //TODO: Implement Catmullrom
+            case CATMULLROM -> easeInOutSin(progress);
         };
     }
 
@@ -132,15 +167,15 @@ public class Easing {
     }
 
     public static float easeInStep(float progress) {
-        return progress > 0 ? 1f : 0f;
+        return progress >= 1f ? 1f : 0f;
     }
 
     public static float easeOutStep(float progress) {
-        return progress > 0 ? 0f : 1f;
+        return progress > 0f ? 1f : 0f;
     }
 
     public static float easeInOutStep(float progress) {
-        return progress > 0.5 ? 1f : 0f;
+        return progress >= 0.5f ? 1f : 0f;
     }
 
     public static float easeInSin(float progress) {
@@ -152,7 +187,7 @@ public class Easing {
     }
 
     public static float easeInOutSin(float progress) {
-        return (float) ((-cos(PI * progress) - 1) / 2f);
+        return (float) ((1 - cos(PI * progress)) / 2f);
     }
 
     public static float easeInQuad(float progress) {

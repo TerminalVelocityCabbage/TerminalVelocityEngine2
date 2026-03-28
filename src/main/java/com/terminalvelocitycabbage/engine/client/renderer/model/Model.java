@@ -1,30 +1,35 @@
 package com.terminalvelocitycabbage.engine.client.renderer.model;
 
+import com.terminalvelocitycabbage.engine.client.renderer.materials.TextureCache;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 
-public class Model {
+public record Model(Mesh compiledMesh, Identifier textureIdentifier, Skeleton skeleton) {
 
-    Identifier meshIdentifier;
-    Identifier textureIdentifier;
-
-    public Model(Identifier meshIdentifier, Identifier textureIdentifier) {
-        this.meshIdentifier = meshIdentifier;
-        this.textureIdentifier = textureIdentifier;
+    public Model(Mesh compiledMesh, Identifier textureIdentifier) {
+        this(compiledMesh, textureIdentifier, null);
     }
 
-    public Identifier getMeshIdentifier() {
-        return meshIdentifier;
+    public void render(TextureCache textureCache) {
+        bindTexture(textureCache);
+        bind();
+        draw();
     }
 
-    public void setMeshIdentifier(Identifier meshIdentifier) {
-        this.meshIdentifier = meshIdentifier;
+    public void bindTexture(TextureCache textureCache) {
+        if (textureIdentifier() != null) {
+            textureCache.getTexture(textureIdentifier()).bind();
+        }
     }
 
-    public Identifier getTextureIdentifier() {
-        return textureIdentifier;
+    public void bind() {
+        if (compiledMesh() != null) {
+            compiledMesh().bind();
+        }
     }
 
-    public void setTextureIdentifier(Identifier textureIdentifier) {
-        this.textureIdentifier = textureIdentifier;
+    public void draw() {
+        if (compiledMesh() != null) {
+            compiledMesh().draw();
+        }
     }
 }

@@ -350,7 +350,7 @@ public class UI {
     }
     
     public static String textAlignment(TextAlignment alignment) {
-        return "text-" + alignment.name().toLowerCase();
+        return "text-align-[" + alignment.name().toLowerCase() + "]";
     }
     
     public enum UIUnit {

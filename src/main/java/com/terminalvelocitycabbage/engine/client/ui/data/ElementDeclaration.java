@@ -178,7 +178,7 @@ public record ElementDeclaration(
         } else if (parts.length == 4) {
             return new Color(Float.parseFloat(parts[0]), Float.parseFloat(parts[1]), Float.parseFloat(parts[2]), Float.parseFloat(parts[3]));
         }
-        return new Color(0, 0, 0, 1);
+        return new Color(0f, 0f, 0f, 1f);
     }
 
     private static float parseRatio(String val) {
