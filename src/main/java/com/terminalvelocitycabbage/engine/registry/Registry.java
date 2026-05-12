@@ -35,7 +35,7 @@ public class Registry<T> {
     public Identifier register(Identifier identifier, T item, boolean replaceIfExists) {
         if (contains(identifier)) {
             if (!replaceIfExists) {
-                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored. This will likely cause problems later one (probably crashes)");
+                Log.debug("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
                 return null;
             }
             replace(identifier, item);
@@ -51,10 +51,6 @@ public class Registry<T> {
      * @param item The item to be registered
      */
     public Identifier register(Identifier identifier, T item) {
-        if (contains(identifier)) {
-            Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
-            return null;
-        }
         return register(identifier, item, false);
     }
 
@@ -81,8 +77,8 @@ public class Registry<T> {
     public RegistryPair<T> getAndRegister(Identifier identifier, T item, boolean replaceIfExists) {
         if (contains(identifier)) {
             if (!replaceIfExists) {
-                Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored. This will likely cause problems later one (probably crashes)");
-                return null;
+                Log.debug("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
+                return new RegistryPair<>(identifier, get(identifier));
             }
             replace(identifier, item);
         } else {
@@ -97,10 +93,6 @@ public class Registry<T> {
      * @param item The item to be registered
      */
     public RegistryPair<T> getAndRegister(Identifier identifier, T item) {
-        if (contains(identifier)) {
-            Log.warn("Tried to register item of same identifier " + identifier.toString() + " twice, the second addition has been ignored.");
-            return new RegistryPair<>(identifier, get(identifier));
-        }
         return getAndRegister(identifier, item, false);
     }
 
@@ -126,7 +118,7 @@ public class Registry<T> {
      */
     public RegistryPair<T> replace(Identifier identifier, T newItem) {
         if (!contains(identifier)) {
-            Log.warn("Cannot replace registry item with ID: " + identifier.toString() + " since it does not exist in this registry.");
+            Log.error("Cannot replace registry item with ID: " + identifier.toString() + " since it does not exist in this registry.");
             return null;
         }
         registryContents.replace(identifier, newItem);

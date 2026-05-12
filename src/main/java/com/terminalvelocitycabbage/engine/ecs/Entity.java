@@ -44,6 +44,13 @@ public class Entity implements Poolable {
         this.manager = manager;
     }
 
+    /**
+     * @return a map containing all components that define this entity
+     */
+    public Map<Class<? extends Component>, Component> getComponents() {
+        return components;
+    }
+
     public <T extends Component> T addComponent(Class<T> componentClass) {
         if (hasComponent(componentClass)) {
             Log.warn("Tried to add component " + componentClass.getName() + " to entity with id " + getID() + " which already contains it");
@@ -69,18 +76,25 @@ public class Entity implements Poolable {
         }
     }
 
-    /**
-     * @param componentClass The class of the component you want to retrieve from this entity
-     * @param <T> A class that implements {@link Component}
-     * @return The component requested or null
-     */
     @SuppressWarnings("unchecked")
     public <T extends Component> T getComponent(Class<T> componentClass) {
-        if (!hasComponent(componentClass)) {
+        T component = getComponentInternal(componentClass);
+        if (component == null) {
             Log.warn("Entity does not contain component " + componentClass.getName() + " but it was attempted to be retrieved.");
-            return null;
         }
-        return getComponentUnsafe(componentClass);
+        return component;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Component> T getComponentInternal(Class<T> componentClass) {
+        T component = (T) components.get(componentClass);
+        if (component != null) return component;
+        for (Component c : components.values()) {
+            if (componentClass.isInstance(c)) {
+                return (T) c;
+            }
+        }
+        return null;
     }
 
     /**
@@ -91,7 +105,7 @@ public class Entity implements Poolable {
      * @return The component requested or null
      */
     public <T extends Component> T getComponentUnsafe(Class<T> componentClass) {
-        return (T) components.get(componentClass);
+        return getComponentInternal(componentClass);
     }
 
     /**
@@ -102,7 +116,7 @@ public class Entity implements Poolable {
      * @return A boolean representing whether this entity contains the specified component
      */
     public <T extends Component> boolean hasComponent(Class<T> componentClass) {
-        return components.containsKey(componentClass);
+        return getComponentInternal(componentClass) != null;
     }
 
     /**

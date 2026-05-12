@@ -30,31 +30,30 @@ public record ResourceCategory(String name, String plural) {
 
     /**
      * @param registry the registry to register the default values to
-     * @param namespace The namespace to register these under
      */
     public static void registerEngineDefaults(Registry<ResourceCategory> registry, String namespace) {
-        register(registry, namespace, MODEL);
-        register(registry, namespace, TEXTURE);
-        register(registry, namespace, ANIMATION);
-        register(registry, namespace, ANIMATION_CONTROLLER);
-        register(registry, namespace, SHADER);
-        register(registry, namespace, DEFAULT_CONFIG);
-        register(registry, namespace, SOUND);
-        register(registry, namespace, FONT);
-        register(registry, namespace, GENERIC_FILE);
-        register(registry, namespace, LOCALIZATION);
-        register(registry, namespace, PROPERTIES);
-        register(registry, namespace, ENTITY);
-        register(registry, namespace, ROUTINE);
-        register(registry, namespace, SCENE);
+        register(registry, MODEL);
+        register(registry, TEXTURE);
+        register(registry, ANIMATION);
+        register(registry, ANIMATION_CONTROLLER);
+        register(registry, SHADER);
+        register(registry, DEFAULT_CONFIG);
+        register(registry, SOUND);
+        register(registry, FONT);
+        register(registry, GENERIC_FILE);
+        register(registry, LOCALIZATION);
+        register(registry, PROPERTIES);
+        register(registry, ENTITY);
+        register(registry, ROUTINE);
+        register(registry, SCENE);
     }
 
-    private static void register(Registry<ResourceCategory> registry, String namespace, ResourceCategory resourceCategory) {
-        registry.getAndRegister(resourceCategory.createIdentifier(namespace), resourceCategory);
+    private static void register(Registry<ResourceCategory> registry, ResourceCategory resourceCategory) {
+        registry.getAndRegister(resourceCategory.createIdentifier(), resourceCategory);
     }
 
-    public Identifier createIdentifier(String namespace) {
-        return new Identifier(namespace, "resource_category", this.name());
+    public Identifier createIdentifier() {
+        return new Identifier("global", "resource_category", this.name());
     }
 
     public String getAssetsPath(String namespace) {

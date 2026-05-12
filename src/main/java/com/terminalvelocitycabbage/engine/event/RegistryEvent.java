@@ -22,9 +22,8 @@ public class RegistryEvent<T> extends Event {
     public RegistryPair<T> register(T item) {
         if (item instanceof Identifiable) {
             return registry.getAndRegister(item);
-        } else {
-            Log.crash("Cannot register item " + item.getClass().getName() + " since it does not implement Identifiable. Use method with explicit identifier instead.");
         }
+        Log.crash("Cannot register item " + item.getClass().getName() + " since it does not implement Identifiable. Use method with explicit identifier instead.");
         return null;
     }
 

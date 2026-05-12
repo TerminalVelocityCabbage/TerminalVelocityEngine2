@@ -15,4 +15,19 @@ public class StringUtils {
         return source.substring(startIndex + startDelimiter.length(), endIndex);
     }
 
+    public static String capitalize(String name) {
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+    
+    public static String convertSnakeCaseToCapitalized(String name) {
+        String[] words = name.split("_");
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0) {
+                result.append(" ");
+            }
+            result.append(capitalize(words[i]));
+        }
+        return result.toString();
+    }
 }

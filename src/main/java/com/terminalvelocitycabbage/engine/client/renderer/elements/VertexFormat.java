@@ -2,10 +2,7 @@ package com.terminalvelocitycabbage.engine.client.renderer.elements;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents and ordered list of vertex attributes as used by a shader program.
@@ -107,6 +104,19 @@ public class VertexFormat {
             return new VertexFormat(attributes, elementsOffsetMap);
         }
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VertexFormat that = (VertexFormat) o;
+        return stride == that.stride && numComponents == that.numComponents && Objects.equals(vertexAttributeOffsetMap, that.vertexAttributeOffsetMap) && Objects.equals(attributes, that.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(stride, numComponents, vertexAttributeOffsetMap, attributes);
     }
 
     @Override

@@ -1,10 +1,12 @@
 package com.terminalvelocitycabbage.templates.ecs.components;
 
+import com.terminalvelocitycabbage.editor.hints.EditorHint;
 import com.terminalvelocitycabbage.engine.client.renderer.lighting.DirectionalLight;
 import com.terminalvelocitycabbage.engine.ecs.Component;
 import com.terminalvelocitycabbage.engine.util.Color;
 import org.joml.Vector3f;
 
+@EditorHint.ComponentName(name = "Directional Light")
 public class DirectionalLightComponent implements Component {
 
     private DirectionalLight light;
