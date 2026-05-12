@@ -1,0 +1,6 @@
+[routine]
+name = "editor_default"
+
+[[steps]]
+id = "editor:update_animations"
+system = "animation"

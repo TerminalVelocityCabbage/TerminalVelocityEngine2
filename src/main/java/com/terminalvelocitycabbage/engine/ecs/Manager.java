@@ -10,6 +10,7 @@ import com.terminalvelocitycabbage.engine.util.ClassUtils;
 import com.terminalvelocitycabbage.engine.util.touples.Pair;
 
 import javax.management.ReflectionException;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -84,7 +85,9 @@ public class Manager {
     public <T extends Component> void registerComponent(Class<T> componentType, int initialPoolSize) {
         String stringId = componentType.getSimpleName().toLowerCase().replace("component", "");
         componentNameToClassMap.put(stringId, componentType);
-        componentPool.getPool(componentType, true, initialPoolSize);
+        if (!Modifier.isAbstract(componentType.getModifiers()) && !componentType.isInterface()) {
+            componentPool.getPool(componentType, true, initialPoolSize);
+        }
         activeComponents.put(componentType, new ArrayList<>());
     }
 
@@ -188,11 +191,22 @@ public class Manager {
      * @param componentType The type of component that was modified on an entity and which will require a new cache generated
      */
     protected void invalidateQueryCacheForComponents(Class<? extends Component> componentType) {
+        if (componentType == null) return;
         List<String> keysToRemove = new ArrayList<>();
         entityQueryCache.keySet().forEach(key -> {
             if (key.contains(componentType.getName())) keysToRemove.add(key);
         });
         keysToRemove.forEach(key -> entityQueryCache.remove(key));
+
+        //Recurse for superclasses and interfaces to invalidate queries for base types
+        if (componentType.getSuperclass() != null && Component.class.isAssignableFrom(componentType.getSuperclass())) {
+            invalidateQueryCacheForComponents((Class<? extends Component>) componentType.getSuperclass());
+        }
+        for (Class<?> iface : componentType.getInterfaces()) {
+            if (Component.class.isAssignableFrom(iface)) {
+                invalidateQueryCacheForComponents((Class<? extends Component>) iface);
+            }
+        }
     }
 
     /**
@@ -204,7 +218,7 @@ public class Manager {
 
         //Early exit for unregistered components
         for (Class<? extends Component> componentType : componentTypes) {
-            if (!componentPool.hasType(componentType)) Log.crash("No component of type found: " + componentType);
+            if (!activeComponents.containsKey(componentType)) Log.crash("No component of type found: " + componentType);
         }
 
         //check the cache if this query has been made before and is the same as before
@@ -215,11 +229,17 @@ public class Manager {
         List<Set<Entity>> entitySets = new ArrayList<>();
 
         for (Class<? extends Component> componentType : componentTypes) {
-            List<Entity> entities = activeComponents.get(componentType);
-            if (entities == null) {
+            Set<Entity> matchingEntities = new HashSet<>();
+            //Polymorphic lookup: find all entities that have a component that is a subtype of componentType
+            for (Map.Entry<Class<? extends Component>, List<Entity>> entry : activeComponents.entrySet()) {
+                if (componentType.isAssignableFrom(entry.getKey())) {
+                    matchingEntities.addAll(entry.getValue());
+                }
+            }
+            if (matchingEntities.isEmpty()) {
                 return Collections.emptySet();
             }
-            entitySets.add(new HashSet<>(entities));
+            entitySets.add(matchingEntities);
         }
 
         // Sort the sets by their size (smallest first for faster intersection)
@@ -242,13 +262,11 @@ public class Manager {
         return common;
     }
 
-    /**
-     * @param componentTypes a list of component types which the entity returned must have
-     * @return an entity which matches this selection
-     */
     @SafeVarargs
     public final Entity getFirstEntityWith(Class<? extends Component>... componentTypes) {
-        return getEntitiesWith(componentTypes).iterator().next();
+        var entities = getEntitiesWith(componentTypes);
+        if (entities.isEmpty()) return null;
+        return entities.iterator().next();
     }
 
     /**

@@ -1,0 +1,34 @@
+[scene]
+name = "editor"
+texture_atlases = [
+    "editor:ui_atlas"
+]
+input_controllers = [
+    "editor:ui_click",
+    "editor:scroll"
+]
+routines = [ "editor:editor_default" ]
+render_graph = "editor:draw_scene"
+
+[[entities]]
+[entities.component.name]
+name = "Editor Camera"
+[entities.component.transformation]
+position = [0.0, 0.0, 5.0]
+[entities.component.editor_camera]
+
+[[entities]]
+[entities.component.name]
+name = "Sun"
+[entities.component.directional_light]
+direction = [-1.0, -1.0, -1.0]
+color = [1.0, 1.0, 1.0, 1.0]
+intensity = 1.0
+
+[[entities]]
+[entities.component.name]
+name = "Smile Square"
+[entities.component.transformation]
+position = [0.0, 0.0, 0.0]
+[entities.component.model]
+model = "editor:smile_square"

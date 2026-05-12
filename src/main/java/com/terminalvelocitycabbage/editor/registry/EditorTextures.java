@@ -17,6 +17,9 @@ public class EditorTextures {
     public static final Identifier CARET_OPEN_ICON = TEXTURE.identifierOf(Editor.ID, "caret_open_icon");
     public static final Identifier CARET_CLOSED_ICON = TEXTURE.identifierOf(Editor.ID, "caret_closed_icon");
 
+    public static final Identifier SMILE_TEXTURE = TEXTURE.identifierOf(Editor.ID, "smile");
+    public static final Identifier SAD_TEXTURE = TEXTURE.identifierOf(Editor.ID, "sad");
+
     public static void init(EventDispatcher eventDispatcher) {
 
         registerAtlas(eventDispatcher, UI_ATLAS);
@@ -26,6 +29,16 @@ public class EditorTextures {
         registerTexture(eventDispatcher, SCALE_ICON, UI_ATLAS);
         registerTexture(eventDispatcher, CARET_OPEN_ICON, UI_ATLAS);
         registerTexture(eventDispatcher, CARET_CLOSED_ICON, UI_ATLAS);
+
+        registerStandaloneTexture(eventDispatcher, SMILE_TEXTURE);
+        registerStandaloneTexture(eventDispatcher, SAD_TEXTURE);
+    }
+
+    private static void registerStandaloneTexture(EventDispatcher eventDispatcher, Identifier textureIdentifier) {
+        eventDispatcher.listenToEvent(ConfigureTexturesEvent.EVENT, e -> {
+            ConfigureTexturesEvent event = (ConfigureTexturesEvent) e;
+            event.addTexture(textureIdentifier);
+        });
     }
 
     private static void registerAtlas(EventDispatcher eventDispatcher, Identifier atlasIdentifier) {

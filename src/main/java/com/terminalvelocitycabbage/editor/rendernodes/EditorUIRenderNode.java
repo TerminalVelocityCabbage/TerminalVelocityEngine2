@@ -12,8 +12,6 @@ import com.terminalvelocitycabbage.templates.events.UICharInputEvent;
 import com.terminalvelocitycabbage.templates.events.UIClickEvent;
 import com.terminalvelocitycabbage.templates.events.UIScrollEvent;
 
-import java.util.List;
-
 import static com.terminalvelocitycabbage.editor.registry.EditorTextures.*;
 import static com.terminalvelocitycabbage.engine.client.ui.UI.UIUnit.PIXELS;
 
@@ -86,7 +84,7 @@ public abstract class EditorUIRenderNode extends UIRenderNode {
 
         // Overall container for tabs
         container(tabbedMenuID, props(
-                UI.grow(), UI.backgroundColor(BACKGROUND_COLOR), UI.direction(UI.LayoutDirection.TOP_TO_BOTTOM)
+                UI.grow(), UI.backgroundColor(TRANSPARENT), UI.direction(UI.LayoutDirection.TOP_TO_BOTTOM)
         ), () -> {
             //Tabs
             container(props(
@@ -99,7 +97,7 @@ public abstract class EditorUIRenderNode extends UIRenderNode {
             });
             //Selected tab content
             container(props(
-                    UI.grow(), UI.backgroundColor(ELEMENT_COLOR)
+                    UI.grow(), UI.backgroundColor(TRANSPARENT)
             ), () -> tabs[selectedTab.getValue()].action().run());
         });
     }

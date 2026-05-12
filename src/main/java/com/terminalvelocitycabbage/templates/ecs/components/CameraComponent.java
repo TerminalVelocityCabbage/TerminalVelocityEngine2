@@ -10,7 +10,7 @@ import org.joml.Matrix4f;
 public abstract class CameraComponent implements Component {
 
     private final Projection projection;
-    private final Matrix4f viewMatrix = new Matrix4f();
+    protected final Matrix4f viewMatrix = new Matrix4f();
 
     public CameraComponent(Projection projection) {
         this.projection = projection;
