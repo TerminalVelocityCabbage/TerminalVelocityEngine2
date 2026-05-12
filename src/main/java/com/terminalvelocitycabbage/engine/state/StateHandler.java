@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.state;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.StateChangedEvent;
 
@@ -10,11 +10,11 @@ import java.util.Map;
 
 public class StateHandler {
 
-    private final EventDispatcher eventDispatcher;
+    private final EventBus eventBus;
     public Map<Identifier, State<?>> states;
 
-    public StateHandler(EventDispatcher eventDispatcher) {
-        this.eventDispatcher = eventDispatcher;
+    public StateHandler(EventBus eventBus) {
+        this.eventBus = eventBus;
         this.states = new HashMap<>();
     }
 
@@ -30,7 +30,7 @@ public class StateHandler {
     public <T> void updateState(Identifier identifier, T value) {
         State<T> state = getState(identifier);
         state.setValue(value);
-        eventDispatcher.dispatchEvent(new StateChangedEvent<>(state));
+        eventBus.publish(new StateChangedEvent<>(state)).now();
     }
 
 }

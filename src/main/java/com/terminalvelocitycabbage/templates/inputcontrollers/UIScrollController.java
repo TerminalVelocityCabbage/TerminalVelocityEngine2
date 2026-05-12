@@ -15,6 +15,6 @@ public class UIScrollController extends GroupedController2f {
     @Override
     public void act() {
         if (getSummedAmount() == 0) return;
-        ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UIScrollEvent(new Vector2f(0, getSummedAmount())));
+        ClientBase.getInstance().getEventBus().publish(new UIScrollEvent(new Vector2f(0, getSummedAmount()))).now();
     }
 }

@@ -33,7 +33,7 @@ public class UIClickController extends BooleanController {
             if (justPressed) {
                 var listener = ClientBase.getInstance().getInputCallbackListener();
                 Vector2f pos = new Vector2f((float)listener.getMouseX(), (float)listener.getMouseY());
-                ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UIClickEvent(pos, button));
+                ClientBase.getInstance().getEventBus().publish(new UIClickEvent(pos, button)).now();
             }
         }
     }

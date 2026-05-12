@@ -1,0 +1,3 @@
+[submodule "TVEvents"]
+	path = TVEvents
+	url = https://github.com/TerminalVelocityCabbage/TVEvents.git

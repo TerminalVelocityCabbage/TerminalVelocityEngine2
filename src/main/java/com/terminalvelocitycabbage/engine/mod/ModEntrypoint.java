@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.mod;
 
 import com.terminalvelocitycabbage.engine.Entrypoint;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public abstract class ModEntrypoint extends Entrypoint {
         return dependencies;
     }
 
-    protected EventDispatcher getEventDispatcher() {
-        return mod.getEventDispatcher();
+    protected EventBus getEventBus() {
+        return mod.getEventBus();
     }
 }

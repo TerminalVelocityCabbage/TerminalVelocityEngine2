@@ -6,7 +6,7 @@ import com.terminalvelocitycabbage.engine.registry.Identifier;
 /**
  * A class which represents some event that can be listened to
  */
-public abstract class Event implements Identifiable {
+public abstract class Event implements Identifiable, com.terminalvelocitycabbage.tvevents.Event {
 
 	private final Identifier id;
 

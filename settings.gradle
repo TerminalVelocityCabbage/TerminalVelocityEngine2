@@ -1,2 +1,3 @@
 rootProject.name = 'TerminalVelocityEngine2'
 include 'docs:tutorials:flappybird'
+include 'TVEvents'

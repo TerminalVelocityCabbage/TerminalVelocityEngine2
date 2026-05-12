@@ -1,6 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.ui;
 
 import com.terminalvelocitycabbage.engine.client.ClientBase;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.Atlas;
 import com.terminalvelocitycabbage.engine.client.renderer.materials.Texture;
@@ -64,15 +65,15 @@ public abstract class UIRenderNode extends RenderNode implements UILayoutEngine.
     @Override
     public void init(RenderGraph renderGraph) {
         super.init(renderGraph);
-        for (Identifier eventId : getInterestedEvents()) {
-            getUIContext().listenTo(eventId);
+        for (Class<? extends Event> eventClass : getInterestedEvents()) {
+            getUIContext().listenTo(eventClass);
         }
     }
 
     /**
-     * @return The list of event identifiers that this render node is interested in.
+     * @return The list of event classes that this render node is interested in.
      */
-    protected abstract Identifier[] getInterestedEvents();
+    protected abstract Class<? extends Event>[] getInterestedEvents();
 
     /**
      * Hook for users to define the UI structure.
