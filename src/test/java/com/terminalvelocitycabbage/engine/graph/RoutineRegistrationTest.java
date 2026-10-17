@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine.graph;
 
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.filesystem.resources.Resource;
 import com.terminalvelocitycabbage.engine.filesystem.resources.ResourceCategory;
@@ -157,7 +157,7 @@ public class RoutineRegistrationTest {
 
         assertNotNull(routine);
         executionOrder.clear();
-        routine.update(manager, new EventDispatcher(), 10);
+        routine.update(manager, new EventBus(), 10);
 
         assertEquals(3, executionOrder.size());
         assertEquals("test1", executionOrder.get(0));
@@ -209,7 +209,7 @@ public class RoutineRegistrationTest {
 
         assertNotNull(routine);
         executionOrder.clear();
-        routine.update(manager, new EventDispatcher(), 10);
+        routine.update(manager, new EventBus(), 10);
 
         assertEquals(4, executionOrder.size());
         assertEquals("test1", executionOrder.get(0));

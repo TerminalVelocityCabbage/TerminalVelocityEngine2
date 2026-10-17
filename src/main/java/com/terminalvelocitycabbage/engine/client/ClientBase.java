@@ -97,7 +97,7 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
      * Starts this client program
      */
     public void start() {
-        registerEventListeners(eventDispatcher);
+        registerEventListeners(eventBus);
         ModLoader.loadAndRegisterMods(this, Side.CLIENT, modRegistry);
         init();
         run();
@@ -109,28 +109,28 @@ public abstract class ClientBase extends MainEntrypoint implements NetworkedSide
         client.onConnect(this::onConnect);
         client.preDisconnect(this::onPreDisconnect);
         client.postDisconnect(this::onDisconnected);
-        eventDispatcher.dispatchEvent(new ResourceCategoryRegistrationEvent(fileSystem.getResourceCategoryRegistry()));
-        eventDispatcher.dispatchEvent(new ResourceSourceRegistrationEvent(fileSystem.getSourceRegistry(), getInstance()));
-        animationControllerManager.init(eventDispatcher);
+        eventBus.publish(new ResourceCategoryRegistrationEvent(fileSystem.getResourceCategoryRegistry())).now();
+        eventBus.publish(new ResourceSourceRegistrationEvent(fileSystem.getSourceRegistry(), getInstance())).now();
+        animationControllerManager.init(eventBus);
         fileSystem.init();
-        eventDispatcher.dispatchEvent(new GameStateRegistrationEvent(stateHandler));
-        eventDispatcher.dispatchEvent(new InputHandlerRegistrationEvent(inputHandler));
-        eventDispatcher.dispatchEvent(new EntityComponentRegistrationEvent(manager));
-        eventDispatcher.dispatchEvent(new EntitySystemRegistrationEvent(manager));
-        eventDispatcher.dispatchEvent(new RoutineRegistrationEvent(routineRegistry, manager, fileSystem));
+        eventBus.publish(new GameStateRegistrationEvent(stateHandler)).now();
+        eventBus.publish(new InputHandlerRegistrationEvent(inputHandler)).now();
+        eventBus.publish(new EntityComponentRegistrationEvent(manager)).now();
+        eventBus.publish(new EntitySystemRegistrationEvent(manager)).now();
+        eventBus.publish(new RoutineRegistrationEvent(routineRegistry, manager, fileSystem)).now();
         var configureTexturesEvent = new ConfigureTexturesEvent(fileSystem);
-        eventDispatcher.dispatchEvent(configureTexturesEvent);
+        eventBus.publish(configureTexturesEvent).now();
         textureCache = new TextureCache(configureTexturesEvent.getTexturesToCompileToAtlas(), configureTexturesEvent.getSingleTextures());
-        eventDispatcher.dispatchEvent(new RendererRegistrationEvent(renderGraphRegistry));
-        eventDispatcher.dispatchEvent(new FontRegistrationEvent(fontRegistry));
-        eventDispatcher.dispatchEvent(new SceneRegistrationEvent(sceneRegistry, fileSystem, routineRegistry));
-        eventDispatcher.dispatchEvent(new AnimationConfigurationEvent(tvAnimationRegistry, tvAnimationControllerRegistry, animationControllerManager));
-        eventDispatcher.dispatchEvent(new MeshRegistrationEvent(meshRegistry));
-        eventDispatcher.dispatchEvent(new ModelConfigRegistrationEvent(modelConfigRegistry, meshRegistry));
+        eventBus.publish(new RendererRegistrationEvent(renderGraphRegistry)).now();
+        eventBus.publish(new FontRegistrationEvent(fontRegistry)).now();
+        eventBus.publish(new SceneRegistrationEvent(sceneRegistry, fileSystem, routineRegistry)).now();
+        eventBus.publish(new AnimationConfigurationEvent(tvAnimationRegistry, tvAnimationControllerRegistry, animationControllerManager)).now();
+        eventBus.publish(new MeshRegistrationEvent(meshRegistry)).now();
+        eventBus.publish(new ModelConfigRegistrationEvent(modelConfigRegistry, meshRegistry)).now();
         soundDeviceManager.init();
-        eventDispatcher.dispatchEvent(new SoundRegistrationEvent(soundManager));
-        eventDispatcher.dispatchEvent(new EntityTemplateRegistrationEvent(manager, fileSystem));
-        eventDispatcher.dispatchEvent(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry()));
+        eventBus.publish(new SoundRegistrationEvent(soundManager)).now();
+        eventBus.publish(new EntityTemplateRegistrationEvent(manager, fileSystem)).now();
+        eventBus.publish(new LocalizedTextKeyRegistrationEvent(localizer.getTranslationRegistry())).now();
         localizer.init();
         modRegistry.getRegistryContents().values().forEach(mod -> mod.getEntrypoint().init());
         windowManager.init();

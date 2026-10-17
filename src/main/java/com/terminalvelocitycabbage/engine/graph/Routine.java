@@ -4,7 +4,7 @@ import com.terminalvelocitycabbage.engine.client.renderer.RenderGraph;
 import com.terminalvelocitycabbage.engine.debug.Log;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
 import com.terminalvelocitycabbage.engine.ecs.System;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 import com.terminalvelocitycabbage.engine.registry.Identifiable;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.RoutineSystemExecutionEvent;
@@ -38,15 +38,15 @@ public non-sealed class Routine implements GraphNode, Identifiable {
 
     /**
      * @param manager The ECS Manager for this entrypoint, passed to the system being executed to operate on
-     * @param eventDispatcher The event dispatcher for which to dispatch pre- and post-routine step events for so that
+     * @param bus The event bus for which to dispatch pre- and post-routine step events for so that
      *                        Mods can inject their own systems into the pipeline
      * @param deltaTime The time since the last execution of this Routine
      */
-    public void update(Manager manager, EventDispatcher eventDispatcher, long deltaTime) {
+    public void update(Manager manager, EventBus bus, long deltaTime) {
         for (Map.Entry<Identifier, Step> step : steps.entrySet()) {
-            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(step.getKey()), manager, deltaTime));
+            bus.publish(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.pre(step.getKey()), manager, deltaTime)).now();
             step.getValue().execute(manager, deltaTime, pool);
-            eventDispatcher.dispatchEvent(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(step.getKey()), manager, deltaTime));
+            bus.publish(new RoutineSystemExecutionEvent(RoutineSystemExecutionEvent.post(step.getKey()), manager, deltaTime)).now();
         }
     }
 

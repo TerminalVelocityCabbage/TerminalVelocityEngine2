@@ -144,17 +144,17 @@ public class RenderGraph {
             graphNodes.forEach((identifier, graphNode) -> {
                 boolean enabled = renderGraph.nodeEnabled(identifier);
                 //Publish an event before this GraphNode so mods can inject their own logic into these renderers
-                ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.pre(identifier), windowProperties, deltaTime, enabled));
+                ClientBase.getInstance().getEventBus().publish(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.pre(identifier), windowProperties, deltaTime, enabled)).now();
                 //Execute all nodes in the graph
                 if (enabled && graphNode != null) {
                     switch (graphNode.getValue1()) {
-                        case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventDispatcher(), deltaTime); //We assume that the server is not rendering anything
+                        case Routine routine -> routine.update(ClientBase.getInstance().getManager(), ClientBase.getInstance().getEventBus(), deltaTime); //We assume that the server is not rendering anything
                         case RenderNode renderNode -> renderNode.executeRenderStage(windowProperties.getActiveScene(), windowProperties, renderGraph.getRenderConfig(), deltaTime);
                         case NodeRoute nodeRoute -> nodeRoute.evaluate(renderGraph.capabilities, ClientBase.getInstance().getStateHandler()).render(windowProperties, deltaTime);
                     }
                 }
                 //Publish an event before this GraphNode so mods can inject their own logic into these renderers
-                ClientBase.getInstance().getEventDispatcher().dispatchEvent(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.post(identifier), windowProperties, deltaTime, enabled));
+                ClientBase.getInstance().getEventBus().publish(new RenderGraphStageExecutionEvent(RenderGraphStageExecutionEvent.post(identifier), windowProperties, deltaTime, enabled)).now();
             });
         }
 

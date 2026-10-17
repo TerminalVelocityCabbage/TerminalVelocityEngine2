@@ -34,7 +34,7 @@ public class InputCallbackListener {
     }
 
     protected void charCallback(long window, int character) {
-        ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UICharInputEvent(character, null));
+        ClientBase.getInstance().getEventBus().publish(new UICharInputEvent(character, null)).now();
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.ecs;
 
 import com.terminalvelocitycabbage.engine.debug.Log;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.templates.events.RoutineSystemExecutionEvent;
@@ -314,7 +314,7 @@ public class ECSTests {
     @Test
     void testBasicSystemRoutineOperateOnEntity() {
 
-        var dummyEventDispatcher = new EventDispatcher();
+        var dummyEventBus = new EventBus();
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         manager.createSystem(MoveEntitySystem.class);
@@ -327,7 +327,7 @@ public class ECSTests {
         //Create Routine
         var routine = Routine.builder(TEST_NAMESPACE, "testRoutine").addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class).build();
 
-        routine.update(manager, dummyEventDispatcher, 10);
+        routine.update(manager, dummyEventBus, 10);
 
         assertEquals(new Vector3f(10, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
 
@@ -336,7 +336,7 @@ public class ECSTests {
     @Test
     void testMultiStepSystemRoutineOperateOnEntity() {
 
-        var dummyEventDispatcher = new EventDispatcher();
+        var dummyEventBus = new EventBus();
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         manager.createSystem(MoveEntitySystem.class);
@@ -352,7 +352,7 @@ public class ECSTests {
                 .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem2"), MoveEntitySystem.class)
                 .build();
 
-        routine.update(manager, dummyEventDispatcher, 10);
+        routine.update(manager, dummyEventBus, 10);
 
         assertEquals(new Vector3f(20, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
 
@@ -361,7 +361,7 @@ public class ECSTests {
     @Test
     void testParallelStepSystemRoutineOperateOnEntity() {
 
-        var dummyEventDispatcher = new EventDispatcher();
+        var dummyEventBus = new EventBus();
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         manager.createSystem(MoveEntitySystem.class);
@@ -377,7 +377,7 @@ public class ECSTests {
                 .addParallelStep(new Identifier(TEST_NAMESPACE, "system", "testSystem1"), MoveEntitySystem.class, MoveEntitySystem2.class)
                 .build();
 
-        routine.update(manager, dummyEventDispatcher, 10);
+        routine.update(manager, dummyEventBus, 10);
 
         assertEquals(new Vector3f(200010, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
 
@@ -386,7 +386,7 @@ public class ECSTests {
     @Test
     void testParallelStepSystemRoutineOperateOnEntityOrdered() {
 
-        var dummyEventDispatcher = new EventDispatcher();
+        var dummyEventBus = new EventBus();
         manager.registerComponent(PositionComponent.class);
         manager.registerComponent(VelocityComponent.class);
         manager.createSystem(MoveEntitySystem.class);
@@ -399,20 +399,22 @@ public class ECSTests {
 
         List<String> executedSteps = new ArrayList<>();
 
-        var id1 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem0")), (event) -> {
-            executedSteps.add("testSystem0");
-            Log.info("testSystem0 post");
-            assertEquals(new Vector3f(10, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
-        });
-        var id2 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem1")), (event) -> {
-            executedSteps.add("testSystem1");
-            Log.info("testSystem1 post");
-            assertEquals(new Vector3f(200020, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
-        });
-        var id3 = dummyEventDispatcher.listenToEvent(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem2")), (event) -> {
-            executedSteps.add("testSystem2");
-            Log.info("testSystem2 post");
-            assertEquals(new Vector3f(200030, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+        dummyEventBus.subscribe(RoutineSystemExecutionEvent.class).handle((event) -> {
+            if (event.getIdentifier().equals(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem0")))) {
+                executedSteps.add("testSystem0");
+                Log.info("testSystem0 post");
+                assertEquals(new Vector3f(10, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+            }
+            if (event.getIdentifier().equals(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem1")))) {
+                executedSteps.add("testSystem1");
+                Log.info("testSystem1 post");
+                assertEquals(new Vector3f(200020, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+            }
+            if (event.getIdentifier().equals(RoutineSystemExecutionEvent.post(new Identifier(TEST_NAMESPACE, "system", "testSystem2")))) {
+                executedSteps.add("testSystem2");
+                Log.info("testSystem2 post");
+                assertEquals(new Vector3f(200030, 0, 0), entity1.getComponent(PositionComponent.class).getPosition());
+            }
         });
 
         //Create Routine
@@ -422,17 +424,13 @@ public class ECSTests {
                 .addStep(new Identifier(TEST_NAMESPACE, "system", "testSystem2"), MoveEntitySystem.class)
                 .build();
 
-        routine.update(manager, dummyEventDispatcher, 10);
+        routine.update(manager, dummyEventBus, 10);
 
         assertEquals(executedSteps.get(0), "testSystem0");
         assertEquals(executedSteps.get(1), "testSystem1");
         assertEquals(executedSteps.get(2), "testSystem2");
 
         assertEquals(executedSteps.size(), 3);
-
-        dummyEventDispatcher.removeEventListener(id1);
-        dummyEventDispatcher.removeEventListener(id2);
-        dummyEventDispatcher.removeEventListener(id3);
 
     }
 }

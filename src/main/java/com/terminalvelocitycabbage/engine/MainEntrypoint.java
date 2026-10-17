@@ -2,7 +2,7 @@ package com.terminalvelocitycabbage.engine;
 
 import com.terminalvelocitycabbage.engine.client.scene.Scene;
 import com.terminalvelocitycabbage.engine.ecs.Manager;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 import com.terminalvelocitycabbage.engine.filesystem.GameFileSystem;
 import com.terminalvelocitycabbage.engine.graph.Routine;
 import com.terminalvelocitycabbage.engine.mod.Mod;
@@ -39,16 +39,16 @@ public abstract class MainEntrypoint extends Entrypoint {
     //Localizations
     protected final Localizer localizer;
 
-    protected final EventDispatcher eventDispatcher;
+    protected final EventBus eventBus;
 
     public MainEntrypoint(String namespace, int ticksPerSecond) {
         super(namespace);
-        this.eventDispatcher = new EventDispatcher();
+        this.eventBus = new EventBus();
         tickManager = new TickManager(ticksPerSecond);
         manager = new Manager();
         scheduler = new Scheduler(identifierOf("scheduler", "default"), 4); //TODO expose this somehow or make it relative to available threads or something
         tickClock = MutableInstant.ofNow();
-        stateHandler = new StateHandler(eventDispatcher);
+        stateHandler = new StateHandler(eventBus);
         modRegistry = new Registry<>();
         fileSystem = new GameFileSystem();
         routineRegistry = new Registry<>();
@@ -69,8 +69,8 @@ public abstract class MainEntrypoint extends Entrypoint {
         scheduler.shutdown();
     }
 
-    public EventDispatcher getEventDispatcher() {
-        return eventDispatcher;
+    public EventBus getEventBus() {
+        return eventBus;
     }
 
     public TickManager getTickManager() {

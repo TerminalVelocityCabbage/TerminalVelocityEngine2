@@ -14,6 +14,10 @@ apply from: 'gradleScripts/dependenciesCommon.gradle'
 //Applies dependencies which only clients should use
 apply from: 'gradleScripts/dependenciesClient.gradle'
 
+dependencies {
+    implementation project(':TVEvents')
+}
+
 test {
     useJUnitPlatform()
 }

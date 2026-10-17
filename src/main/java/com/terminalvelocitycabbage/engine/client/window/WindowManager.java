@@ -148,7 +148,7 @@ public class WindowManager {
         });
 
         glfwSetKeyCallback(windowID, (long window, int key, int scancode, int action, int mods) -> {
-            ClientBase.getInstance().getEventDispatcher().dispatchEvent(new UICharInputEvent(-1,
+            ClientBase.getInstance().getEventBus().publish(new UICharInputEvent(-1,
                     new UICharInputEvent.SpecialInputKey(
                     key == GLFW_KEY_BACKSPACE,
                     key == GLFW_KEY_DELETE,
@@ -157,7 +157,7 @@ public class WindowManager {
                     (mods & GLFW_MOD_SHIFT) != 0,
                     (mods & GLFW_MOD_CONTROL) != 0,
                     (mods & GLFW_MOD_ALT) != 0
-            )));
+            ))).now();
         });
 
         //Set cursor pos callback

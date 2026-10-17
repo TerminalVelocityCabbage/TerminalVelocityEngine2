@@ -69,7 +69,7 @@ public class ModLoader {
             }
 
             //Create a new Mod instance from this information
-            Mod mod = new Mod(entrypoint, jarFile, modInfo, mainEntrypoint.getEventDispatcher());
+            Mod mod = new Mod(entrypoint, jarFile, modInfo, mainEntrypoint.getEventBus());
 
             //Set the private fields of this mod's entrypoint to this mod with reflection
             setModEntrypointMod(mod.getEntrypoint(), mod);
@@ -104,7 +104,7 @@ public class ModLoader {
         sortedMods.forEach(mod -> setModDependencies(modRegistry, mod, mod.getEntrypoint(), unsortedMods));
 
         //Register event listeners for each mod
-        sortedMods.forEach(mod -> mod.getEntrypoint().registerEventListeners(mainEntrypoint.getEventDispatcher()));
+        sortedMods.forEach(mod -> mod.getEntrypoint().registerEventListeners(mainEntrypoint.getEventBus()));
     }
 
     /**

@@ -4,6 +4,7 @@ import com.terminalvelocitycabbage.engine.client.ClientBase;
 import com.terminalvelocitycabbage.engine.client.ui.data.*;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.LayoutConfig;
 import com.terminalvelocitycabbage.engine.client.ui.data.configs.TextElementConfig;
+import com.terminalvelocitycabbage.engine.event.Event;
 import com.terminalvelocitycabbage.engine.registry.Identifier;
 import com.terminalvelocitycabbage.engine.state.State;
 
@@ -23,7 +24,7 @@ public class UIContext {
     private final Stack<Integer> idStack = new Stack<>();
     private final Stack<Integer> autoIdCounterStack = new Stack<>();
     private final Stack<Integer> hookIndexStack = new Stack<>();
-    private final Set<Identifier> registeredEvents = new HashSet<>();
+    private final Set<Class<? extends Event>> registeredEvents = new HashSet<>();
 
     private final UIInputState currentInputState = new UIInputState();
     private final UIInputState pendingInputState = new UIInputState();
@@ -43,11 +44,11 @@ public class UIContext {
         hookIndexStack.push(0);
     }
 
-    public void listenTo(Identifier eventId) {
-        if (registeredEvents.add(eventId)) {
-            ClientBase.getInstance().getEventDispatcher().listenToEvent(eventId, event -> {
+    public void listenTo(Class<? extends Event> eventClass) {
+        if (registeredEvents.add(eventClass)) {
+            ClientBase.getInstance().getEventBus().subscribe(eventClass).handle(event -> {
                 synchronized (pendingInputState) {
-                    pendingInputState.getEvents().add(event);
+                    pendingInputState.getEvents().add((Event) event);
                 }
             });
         }

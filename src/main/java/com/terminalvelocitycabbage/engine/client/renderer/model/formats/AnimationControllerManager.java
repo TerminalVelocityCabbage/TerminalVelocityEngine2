@@ -1,7 +1,7 @@
 package com.terminalvelocitycabbage.engine.client.renderer.model.formats;
 
 import com.terminalvelocitycabbage.engine.ecs.Entity;
-import com.terminalvelocitycabbage.engine.event.EventDispatcher;
+import com.terminalvelocitycabbage.tvevents.EventBus;
 import com.terminalvelocitycabbage.templates.events.AnimationControllerFunctionRegistrationEvent;
 import org.joml.Vector3f;
 import redempt.crunch.CompiledExpression;
@@ -25,14 +25,14 @@ public class AnimationControllerManager {
         this.currentEntity = currentEntity;
     }
 
-    public void init(EventDispatcher dispatcher) {
+    public void init(EventBus bus) {
         // Register default functions
         registerFunction("if", 3, args -> args[0] != 0 ? args[1] : args[2]);
         registerFunction("clamp", 3, args -> Math.max(args[1], Math.min(args[2], args[0])));
         registerFunction("dot", 6, args -> args[0] * args[3] + args[1] * args[4] + args[2] * args[5]);
 
         // Dispatch events
-        dispatcher.dispatchEvent(new AnimationControllerFunctionRegistrationEvent(this::registerFunction));
+        bus.publish(new AnimationControllerFunctionRegistrationEvent(this::registerFunction)).now();
     }
 
     public void registerFunction(String name, int args, ToDoubleFunction<double[]> function) {

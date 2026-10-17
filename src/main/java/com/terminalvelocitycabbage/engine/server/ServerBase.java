@@ -40,16 +40,16 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
      * Starts this server program
      */
     public void start() {
-        registerEventListeners(eventDispatcher);
+        registerEventListeners(eventBus);
         ModLoader.loadAndRegisterMods(this, Side.SERVER, modRegistry);
-        eventDispatcher.dispatchEvent(new PacketRegistryEvent(getPacketRegistry()));
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server));
+        eventBus.publish(new PacketRegistryEvent(getPacketRegistry())).now();
+        eventBus.publish(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_INIT, server)).now();
         getInstance().init();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server));
+        eventBus.publish(new ServerLifecycleEvent(ServerLifecycleEvent.INIT, server)).now();
         getInstance().run();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPING, server));
+        eventBus.publish(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPING, server)).now();
         getInstance().destroy();
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPED, server));
+        eventBus.publish(new ServerLifecycleEvent(ServerLifecycleEvent.STOPPED, server)).now();
     }
 
     @Override
@@ -87,11 +87,11 @@ public abstract class ServerBase extends MainEntrypoint implements NetworkedSide
         getPacketRegistry().lock();
 
         //Establish connection
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_BIND, server));
+        eventBus.publish(new ServerLifecycleEvent(ServerLifecycleEvent.PRE_BIND, server)).now();
         bind();
 
         //Dispatch started event
-        eventDispatcher.dispatchEvent(new ServerLifecycleEvent(ServerLifecycleEvent.STARTED, server));
+        eventBus.publish(new ServerLifecycleEvent(ServerLifecycleEvent.STARTED, server)).now();
 
         //As long as the server should run we run it
         while (!shouldStop) {
